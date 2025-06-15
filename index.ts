@@ -2,7 +2,7 @@
 import * as readline from 'node:readline/promises'
 import {stdin, stdout} from 'node:process'
 
-import {read, evaluate, print} from './repl.ts'
+import {read, evaluate, print} from './lib/repl.ts'
 
 const PROMPT = "user> ";
 const rl = readline.createInterface({input: stdin, output: stdout});
