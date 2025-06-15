@@ -89,7 +89,7 @@ function tokenizeList(string: string, reader: Reader) {
 /**
  * Tokenizes a string returning a nested list of tokens
  */
-export function tokenize(string: string): (Token | Token[])[] {
+export function read(string: string): (Token | Token[])[] {
   string = string.trim()
   const reader = new Reader(string);
 

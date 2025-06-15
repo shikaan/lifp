@@ -2,7 +2,9 @@
 import * as readline from 'node:readline/promises'
 import {stdin, stdout} from 'node:process'
 
-import {read, evaluate, print} from './lib/repl.ts'
+import {read} from "./lib/read.ts";
+import {print} from "./lib/print.ts";
+
 
 const PROMPT = "user> ";
 const rl = readline.createInterface({input: stdin, output: stdout});
@@ -19,8 +21,8 @@ while (true) {
   const line = await rl.question(PROMPT);
   try {
     const ast = read(line);
-    evaluate(ast)
-    print(line);
+    // evaluate(ast)
+    print(ast);
   } catch (e) {
     stdout.write(`>> ${e}\n`)
   }

@@ -1,7 +1,7 @@
 import {test} from 'node:test'
 import * as assert from "node:assert";
 
-import {tokenize} from "./tokenize.ts";
+import {read} from "./read.ts";
 import type {AST} from './types.ts';
 import {Operator, TokenTag} from "./types.ts";
 
@@ -17,7 +17,7 @@ test('single item list', () => {
   ]
 
   for (const [input, expected, name] of testCases) {
-    const result = tokenize(input)
+    const result = read(input)
     assert.deepStrictEqual(result, expected, name)
   }
 })
@@ -30,7 +30,7 @@ test('multi-item lists', () => {
   ]
 
   for (const [input, expected, name] of testCases) {
-    const result = tokenize(input)
+    const result = read(input)
     assert.deepStrictEqual(result, expected, name)
   }
 })
@@ -64,13 +64,13 @@ test('tokenizes strings', () => {
   ]
 
   for (const [input, expected, name] of testCases) {
-    const result = tokenize(input)
+    const result = read(input)
     assert.deepStrictEqual(result, expected, name)
   }
 })
 
 test('tokenizes sub lists', () => {
-  const result = tokenize('(+ (1 2) (1))')
+  const result = read('(+ (1 2) (1))')
   assert.deepStrictEqual(result, [
     [TokenTag.OPERATOR, Operator.PLUS],
     [[TokenTag.NUMBER, 1], [TokenTag.NUMBER, 2]],
@@ -87,6 +87,6 @@ test('rejects invalid string', () => {
     '(not-an-operator 1 2)', // invalid operator
   ]
   for (const testCase of invalid) {
-    assert.throws(() => tokenize(testCase), `${testCase} did not fail`)
+    assert.throws(() => read(testCase), `${testCase} did not fail`)
   }
 })
