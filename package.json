@@ -1,9 +1,12 @@
 {
   "name": "lisp-node",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
-    "start": "node ."
+    "start": "bun ."
+  },
+  "engines": {
+    "bun": "1.2.13"
   },
   "keywords": [],
   "author": "",

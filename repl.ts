@@ -1,9 +1,5 @@
 //@ts-check
-import {tokenize} from "./tokenize.js";
-
-/**
- * @typedef {ReturnType<tokenize>} AST
- */
+import {tokenize} from "./tokenize.ts";
 
 /**
  * @param {string} line

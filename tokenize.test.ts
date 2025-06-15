@@ -1,14 +1,19 @@
 import {test} from 'node:test'
-import assert from "node:assert";
-import {Operator, tokenize, TokenType} from "./tokenize.js";
+import * as assert from "node:assert";
+
+import {tokenize} from "./tokenize.ts";
+import type {AST} from './types.ts';
+import {Operator, TokenTag} from "./types.ts";
+
+type TestCase = [string, AST, string];
 
 test('single item list', () => {
-  const testCases = [
-    ['(1)', [[TokenType.NUMBER, 1]], 'number'],
-    ['(1.23)', [[TokenType.NUMBER, 1.23]], 'float'],
-    ['(true)', [[TokenType.BOOLEAN, true]], 'boolean'],
-    ['("string")', [[TokenType.STRING, "string"]], 'string'],
-    ['(not)', [[TokenType.OPERATOR, Operator.NOT]], 'operator'],
+  const testCases: TestCase[] = [
+    ['(1)', [[TokenTag.NUMBER, 1]], 'number'],
+    ['(1.23)', [[TokenTag.NUMBER, 1.23]], 'float'],
+    ['(true)', [[TokenTag.BOOLEAN, true]], 'boolean'],
+    ['("string")', [[TokenTag.STRING, "string"]], 'string'],
+    ['(not)', [[TokenTag.OPERATOR, Operator.NOT]], 'operator'],
   ]
 
   for (const [input, expected, name] of testCases) {
@@ -18,10 +23,10 @@ test('single item list', () => {
 })
 
 test('multi-item lists', () => {
-  const testCases = [
-    ['(not 1)', [[TokenType.OPERATOR, Operator.NOT], [TokenType.NUMBER, 1]], 'unary operator'],
-    ['(+ 1 2)', [[TokenType.OPERATOR, Operator.PLUS], [TokenType.NUMBER, 1], [TokenType.NUMBER, 2]], 'binary operator'],
-    ['(1\n2\t3 4\r)', [[TokenType.NUMBER, 1], [TokenType.NUMBER, 2], [TokenType.NUMBER, 3], [TokenType.NUMBER, 4]], 'whitespaces'],
+  const testCases: TestCase[] = [
+    ['(not 1)', [[TokenTag.OPERATOR, Operator.NOT], [TokenTag.NUMBER, 1]], 'unary operator'],
+    ['(+ 1 2)', [[TokenTag.OPERATOR, Operator.PLUS], [TokenTag.NUMBER, 1], [TokenTag.NUMBER, 2]], 'binary operator'],
+    ['(1\n2\t3 4\r)', [[TokenTag.NUMBER, 1], [TokenTag.NUMBER, 2], [TokenTag.NUMBER, 3], [TokenTag.NUMBER, 4]], 'whitespaces'],
   ]
 
   for (const [input, expected, name] of testCases) {
@@ -31,28 +36,28 @@ test('multi-item lists', () => {
 })
 
 test('tokenizes strings', () => {
-  const testCases = [
+  const testCases: TestCase[] = [
     [
       '(+ "a" "b")',
       [
-        [TokenType.OPERATOR, Operator.PLUS],
-        [TokenType.STRING, "a"],
-        [TokenType.STRING, "b"]
+        [TokenTag.OPERATOR, Operator.PLUS],
+        [TokenTag.STRING, "a"],
+        [TokenTag.STRING, "b"]
       ],
       'single char with binary operator'
     ],
     [
       '("lol")',
       [
-        [TokenType.STRING, "lol"],
+        [TokenTag.STRING, "lol"],
       ],
       'multi-char list'
     ],
     [
       '("lol"\n\t "asdf")',
       [
-        [TokenType.STRING, "lol"],
-        [TokenType.STRING, "asdf"],
+        [TokenTag.STRING, "lol"],
+        [TokenTag.STRING, "asdf"],
       ],
       'multi-char list with whitespaces'
     ]
@@ -67,9 +72,9 @@ test('tokenizes strings', () => {
 test('tokenizes sub lists', () => {
   const result = tokenize('(+ (1 2) (1))')
   assert.deepStrictEqual(result, [
-    [TokenType.OPERATOR, Operator.PLUS],
-    [[TokenType.NUMBER, 1], [TokenType.NUMBER, 2]],
-    [[TokenType.NUMBER, 1]],
+    [TokenTag.OPERATOR, Operator.PLUS],
+    [[TokenTag.NUMBER, 1], [TokenTag.NUMBER, 2]],
+    [[TokenTag.NUMBER, 1]],
   ])
 })
 
