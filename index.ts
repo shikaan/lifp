@@ -5,22 +5,24 @@ import {stdin, stdout} from 'node:process'
 import {read, evaluate, print} from './repl.ts'
 
 const PROMPT = "user> ";
-const rl = await readline.createInterface({input: stdin, output: stdout});
+const rl = readline.createInterface({input: stdin, output: stdout});
 
 process.on('beforeExit', () => {
-  console.log('beforeExit')
   rl.close();
 });
 
-process.on('exit', () => {
-  console.log('exit')
-  rl.close();
-})
+process.on('SIGKILL', () => process.exit(1))
+process.on('SIGABRT', () => process.exit(1))
+process.on('SIGTERM', () => process.exit(1))
 
 while (true) {
   const line = await rl.question(PROMPT);
-  const ast = read(line);
-  evaluate(ast)
-  print(line);
+  try {
+    const ast = read(line);
+    evaluate(ast)
+    print(line);
+  } catch (e) {
+    stdout.write(`>> ${e}\n`)
+  }
 }
 

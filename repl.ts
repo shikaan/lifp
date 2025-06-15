@@ -1,28 +1,17 @@
 //@ts-check
 import {tokenize} from "./tokenize.ts";
+import type {AST} from "./types.ts";
 
-/**
- * @param {string} line
- * @returns {AST}
- */
-export function read(line) {
+export function read(line: string): AST {
   return tokenize(line);
 }
 
-/**
- * @param {AST} tree
- * @returns {string}
- */
-export function evaluate(tree) {
-  return tree;
+export function evaluate(tree: AST): string {
+  return '';
 }
 
-/**
- * @param {string} line
- * @returns {string}
- */
-export function print(line) {
-  return line;
+export function print(line: string) {
+  console.log(line)
 }
 
 
