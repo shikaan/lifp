@@ -1,13 +1,13 @@
 export const TokenTag = {
-	NUMBER: "number",
-	STRING: "string",
-	BOOLEAN: "boolean",
-	OPERATOR: "operator",
+  NUMBER: "number",
+  STRING: "string",
+  BOOLEAN: "boolean",
+  OPERATOR: "operator",
 } as const;
 
 export const Operator = {
-	NOT: "not",
-	PLUS: "+",
+  NOT: "not",
+  PLUS: "+",
 } as const;
 
 export type TokenTagType = (typeof TokenTag)[keyof typeof TokenTag];
