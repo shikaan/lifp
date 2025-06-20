@@ -1,20 +1,26 @@
 {
-  "name": "lisp-node",
-  "version": "1.0.0",
-  "main": "index.ts",
-  "scripts": {
-    "start": "bun .",
-    "build": "bun build . --compile --outfile build/lisp"
-  },
-  "engines": {
-    "bun": "1.2.13"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "type": "module",
-  "devDependencies": {
-    "@types/node": "^22.15.31"
-  }
+	"name": "lisp-node",
+	"version": "1.0.0",
+	"main": "index.ts",
+	"scripts": {
+		"start": "bun .",
+		"build": "bun build . --compile --outfile build/lisp"
+	},
+	"engines": {
+		"bun": "1.2.13"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"description": "",
+	"type": "module",
+	"devDependencies": {
+		"@biomejs/biome": "2.0.2",
+		"@types/node": "^22.15.31",
+		"@types/bun": "latest"
+	},
+	"private": true,
+	"peerDependencies": {
+		"typescript": "^5"
+	}
 }
