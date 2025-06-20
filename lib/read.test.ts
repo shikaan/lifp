@@ -1,5 +1,4 @@
-import { test } from "node:test";
-import * as assert from "node:assert";
+import { test, expect } from "bun:test";
 
 import { read } from "./read.ts";
 import type { AST } from "./types.ts";
@@ -17,8 +16,7 @@ test("single item list", () => {
   ];
 
   for (const [input, expected, name] of testCases) {
-    const result = read(input);
-    assert.deepStrictEqual(result, expected, name);
+    expect(read(input), name).toEqual(expected);
   }
 });
 
@@ -54,8 +52,7 @@ test("multi-item lists", () => {
   ];
 
   for (const [input, expected, name] of testCases) {
-    const result = read(input);
-    assert.deepStrictEqual(result, expected, name);
+    expect(read(input), name).toEqual(expected);
   }
 });
 
@@ -83,14 +80,13 @@ test("tokenizes strings", () => {
   ];
 
   for (const [input, expected, name] of testCases) {
-    const result = read(input);
-    assert.deepStrictEqual(result, expected, name);
+    expect(read(input), name).toEqual(expected);
   }
 });
 
 test("tokenizes sub lists", () => {
   const result = read("(+ (1 2) (1))");
-  assert.deepStrictEqual(result, [
+  expect(result).toEqual([
     [TokenTag.OPERATOR, Operator.PLUS],
     [
       [TokenTag.NUMBER, 1],
@@ -109,6 +105,6 @@ test("rejects invalid string", () => {
     "(not-an-operator 1 2)", // invalid operator
   ];
   for (const testCase of invalid) {
-    assert.throws(() => read(testCase), `${testCase} did not fail`);
+    expect(() => read(testCase), `${testCase} did not fail`).toThrow();
   }
 });

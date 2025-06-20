@@ -1,7 +1,6 @@
-import { test } from "node:test";
+import { test, expect } from "bun:test";
 import { AST, Operator, TokenTag } from "./types.ts";
-import { format, print } from "./print.ts";
-import * as assert from "node:assert";
+import { format } from "./print.ts";
 
 type TestCase = [string, AST, string];
 
@@ -15,7 +14,7 @@ test("unary list", () => {
   ];
 
   for (const [expected, input, name] of tests) {
-    assert.deepStrictEqual(format(input), expected, name);
+    expect(format(input), name).toEqual(expected);
   }
 });
 
@@ -51,6 +50,6 @@ test("multi-item list", () => {
   ];
 
   for (const [expected, input, name] of tests) {
-    assert.deepStrictEqual(expected, format(input), name);
+    expect(format(input), name).toEqual(expected);
   }
 });

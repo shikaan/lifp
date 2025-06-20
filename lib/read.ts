@@ -1,4 +1,4 @@
-import type { OperatorType, Token } from "./types.ts";
+import type { AST, OperatorType, Token } from "./types.ts";
 import { TokenTag, OPERATORS } from "./types.ts";
 
 class UnexpectedTokenException extends Error {}
@@ -91,7 +91,7 @@ function tokenizeList(string: string, reader: Reader) {
 /**
  * Tokenizes a string returning a nested list of tokens
  */
-export function read(string: string): (Token | Token[])[] {
+export function read(string: string): AST {
   string = string.trim();
   const reader = new Reader(string);
 
