@@ -6,7 +6,8 @@
     "start": "bun .",
     "build": "bun build index.ts --compile --outfile build/lisp",
     "format": "bunx --bun biome format --write",
-    "lint": "bunx --bun biome format"
+    "lint": "bunx --bun biome format",
+    "postinstall": "mkdir -p .git/hooks && echo 'bun lint' > .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit"
   },
   "engines": {
     "bun": "1.2.13"
