@@ -4,7 +4,7 @@
   "main": "index.ts",
   "scripts": {
     "start": "bun .",
-    "build": "bun build . --compile --outfile build/lisp",
+    "build": "bun build index.ts --compile --outfile build/lisp",
     "format": "bunx --bun biome format --write",
     "lint": "bunx --bun biome format"
   },

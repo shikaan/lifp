@@ -1,11 +1,12 @@
 import * as readline from "node:readline/promises";
 import { stdin, stdout } from "node:process";
+import { userInfo } from 'node:os'
 
 import { read } from "./lib/read.ts";
 import { print } from "./lib/print.ts";
 import { evaluate } from "./lib/evaluate.ts";
 
-const PROMPT = "user> ";
+const PROMPT = `${userInfo().username}> `;
 const rl = readline.createInterface({ input: stdin, output: stdout });
 
 process.on("beforeExit", () => rl.close());
@@ -19,6 +20,6 @@ while (true) {
     const ast = read(line);
     print(evaluate(ast));
   } catch (e) {
-    stdout.write(`>> ${e}\n`);
+    stdout.write(`! ${e}\n`);
   }
 }

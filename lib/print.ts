@@ -1,5 +1,6 @@
 import { AST, TokenTag } from "./types.ts";
 import { isSubtree } from "./utils.ts";
+import { stdout } from "node:process";
 
 export function format(list: AST): string {
   let outputBuffer = "(";
@@ -33,5 +34,5 @@ export function format(list: AST): string {
 }
 
 export function print(ast: AST) {
-  console.log(format(ast));
+  stdout.write(`~> ${format(ast)}\n`);
 }
