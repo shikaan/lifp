@@ -1,13 +1,12 @@
-//@ts-check
 import * as readline from "node:readline/promises";
-import {stdin, stdout} from "node:process";
+import { stdin, stdout } from "node:process";
 
-import {read} from "./lib/read.ts";
-import {print} from "./lib/print.ts";
-import {evaluate} from "./lib/evaluate.ts";
+import { read } from "./lib/read.ts";
+import { print } from "./lib/print.ts";
+import { evaluate } from "./lib/evaluate.ts";
 
 const PROMPT = "user> ";
-const rl = readline.createInterface({input: stdin, output: stdout});
+const rl = readline.createInterface({ input: stdin, output: stdout });
 
 process.on("beforeExit", () => rl.close());
 process.on("SIGKILL", () => process.exit(1));

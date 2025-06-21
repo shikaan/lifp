@@ -1,5 +1,5 @@
-import {AST, TokenTag} from "./types.ts";
-import {isSubtree} from "./utils.ts";
+import { AST, TokenTag } from "./types.ts";
+import { isSubtree } from "./utils.ts";
 
 export function format(list: AST): string {
   let outputBuffer = "(";
