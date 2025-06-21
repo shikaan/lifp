@@ -1,25 +1,15 @@
-import * as readline from "node:readline/promises";
-import { stdin, stdout } from "node:process";
-import { userInfo } from "node:os";
+import { stderr, stdin, stdout } from "node:process";
+import { createInterface } from "node:readline/promises";
+import { evaluate, format, print, read } from "./lib/index.ts";
 
-import { read } from "./lib/read.ts";
-import { print } from "./lib/print.ts";
-import { evaluate } from "./lib/evaluate.ts";
-
-const PROMPT = `${userInfo().username}> `;
-const rl = readline.createInterface({ input: stdin, output: stdout });
-
-process.on("beforeExit", () => rl.close());
-process.on("SIGKILL", () => process.exit(1));
-process.on("SIGABRT", () => process.exit(1));
-process.on("SIGTERM", () => process.exit(1));
+const rl = createInterface({ input: stdin, output: stdout });
 
 while (true) {
-  const line = await rl.question(PROMPT);
   try {
-    const ast = read(line);
-    print(evaluate(ast));
+    const line = await rl.question(format.prompt());
+    const output = print(evaluate(read(line), ""));
+    stdout.write(format.output(output));
   } catch (e) {
-    stdout.write(`! ${e}\n`);
+    stderr.write(format.error(e));
   }
 }
