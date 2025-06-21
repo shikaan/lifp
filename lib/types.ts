@@ -2,18 +2,24 @@ export const TokenTag = {
   NUMBER: "number",
   STRING: "string",
   BOOLEAN: "boolean",
-  OPERATOR: "operator",
+  SYMBOL: "symbol",
 } as const;
 
-export const Operator = {
-  NOT: "not",
+export const Symbol = {
+  NOT: "!",
   PLUS: "+",
+  MINUS: "-",
+  WILDCARD: "*",
+  SLASH: "/",
 } as const;
 
 export type TokenTagType = (typeof TokenTag)[keyof typeof TokenTag];
-export type OperatorType = (typeof Operator)[keyof typeof Operator];
-export type TokenType = OperatorType | boolean | string | number;
+export type SymbolType = (typeof Symbol)[keyof typeof Symbol];
+export type TokenType = SymbolType | boolean | string | number;
 export type Token<T = TokenType> = [TokenTagType, T];
 export type AST = (Token | AST)[];
 
-export const OPERATORS = Object.values(Operator);
+export const SYMBOLS = Object.values(Symbol);
+
+// type Callback = <T = TokenType>(...args: unknown[]) => Token<T>;
+// export type Environment = { [K in SymbolType]: Callback } | Record<string, Callback>

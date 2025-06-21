@@ -1,6 +1,5 @@
-import { AST, TokenTag } from "./types.ts";
-
-const isSubtree = (node: any): node is AST => Array.isArray(node[0]);
+import {AST, TokenTag} from "./types.ts";
+import {isSubtree} from "./utils.ts";
 
 export function format(list: AST): string {
   let outputBuffer = "(";
@@ -21,7 +20,7 @@ export function format(list: AST): string {
       case TokenTag.STRING:
         outputBuffer += `"${value}" `;
         break;
-      case TokenTag.OPERATOR:
+      case TokenTag.SYMBOL:
         outputBuffer += `${value} `;
         break;
       default:

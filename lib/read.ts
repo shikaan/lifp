@@ -1,9 +1,9 @@
-import type { AST, OperatorType, Token } from "./types.ts";
-import { TokenTag, OPERATORS } from "./types.ts";
+import type { AST, SymbolType, Token } from "./types.ts";
+import { TokenTag, SYMBOLS } from "./types.ts";
 
 class UnexpectedTokenException extends Error {}
 
-const isOperator = (s: any): s is OperatorType => OPERATORS.includes(s);
+const isOperator = (s: any): s is SymbolType => SYMBOLS.includes(s);
 const isWhitespace = (s: string) => /\s+/.test(s);
 
 class Reader {
@@ -32,7 +32,7 @@ class Reader {
 
 function parseRawToken(rawToken: string): Token {
   if (isOperator(rawToken)) {
-    return [TokenTag.OPERATOR, rawToken] as Token<OperatorType>;
+    return [TokenTag.SYMBOL, rawToken] as Token<SymbolType>;
   }
   if (["true", "false"].includes(rawToken)) {
     return [TokenTag.BOOLEAN, rawToken === "true"] as Token<boolean>;

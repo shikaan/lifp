@@ -2,7 +2,7 @@ import { test, expect } from "bun:test";
 
 import { read } from "./read.ts";
 import type { AST } from "./types.ts";
-import { Operator, TokenTag } from "./types.ts";
+import { Symbol, TokenTag } from "./types.ts";
 
 type TestCase = [string, AST, string];
 
@@ -12,7 +12,7 @@ test("single item list", () => {
     ["(1.23)", [[TokenTag.NUMBER, 1.23]], "float"],
     ["(true)", [[TokenTag.BOOLEAN, true]], "boolean"],
     ['("string")', [[TokenTag.STRING, "string"]], "string"],
-    ["(not)", [[TokenTag.OPERATOR, Operator.NOT]], "operator"],
+    ["(!)", [[TokenTag.SYMBOL, Symbol.NOT]], "operator"],
   ];
 
   for (const [input, expected, name] of testCases) {
@@ -23,9 +23,9 @@ test("single item list", () => {
 test("multi-item lists", () => {
   const testCases: TestCase[] = [
     [
-      "(not 1)",
+      "(! 1)",
       [
-        [TokenTag.OPERATOR, Operator.NOT],
+        [TokenTag.SYMBOL, Symbol.NOT],
         [TokenTag.NUMBER, 1],
       ],
       "unary operator",
@@ -33,7 +33,7 @@ test("multi-item lists", () => {
     [
       "(+ 1 2)",
       [
-        [TokenTag.OPERATOR, Operator.PLUS],
+        [TokenTag.SYMBOL, Symbol.PLUS],
         [TokenTag.NUMBER, 1],
         [TokenTag.NUMBER, 2],
       ],
@@ -61,7 +61,7 @@ test("tokenizes strings", () => {
     [
       '(+ "a" "b")',
       [
-        [TokenTag.OPERATOR, Operator.PLUS],
+        [TokenTag.SYMBOL, Symbol.PLUS],
         [TokenTag.STRING, "a"],
         [TokenTag.STRING, "b"],
       ],
@@ -87,7 +87,7 @@ test("tokenizes strings", () => {
 test("tokenizes sub lists", () => {
   const result = read("(+ (1 2) (1))");
   expect(result).toEqual([
-    [TokenTag.OPERATOR, Operator.PLUS],
+    [TokenTag.SYMBOL, Symbol.PLUS],
     [
       [TokenTag.NUMBER, 1],
       [TokenTag.NUMBER, 2],
@@ -100,7 +100,7 @@ test("rejects invalid string", () => {
   const invalid = [
     "(1 2))", // unmatched closed
     "((0)", // unmatched open
-    "not", // no parenthesis
+    "!", // no parenthesis
     "~test", // invalid chars,
     "(not-an-operator 1 2)", // invalid operator
   ];

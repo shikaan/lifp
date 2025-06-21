@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test";
-import { AST, Operator, TokenTag } from "./types.ts";
+import { AST, Symbol, TokenTag } from "./types.ts";
 import { format } from "./print.ts";
 
 type TestCase = [string, AST, string];
@@ -9,7 +9,7 @@ test("unary list", () => {
     ["(1)", [[TokenTag.NUMBER, 1]], "number"],
     ['("lol")', [[TokenTag.STRING, "lol"]], "string"],
     ["(true)", [[TokenTag.BOOLEAN, true]], "boolean"],
-    ["(not)", [[TokenTag.OPERATOR, Operator.NOT]], "operator"],
+    ["(!)", [[TokenTag.SYMBOL, Symbol.NOT]], "operator"],
     ['(("lol"))', [[[TokenTag.STRING, "lol"]]], "nested"],
   ];
 
@@ -23,7 +23,7 @@ test("multi-item list", () => {
     [
       "(+ 1 2)",
       [
-        [TokenTag.OPERATOR, Operator.PLUS],
+        [TokenTag.SYMBOL, Symbol.PLUS],
         [TokenTag.NUMBER, 1],
         [TokenTag.NUMBER, 2],
       ],
@@ -32,7 +32,7 @@ test("multi-item list", () => {
     [
       "(+ (1) 2)",
       [
-        [TokenTag.OPERATOR, Operator.PLUS],
+        [TokenTag.SYMBOL, Symbol.PLUS],
         [[TokenTag.NUMBER, 1]],
         [TokenTag.NUMBER, 2],
       ],
@@ -41,7 +41,7 @@ test("multi-item list", () => {
     [
       "(+ (1 (2)) 3)",
       [
-        [TokenTag.OPERATOR, Operator.PLUS],
+        [TokenTag.SYMBOL, Symbol.PLUS],
         [[TokenTag.NUMBER, 1], [[TokenTag.NUMBER, 2]]],
         [TokenTag.NUMBER, 3],
       ],
