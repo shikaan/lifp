@@ -20,6 +20,3 @@ export type Token<T = TokenType> = [TokenTagType, T];
 export type AST = (Token | AST)[];
 
 export const SYMBOLS = Object.values(Symbol);
-
-// type Callback = <T = TokenType>(...args: unknown[]) => Token<T>;
-// export type Environment = { [K in SymbolType]: Callback } | Record<string, Callback>

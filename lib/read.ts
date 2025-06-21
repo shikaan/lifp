@@ -1,7 +1,6 @@
-import type { AST, SymbolType, Token } from "./types.ts";
-import { TokenTag, SYMBOLS } from "./types.ts";
-
-class UnexpectedTokenException extends Error {}
+import type {AST, SymbolType, Token} from "./types.ts";
+import {TokenTag, SYMBOLS} from "./types.ts";
+import {UnexpectedTokenException} from "./errors.ts";
 
 const isOperator = (s: any): s is SymbolType => SYMBOLS.includes(s);
 const isWhitespace = (s: string) => /\s+/.test(s);
@@ -47,7 +46,7 @@ function parseRawToken(rawToken: string): Token {
   if (!Number.isNaN(parsed)) {
     return [TokenTag.NUMBER, parsed] as Token<number>;
   }
-  throw new UnexpectedTokenException(`Unable to read atom '${rawToken}'`);
+  throw new UnexpectedTokenException(rawToken);
 }
 
 function tokenizeList(string: string, reader: Reader) {
@@ -96,11 +95,11 @@ export function read(string: string): AST {
   const reader = new Reader(string);
 
   const first = reader.next();
-  if (first !== "(") throw new UnexpectedTokenException("Input must be a list");
+  if (first !== "(") throw new UnexpectedTokenException(first.toString(), "The input should be a list and start with \"(\".");
 
   const tokens = tokenizeList(string, reader);
   if (reader.nesting !== 0 || reader.peek() !== Reader.EOF) {
-    throw new UnexpectedTokenException("Invalid input");
+    throw new UnexpectedTokenException(")", "Parentheses are not balanced.");
   }
 
   return tokens;

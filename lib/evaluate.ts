@@ -4,15 +4,9 @@ import {
   SymbolType,
   Token,
   TokenTag,
-  TokenType,
 } from "./types.ts";
-import { isSubtree } from "./utils.ts";
-
-class InvalidArgumentException extends Error {}
-
-class UnrecognizedSymbolException extends Error {}
-
-class InvalidASTException extends Error {}
+import {isSubtree} from "./utils.ts";
+import {InvalidArgumentException, RoutineNotFound} from "./errors.ts";
 
 const areNumbers = (a: AST): a is Token<number>[] =>
   a.every((n) => typeof n[1] === "number");
@@ -22,12 +16,12 @@ export type Environment = { [K in SymbolType]: (ast: AST) => AST };
 const ENVIRONMENT: Environment = {
   [Symbol.PLUS]: (args: AST) => {
     if (!areNumbers(args) || args.length < 2)
-      throw new InvalidArgumentException();
+      throw new InvalidArgumentException(Symbol.PLUS);
     return [[TokenTag.NUMBER, args.reduce((sum, [, value]) => sum + value, 0)]];
   },
   [Symbol.MINUS]: (args: AST) => {
     if (!areNumbers(args) || args.length < 2)
-      throw new InvalidArgumentException();
+      throw new InvalidArgumentException(Symbol.MINUS);
     const [first, ...rest] = args;
     return [
       [
@@ -38,14 +32,14 @@ const ENVIRONMENT: Environment = {
   },
   [Symbol.WILDCARD]: (args: AST) => {
     if (!areNumbers(args) || args.length < 2)
-      throw new InvalidArgumentException();
+      throw new InvalidArgumentException(Symbol.WILDCARD);
     return [
       [TokenTag.NUMBER, args.reduce((prod, [, value]) => prod * value, 1)],
     ];
   },
   [Symbol.SLASH]: (args: AST) => {
     if (!areNumbers(args) || args.length < 2)
-      throw new InvalidArgumentException();
+      throw new InvalidArgumentException(Symbol.SLASH);
     const [first, ...rest] = args;
     return [
       [
@@ -56,7 +50,7 @@ const ENVIRONMENT: Environment = {
   },
   [Symbol.NOT]: (args: AST) => {
     if (args.length !== 1 || typeof args[0][1] !== "boolean")
-      throw new InvalidArgumentException();
+      throw new InvalidArgumentException(Symbol.NOT);
     return [[TokenTag.BOOLEAN, !args[0]]];
   },
 };
@@ -73,7 +67,7 @@ export const evaluate = (ast: AST): AST => {
     routine = ENVIRONMENT[rootValue as string];
 
     if (!routine) {
-      throw new InvalidArgumentException();
+      throw new RoutineNotFound(rootValue);
     }
   }
 
