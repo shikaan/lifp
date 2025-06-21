@@ -1,12 +1,6 @@
-import {
-  AST,
-  Symbol,
-  SymbolType,
-  Token,
-  TokenTag,
-} from "./types.ts";
-import {isSubtree} from "./utils.ts";
-import {InvalidArgumentException, RoutineNotFound} from "./errors.ts";
+import { AST, Symbol, SymbolType, Token, TokenTag } from "./types.ts";
+import { isSubtree } from "./utils.ts";
+import { InvalidArgumentException, RoutineNotFound } from "./errors.ts";
 
 const areNumbers = (a: AST): a is Token<number>[] =>
   a.every((n) => typeof n[1] === "number");

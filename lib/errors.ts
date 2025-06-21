@@ -1,7 +1,7 @@
 export class UnexpectedTokenException extends Error {
   constructor(token: string, message?: string) {
     super("UnexpectedTokenException");
-    this.message = `"${token}" was not expected in this context. ${message ?? 'Check syntax reference for more details.'}`;
+    this.message = `"${token}" was not expected in this context. ${message ?? "Check syntax reference for more details."}`;
   }
 }
 

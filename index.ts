@@ -1,6 +1,6 @@
 import * as readline from "node:readline/promises";
 import { stdin, stdout } from "node:process";
-import { userInfo } from 'node:os'
+import { userInfo } from "node:os";
 
 import { read } from "./lib/read.ts";
 import { print } from "./lib/print.ts";

@@ -1,6 +1,6 @@
-import type {AST, SymbolType, Token} from "./types.ts";
-import {TokenTag, SYMBOLS} from "./types.ts";
-import {UnexpectedTokenException} from "./errors.ts";
+import type { AST, SymbolType, Token } from "./types.ts";
+import { TokenTag, SYMBOLS } from "./types.ts";
+import { UnexpectedTokenException } from "./errors.ts";
 
 const isOperator = (s: any): s is SymbolType => SYMBOLS.includes(s);
 const isWhitespace = (s: string) => /\s+/.test(s);
@@ -95,7 +95,11 @@ export function read(string: string): AST {
   const reader = new Reader(string);
 
   const first = reader.next();
-  if (first !== "(") throw new UnexpectedTokenException(first.toString(), "The input should be a list and start with \"(\".");
+  if (first !== "(")
+    throw new UnexpectedTokenException(
+      first.toString(),
+      'The input should be a list and start with "(".',
+    );
 
   const tokens = tokenizeList(string, reader);
   if (reader.nesting !== 0 || reader.peek() !== Reader.EOF) {
