@@ -26,6 +26,9 @@ jobs:
 
       - name: Test
         run: bun test
+
+      - name: Lint
+        run: bun lint
       
       - name: Create build directory
         run: mkdir -p build

@@ -5,7 +5,8 @@
   "scripts": {
     "start": "bun .",
     "build": "bun build . --compile --outfile build/lisp",
-    "format": "bunx --bun biome format --write "
+    "format": "bunx --bun biome format --write",
+    "lint": "bunx --bun biome format"
   },
   "engines": {
     "bun": "1.2.13"
