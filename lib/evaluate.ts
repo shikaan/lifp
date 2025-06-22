@@ -1,4 +1,4 @@
-import type { AbstractSyntaxTree, Environment, Expression } from "./types.ts";
+import type { AbstractSyntaxTree, Environment, Expression } from "./types.js";
 
 export const evaluate = (
   tree: AbstractSyntaxTree,

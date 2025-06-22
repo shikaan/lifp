@@ -1,3 +1,3 @@
-import type { AbstractSyntaxTree } from "./types.ts";
+import type { AbstractSyntaxTree } from "./types.js";
 
 export const read = (line: string): AbstractSyntaxTree => line;

@@ -1,4 +1,4 @@
-export { evaluate } from "./evaluate.ts";
-export { format } from "./format.ts";
-export { print } from "./print.ts";
-export { read } from "./read.ts";
+export { evaluate } from "./evaluate.js";
+export { format } from "./format.js";
+export { print } from "./print.js";
+export { read } from "./read.js";
