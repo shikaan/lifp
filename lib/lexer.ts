@@ -4,7 +4,7 @@ import { type Token, TokenType } from "./types.js";
 export const tokenize = (line: string): Token[] => {
   line = line.trim();
   const rex =
-    /((?<paren>[()])|(?<token>["'].+["']|[a-zA-Z0-9$%^&*+<>.\-_]+[!?]?)|(?<com>;\s*.*))\s*/gy;
+    /((?<paren>[()])|(?<token>["'].+["']|:?[a-zA-Z0-9$%^&*+<>.\-_]+[!?]?)|(?<com>;\s*.*))\s*/gy;
 
   const result: Token[] = [];
 
