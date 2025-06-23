@@ -1,5 +1,9 @@
+import { LPAREN, RPAREN, STRING_DELIMITER } from "./constants.js";
 import { SyntaxException } from "./errors.js";
 import { type Token, TokenType } from "./types.js";
+
+const isStringLiteral = (s: string) =>
+  s.startsWith(STRING_DELIMITER) && s.endsWith(STRING_DELIMITER);
 
 export const tokenize = (line: string): Token[] => {
   line = line.trim();
@@ -29,11 +33,11 @@ export const tokenize = (line: string): Token[] => {
       continue;
     }
 
-    if (paren === "(") {
+    if (paren === LPAREN) {
       result.push({ type: TokenType.LPAREN, literal: "(" });
-    } else if (paren === ")") {
+    } else if (paren === RPAREN) {
       result.push({ type: TokenType.RPAREN, literal: ")" });
-    } else if (token.startsWith('"') || token.startsWith("'")) {
+    } else if (isStringLiteral(token)) {
       result.push({
         type: TokenType.STRING,
         literal: token.slice(1, token.length - 1),
