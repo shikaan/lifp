@@ -112,6 +112,20 @@ test("complex expressions", () => {
         EOF,
       ],
     ],
+    [
+      '(concat "hel" ("l" "o"))',
+      [
+        LPAREN,
+        t(TokenType.SYMBOL, "concat"),
+        t(TokenType.STRING, "hel"),
+        LPAREN,
+        t(TokenType.STRING, "l"),
+        t(TokenType.STRING, "o"),
+        RPAREN,
+        RPAREN,
+        EOF,
+      ],
+    ],
   ];
 
   for (const [input, expected] of tests) {

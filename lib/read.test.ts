@@ -1,0 +1,93 @@
+import { expect, test } from "bun:test";
+import { read } from "./read.js";
+import { type ASTNode, type ASTNodeList, ASTNodeType } from "./types.js";
+
+const n = (type: ASTNodeType, value: unknown): ASTNode =>
+  ({ type, value }) as ASTNode;
+
+const l = (elements: unknown[]): ASTNodeList =>
+  n(ASTNodeType.LIST, elements) as ASTNodeList;
+
+test("reads atoms", () => {
+  const tests: [string, ASTNode][] = [
+    ["1", n(ASTNodeType.NUMBER, 1)],
+    ["true", n(ASTNodeType.BOOLEAN, true)],
+    ["false", n(ASTNodeType.BOOLEAN, false)],
+    ['"lol"', n(ASTNodeType.STRING, "lol")],
+    [":key", n(ASTNodeType.KEYWORD, ":key")],
+    ["add-one", n(ASTNodeType.SYMBOL, "add-one")],
+    ["nil", n(ASTNodeType.NIL, null)],
+  ];
+
+  for (const [input, expected] of tests) {
+    expect(read(input), input).toEqual(expected);
+  }
+});
+
+test("reads unary lists", () => {
+  const tests: [string, ASTNode][] = [
+    ["(1)", l([n(ASTNodeType.NUMBER, 1)])],
+    ["(true)", l([n(ASTNodeType.BOOLEAN, true)])],
+    ['("true")', l([n(ASTNodeType.STRING, "true")])],
+    ["(:key)", l([n(ASTNodeType.KEYWORD, ":key")])],
+    ["(nil)", l([n(ASTNodeType.NIL, null)])],
+  ];
+
+  for (const [input, expected] of tests) {
+    expect(read(input), input).toEqual(expected);
+  }
+});
+
+test("reads empty list", () => {
+  expect(read("()")).toEqual(n(ASTNodeType.LIST, []));
+});
+
+test("reads complex lists", () => {
+  const tests: [string, ASTNode][] = [
+    [
+      "(add 1 2)",
+      l([
+        n(ASTNodeType.SYMBOL, "add"),
+        n(ASTNodeType.NUMBER, 1),
+        n(ASTNodeType.NUMBER, 2),
+      ]),
+    ],
+    [
+      "(def! a 2)",
+      l([
+        n(ASTNodeType.SYMBOL, "def!"),
+        n(ASTNodeType.SYMBOL, "a"),
+        n(ASTNodeType.NUMBER, 2),
+      ]),
+    ],
+    [
+      '(concat "hel" ("l" "o"))',
+      l([
+        n(ASTNodeType.SYMBOL, "concat"),
+        n(ASTNodeType.STRING, "hel"),
+        l([n(ASTNodeType.STRING, "l"), n(ASTNodeType.STRING, "o")]),
+      ]),
+    ],
+    [
+      '(:key 1 (nil "l"))',
+      l([
+        n(ASTNodeType.KEYWORD, ":key"),
+        n(ASTNodeType.NUMBER, 1),
+        l([n(ASTNodeType.NIL, null), n(ASTNodeType.STRING, "l")]),
+      ]),
+    ],
+    [
+      "(add 1 (1 2) (3 (4)))",
+      l([
+        n(ASTNodeType.SYMBOL, "add"),
+        n(ASTNodeType.NUMBER, 1),
+        l([n(ASTNodeType.NUMBER, 1), n(ASTNodeType.NUMBER, 2)]),
+        l([n(ASTNodeType.NUMBER, 3), l([n(ASTNodeType.NUMBER, 4)])]),
+      ]),
+    ],
+  ];
+
+  for (const [input, expected] of tests) {
+    expect(read(input), input).toEqual(expected);
+  }
+});
