@@ -1,12 +1,18 @@
 #!/bin/bash
-set -e
+filter="*.ts"
+files=$(git diff --cached --name-only --diff-filter=ACM -- "$filter")
 
-files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.ts')
+echo "formatting staged files"
+if [ -z "$files" ]; then
+  echo "  ! no file matches '$filter'"
+  echo "formatting staged files - done"
+  exit 0
+fi
 
 for file in $files; do
   [ -f "$file" ] || continue # skip deleted files
 
-  echo "checking - $file"
+  echo "  $file"
   # backup local copy
   backup=$(mktemp)
   cp "$file" "$backup"
@@ -21,4 +27,6 @@ for file in $files; do
   # restore and cleanup
   cp "$backup" "$file"
   rm "$backup"
+  echo "  $file - done"
 done
+echo "formatting staged files - done"

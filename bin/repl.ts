@@ -1,6 +1,6 @@
 import { stderr, stdin, stdout } from "node:process";
 import { createInterface } from "node:readline/promises";
-import { evaluate, format, print, read } from "./lib/index.js";
+import { evaluate, format, print, read } from "../lib/index.js";
 
 const rl = createInterface({ input: stdin, output: stdout });
 
