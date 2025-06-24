@@ -43,6 +43,7 @@ test("symbols", () => {
     ["(add-1)", [LPAREN, t(TokenType.SYMBOL, "add-1"), RPAREN, EOF]],
     ["(1-dos)", [LPAREN, t(TokenType.SYMBOL, "1-dos"), RPAREN, EOF]],
     ["(:keyword)", [LPAREN, t(TokenType.SYMBOL, ":keyword"), RPAREN, EOF]],
+    ["(/)", [LPAREN, t(TokenType.SYMBOL, "/"), RPAREN, EOF]],
   ];
 
   for (const [input, expected] of tests) {
