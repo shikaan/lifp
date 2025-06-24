@@ -22,7 +22,7 @@ for file in $files; do
 
   # format
   bun format -- "$file"
-  git add $file
+  git add "$file"
 
   # restore and cleanup
   cp "$backup" "$file"
