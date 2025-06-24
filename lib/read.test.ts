@@ -1,12 +1,7 @@
 import { expect, test } from "bun:test";
+import { l, n } from "../tests/utils.js";
 import { read } from "./read.js";
-import { type ASTNode, type ASTNodeList, ASTNodeType } from "./types.js";
-
-const n = (type: ASTNodeType, value: unknown): ASTNode =>
-  ({ type, value }) as ASTNode;
-
-const l = (elements: unknown[]): ASTNodeList =>
-  n(ASTNodeType.LIST, elements) as ASTNodeList;
+import { type ASTNode, ASTNodeType } from "./types.js";
 
 test("reads atoms", () => {
   const tests: [string, ASTNode][] = [

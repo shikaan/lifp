@@ -1,5 +1,7 @@
-export type Environment = string;
-export type Expression = string;
+import { KEYWORD_PREFIX } from "./constants.ts";
+
+export type Environment = never;
+export type Expression = AbstractSyntaxTree;
 
 export enum ASTNodeType {
   LIST,
@@ -11,6 +13,10 @@ export enum ASTNodeType {
   KEYWORD,
 }
 
+export type Keyword = `${typeof KEYWORD_PREFIX}${string}`;
+export const isKeyword = (s: string): s is Keyword =>
+  s.startsWith(KEYWORD_PREFIX);
+
 export type ASTNodeList = { type: ASTNodeType.LIST; value: ASTNode[] };
 
 export type ASTNode =
@@ -20,7 +26,7 @@ export type ASTNode =
   | { type: ASTNodeType.NIL; value: null }
   | { type: ASTNodeType.STRING; value: string }
   | { type: ASTNodeType.SYMBOL; value: string }
-  | { type: ASTNodeType.KEYWORD; value: string };
+  | { type: ASTNodeType.KEYWORD; value: Keyword };
 
 export type AbstractSyntaxTree = ASTNode;
 

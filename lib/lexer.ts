@@ -8,7 +8,8 @@ const isStringLiteral = (s: string) =>
 export const tokenize = (line: string): Token[] => {
   line = line.trim();
   const rex =
-    /((?<paren>[()])|(?<token>"(?:[^"\\]|\\.)*"|:?[a-zA-Z0-9$%^&*+<>.\-_]+[!?]?)|(?<com>;\s*.*))\s*/gy;
+    // /((?<paren>[()])|(?<token>".+"|:?[a-zA-Z0-9$%^&*+<>.\-_]+[!?]?)|(?<com>;\s*.*))\s*/gy;
+    /((?<paren>[()])|(?<token>"(?:[^\\"]|\\.)*"|:?[a-zA-Z0-9$%^&*+<>.\-_]+[!?]?)|(?<com>;\s*.*))\s*/g;
 
   const result: Token[] = [];
 
@@ -21,8 +22,8 @@ export const tokenize = (line: string): Token[] => {
   while (execArray !== null) {
     // Check if we skipped any characters
     if (execArray.index > lastIndex) {
-      const skippedContent = line.substring(lastIndex, execArray.index);
-      throw new SyntaxException(`Unexpected character(s): "${skippedContent}"`);
+      const skipped = line.substring(lastIndex, execArray.index);
+      throw new SyntaxException(`Unexpected character(s): "${skipped}"`);
     }
 
     const { groups } = execArray;
@@ -34,13 +35,14 @@ export const tokenize = (line: string): Token[] => {
     }
 
     if (paren === LPAREN) {
-      result.push({ type: TokenType.LPAREN, literal: "(" });
+      result.push({ type: TokenType.LPAREN, literal: LPAREN });
     } else if (paren === RPAREN) {
-      result.push({ type: TokenType.RPAREN, literal: ")" });
+      result.push({ type: TokenType.RPAREN, literal: RPAREN });
     } else if (isStringLiteral(token)) {
+      const unescaped = token.replaceAll('\\"', '"');
       result.push({
         type: TokenType.STRING,
-        literal: token.slice(1, token.length - 1),
+        literal: unescaped.slice(1, unescaped.length - 1),
       });
     } else {
       const isNumber = /^-?\d+(\.\d+)?$/.test(token);

@@ -1,9 +1,8 @@
 import { expect, test } from "bun:test";
+import { t } from "../tests/utils.js";
 import { tokenize } from "./lexer.js";
 import { type Token, TokenType } from "./types.js";
 
-const t = (type: TokenType, literal?: string | number): Token =>
-  ({ type, literal }) as Token;
 const LPAREN = t(TokenType.LPAREN, "(");
 const RPAREN = t(TokenType.RPAREN, ")");
 const EOF = t(TokenType.EOF);
@@ -54,12 +53,22 @@ test("symbols", () => {
 test("strings", () => {
   const tests: [string, Token[]][] = [
     ['("true")', [LPAREN, t(TokenType.STRING, "true"), RPAREN, EOF]],
-    ['("t\"rue")', [LPAREN, t(TokenType.STRING, 't"rue'), RPAREN, EOF]],
+    [`("t\\"rue")`, [LPAREN, t(TokenType.STRING, 't"rue'), RPAREN, EOF]],
+    [
+      `("t\\"r" "u e")`,
+      [
+        LPAREN,
+        t(TokenType.STRING, 't"r'),
+        t(TokenType.STRING, "u e"),
+        RPAREN,
+        EOF,
+      ],
+    ],
     ['("1")', [LPAREN, t(TokenType.STRING, "1"), RPAREN, EOF]],
   ];
 
   for (const [input, expected] of tests) {
-    expect(tokenize(input)).toEqual(expected);
+    expect(tokenize(input), input).toEqual(expected);
   }
 });
 
