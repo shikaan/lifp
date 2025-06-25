@@ -54,9 +54,4 @@ export type Token =
   | { type: TokenType.RPAREN; literal: ")" }
   | { type: TokenType.EOF };
 
-type Reduction = (nodes: ASTNode[]) => ASTNode;
-
-export type Environment = {
-  functions: Record<string, Reduction>;
-  variables: Record<string, ASTNode>;
-};
+export type Reduction = (nodes: ASTNode[]) => ASTNode;
