@@ -26,6 +26,7 @@ for file in $files; do
 
   # restore and cleanup
   cp "$backup" "$file"
+  bun format -- "$file" # format local version too, but don't stage it
   rm "$backup"
   echo "  $file - done"
 done
