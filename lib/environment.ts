@@ -98,6 +98,8 @@ export const defaultEnvironment: Environment = {
     "!=": (nodes) => compareFunction(nodes, "!=", (a, b) => a !== b),
     "<=": (nodes) => compareFunction(nodes, "<=", (a, b) => a <= b),
     ">=": (nodes) => compareFunction(nodes, ">=", (a, b) => a >= b),
+    and: (nodes) => compareFunction(nodes, "and", (a, b) => !!(a && b)),
+    or: (nodes) => compareFunction(nodes, "or", (a, b) => !!(a || b)),
   },
   variables: {},
 };
