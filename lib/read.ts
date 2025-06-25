@@ -1,110 +1,94 @@
-import type { AST, SymbolType, Token } from "./types.ts";
-import { TokenTag, SYMBOLS } from "./types.ts";
-import { UnexpectedTokenException } from "./errors.ts";
+import { FALSE, KEYWORD_PREFIX, NIL, TRUE } from "./constants.js";
+import { SyntaxException } from "./errors.js";
+import { tokenize } from "./lexer.js";
+import {
+  type AbstractSyntaxTree,
+  type ASTNode,
+  type ASTNodeList,
+  ASTNodeType,
+  type AtomToken,
+  isAtomToken,
+  isKeyword,
+  type Token,
+  TokenType,
+} from "./types.js";
 
-const isOperator = (s: any): s is SymbolType => SYMBOLS.includes(s);
-const isWhitespace = (s: string) => /\s+/.test(s);
+const parseAtom = (token: AtomToken): ASTNode => {
+  switch (token.type) {
+    case TokenType.NUMBER:
+      return { type: ASTNodeType.NUMBER, value: token.literal };
+    case TokenType.STRING:
+      return { type: ASTNodeType.STRING, value: token.literal };
+    case TokenType.SYMBOL: {
+      if (isKeyword(token.literal)) {
+        return { type: ASTNodeType.KEYWORD, value: token.literal };
+      }
+      if ([TRUE, FALSE].includes(token.literal)) {
+        return { type: ASTNodeType.BOOLEAN, value: token.literal === TRUE };
+      }
 
-class Reader {
-  public static EOF = Symbol("EOF");
-  public nesting = 1;
+      if (token.literal === NIL) {
+        return { type: ASTNodeType.NIL, value: null };
+      }
 
-  private position = 0;
-  private readonly stream: string;
+      return { type: ASTNodeType.SYMBOL, value: token.literal };
+    }
+  }
+};
 
-  constructor(string: string) {
-    this.stream = string;
+const parseList = (
+  tokens: Token[],
+  reader: { depth: number; index: number },
+): ASTNodeList => {
+  if (tokens.length <= 2 || tokens[reader.index].type !== TokenType.LPAREN) {
+    throw new SyntaxException("Invalid list");
   }
 
-  next(stride = 1): string | symbol {
-    if (this.position >= this.stream.length) return Reader.EOF;
-    const char = this.stream[this.position];
-    this.position += stride;
-    return char;
-  }
+  const result: ASTNodeList = { type: ASTNodeType.LIST, value: [] };
 
-  peek(): string | symbol {
-    if (this.position >= this.stream.length) return Reader.EOF;
-    return this.stream[this.position];
-  }
-}
-
-function parseRawToken(rawToken: string): Token {
-  if (isOperator(rawToken)) {
-    return [TokenTag.SYMBOL, rawToken] as Token<SymbolType>;
-  }
-  if (["true", "false"].includes(rawToken)) {
-    return [TokenTag.BOOLEAN, rawToken === "true"] as Token<boolean>;
-  }
-  if (rawToken.startsWith('"') && rawToken.endsWith('"')) {
-    return [
-      TokenTag.STRING,
-      rawToken.slice(1, rawToken.length - 1),
-    ] as Token<string>;
-  }
-  const parsed = Number.parseFloat(rawToken);
-  if (!Number.isNaN(parsed)) {
-    return [TokenTag.NUMBER, parsed] as Token<number>;
-  }
-  throw new UnexpectedTokenException(rawToken);
-}
-
-function tokenizeList(string: string, reader: Reader) {
-  const tokens = [];
-  let currentToken = "";
-
-  while (reader.peek() !== Reader.EOF) {
-    const char = reader.next() as string; // if it wasn't a string, we'd be out
-    if (char === "(") {
-      reader.nesting++;
-      const token = tokenizeList(string, reader);
-      tokens.push(token);
+  reader.index++;
+  reader.depth++;
+  for (; reader.index < tokens.length; reader.index++) {
+    const token = tokens[reader.index];
+    if (token.type === TokenType.LPAREN) {
+      result.value.push(parseList(tokens, reader));
       continue;
     }
 
-    if (char === ")") {
-      reader.nesting--;
+    if (token.type === TokenType.RPAREN) {
+      reader.depth--;
       break;
     }
 
-    if (isWhitespace(char)) {
-      if (currentToken !== "") {
-        const token = parseRawToken(currentToken);
-        tokens.push(token);
-        currentToken = "";
-      }
-      continue;
+    if (token.type === TokenType.EOF) {
+      reader.depth--;
+      break;
     }
 
-    currentToken += char;
+    result.value.push(parseAtom(token));
   }
 
-  if (currentToken !== "") {
-    const token = parseRawToken(currentToken);
-    tokens.push(token);
+  return result;
+};
+
+export const read = (line: string): AbstractSyntaxTree => {
+  const tokens = tokenize(line);
+
+  if (tokens.length === 0) return { type: ASTNodeType.NIL, value: null };
+
+  const reader = { depth: 0, index: 0 };
+  const first = tokens[0];
+
+  if (first.type === TokenType.LPAREN) {
+    const result = parseList(tokens, reader);
+    if (reader.depth !== 0)
+      throw new SyntaxException("Unbalanced parentheses.");
+    return result;
   }
 
-  return tokens;
-}
+  // This can only be a single atom plus an end of file, else it's a mistake
+  if (tokens.length !== 2 || !isAtomToken(first))
+    throw new SyntaxException(`Invalid tokens ${line}.`);
 
-/**
- * Tokenizes a string returning a nested list of tokens
- */
-export function read(string: string): AST {
-  string = string.trim();
-  const reader = new Reader(string);
-
-  const first = reader.next();
-  if (first !== "(")
-    throw new UnexpectedTokenException(
-      first.toString(),
-      'The input should be a list and start with "(".',
-    );
-
-  const tokens = tokenizeList(string, reader);
-  if (reader.nesting !== 0 || reader.peek() !== Reader.EOF) {
-    throw new UnexpectedTokenException(")", "Parentheses are not balanced.");
-  }
-
-  return tokens;
-}
+  return parseAtom(first);
+};

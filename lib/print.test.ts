@@ -1,55 +1,39 @@
-import { test, expect } from "bun:test";
-import { AST, Symbol, TokenTag } from "./types.ts";
-import { format } from "./print.ts";
+import { expect, test } from "bun:test";
+import { l, n } from "../tests/utils.js";
+import { print } from "./print.js";
+import { ASTNodeType, type Expression } from "./types.js";
 
-type TestCase = [string, AST, string];
-
-test("unary list", () => {
-  const tests: TestCase[] = [
-    ["(1)", [[TokenTag.NUMBER, 1]], "number"],
-    ['("lol")', [[TokenTag.STRING, "lol"]], "string"],
-    ["(true)", [[TokenTag.BOOLEAN, true]], "boolean"],
-    ["(!)", [[TokenTag.SYMBOL, Symbol.NOT]], "operator"],
-    ['(("lol"))', [[[TokenTag.STRING, "lol"]]], "nested"],
+test("atoms", () => {
+  const tests: [Expression, string][] = [
+    [n(ASTNodeType.NIL, null), "nil"],
+    [n(ASTNodeType.NUMBER, 1), "1"],
+    [n(ASTNodeType.SYMBOL, "asd"), "asd"],
+    [n(ASTNodeType.STRING, "asd"), '"asd"'],
+    [n(ASTNodeType.KEYWORD, ":asd"), ":asd"],
+    [n(ASTNodeType.BOOLEAN, true), "true"],
   ];
 
-  for (const [expected, input, name] of tests) {
-    expect(format(input), name).toEqual(expected);
+  for (const [input, expected] of tests) {
+    expect(print(input), expected).toEqual(expected);
   }
 });
 
-test("multi-item list", () => {
-  const tests: TestCase[] = [
+test("lists", () => {
+  const tests: [Expression, string][] = [
+    [l([n(ASTNodeType.NIL, null)]), "(nil)"],
     [
-      "(+ 1 2)",
-      [
-        [TokenTag.SYMBOL, Symbol.PLUS],
-        [TokenTag.NUMBER, 1],
-        [TokenTag.NUMBER, 2],
-      ],
-      "binary operator",
+      l([
+        n(ASTNodeType.NIL, null),
+        n(ASTNodeType.NUMBER, 1),
+        n(ASTNodeType.BOOLEAN, true),
+        n(ASTNodeType.KEYWORD, ":lol"),
+      ]),
+      "(nil 1 true :lol)",
     ],
-    [
-      "(+ (1) 2)",
-      [
-        [TokenTag.SYMBOL, Symbol.PLUS],
-        [[TokenTag.NUMBER, 1]],
-        [TokenTag.NUMBER, 2],
-      ],
-      "binary operator nested list",
-    ],
-    [
-      "(+ (1 (2)) 3)",
-      [
-        [TokenTag.SYMBOL, Symbol.PLUS],
-        [[TokenTag.NUMBER, 1], [[TokenTag.NUMBER, 2]]],
-        [TokenTag.NUMBER, 3],
-      ],
-      "binary operator nested list",
-    ],
+    [l([n(ASTNodeType.NIL, null), l([n(ASTNodeType.NUMBER, 1)])]), "(nil (1))"],
   ];
 
-  for (const [expected, input, name] of tests) {
-    expect(format(input), name).toEqual(expected);
+  for (const [input, expected] of tests) {
+    expect(print(input), expected).toEqual(expected);
   }
 });

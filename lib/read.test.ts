@@ -1,110 +1,88 @@
-import { test, expect } from "bun:test";
+import { expect, test } from "bun:test";
+import { l, n } from "../tests/utils.js";
+import { read } from "./read.js";
+import { type ASTNode, ASTNodeType } from "./types.js";
 
-import { read } from "./read.ts";
-import type { AST } from "./types.ts";
-import { Symbol, TokenTag } from "./types.ts";
-
-type TestCase = [string, AST, string];
-
-test("single item list", () => {
-  const testCases: TestCase[] = [
-    ["(1)", [[TokenTag.NUMBER, 1]], "number"],
-    ["(1.23)", [[TokenTag.NUMBER, 1.23]], "float"],
-    ["(true)", [[TokenTag.BOOLEAN, true]], "boolean"],
-    ['("string")', [[TokenTag.STRING, "string"]], "string"],
-    ["(!)", [[TokenTag.SYMBOL, Symbol.NOT]], "operator"],
+test("reads atoms", () => {
+  const tests: [string, ASTNode][] = [
+    ["1", n(ASTNodeType.NUMBER, 1)],
+    ["true", n(ASTNodeType.BOOLEAN, true)],
+    ["false", n(ASTNodeType.BOOLEAN, false)],
+    ['"lol"', n(ASTNodeType.STRING, "lol")],
+    [":key", n(ASTNodeType.KEYWORD, ":key")],
+    ["add-one", n(ASTNodeType.SYMBOL, "add-one")],
+    ["nil", n(ASTNodeType.NIL, null)],
   ];
 
-  for (const [input, expected, name] of testCases) {
-    expect(read(input), name).toEqual(expected);
+  for (const [input, expected] of tests) {
+    expect(read(input), input).toEqual(expected);
   }
 });
 
-test("multi-item lists", () => {
-  const testCases: TestCase[] = [
-    [
-      "(! 1)",
-      [
-        [TokenTag.SYMBOL, Symbol.NOT],
-        [TokenTag.NUMBER, 1],
-      ],
-      "unary operator",
-    ],
-    [
-      "(+ 1 2)",
-      [
-        [TokenTag.SYMBOL, Symbol.PLUS],
-        [TokenTag.NUMBER, 1],
-        [TokenTag.NUMBER, 2],
-      ],
-      "binary operator",
-    ],
-    [
-      "(1\n2\t3 4\r)",
-      [
-        [TokenTag.NUMBER, 1],
-        [TokenTag.NUMBER, 2],
-        [TokenTag.NUMBER, 3],
-        [TokenTag.NUMBER, 4],
-      ],
-      "whitespaces",
-    ],
+test("reads unary lists", () => {
+  const tests: [string, ASTNode][] = [
+    ["(1)", l([n(ASTNodeType.NUMBER, 1)])],
+    ["(true)", l([n(ASTNodeType.BOOLEAN, true)])],
+    ['("true")', l([n(ASTNodeType.STRING, "true")])],
+    ["(:key)", l([n(ASTNodeType.KEYWORD, ":key")])],
+    ["(nil)", l([n(ASTNodeType.NIL, null)])],
   ];
 
-  for (const [input, expected, name] of testCases) {
-    expect(read(input), name).toEqual(expected);
+  for (const [input, expected] of tests) {
+    expect(read(input), input).toEqual(expected);
   }
 });
 
-test("tokenizes strings", () => {
-  const testCases: TestCase[] = [
-    [
-      '(+ "a" "b")',
-      [
-        [TokenTag.SYMBOL, Symbol.PLUS],
-        [TokenTag.STRING, "a"],
-        [TokenTag.STRING, "b"],
-      ],
-      "single char with binary operator",
-    ],
-    ['("lol")', [[TokenTag.STRING, "lol"]], "multi-char list"],
-    [
-      '("lol"\n\t "asdf")',
-      [
-        [TokenTag.STRING, "lol"],
-        [TokenTag.STRING, "asdf"],
-      ],
-      "multi-char list with whitespaces",
-    ],
-    ['("lol\"lol")', [[TokenTag.STRING, `lol"lol`]], "with escape chars"],
-  ];
-
-  for (const [input, expected, name] of testCases) {
-    expect(read(input), name).toEqual(expected);
-  }
+test("reads empty list", () => {
+  expect(read("()")).toEqual(n(ASTNodeType.LIST, []));
 });
 
-test("tokenizes sub lists", () => {
-  const result = read("(+ (1 2) (1))");
-  expect(result).toEqual([
-    [TokenTag.SYMBOL, Symbol.PLUS],
+test("reads complex lists", () => {
+  const tests: [string, ASTNode][] = [
     [
-      [TokenTag.NUMBER, 1],
-      [TokenTag.NUMBER, 2],
+      "(add 1 2)",
+      l([
+        n(ASTNodeType.SYMBOL, "add"),
+        n(ASTNodeType.NUMBER, 1),
+        n(ASTNodeType.NUMBER, 2),
+      ]),
     ],
-    [[TokenTag.NUMBER, 1]],
-  ]);
-});
-
-test("rejects invalid string", () => {
-  const invalid = [
-    "(1 2))", // unmatched closed
-    "((0)", // unmatched open
-    "!", // no parenthesis
-    "~test", // invalid chars,
-    "(not-an-operator 1 2)", // invalid operator
+    [
+      "(def! a 2)",
+      l([
+        n(ASTNodeType.SYMBOL, "def!"),
+        n(ASTNodeType.SYMBOL, "a"),
+        n(ASTNodeType.NUMBER, 2),
+      ]),
+    ],
+    [
+      '(concat "hel" ("l" "o"))',
+      l([
+        n(ASTNodeType.SYMBOL, "concat"),
+        n(ASTNodeType.STRING, "hel"),
+        l([n(ASTNodeType.STRING, "l"), n(ASTNodeType.STRING, "o")]),
+      ]),
+    ],
+    [
+      '(:key 1 (nil "l"))',
+      l([
+        n(ASTNodeType.KEYWORD, ":key"),
+        n(ASTNodeType.NUMBER, 1),
+        l([n(ASTNodeType.NIL, null), n(ASTNodeType.STRING, "l")]),
+      ]),
+    ],
+    [
+      "(add 1 (1 2) (3 (4)))",
+      l([
+        n(ASTNodeType.SYMBOL, "add"),
+        n(ASTNodeType.NUMBER, 1),
+        l([n(ASTNodeType.NUMBER, 1), n(ASTNodeType.NUMBER, 2)]),
+        l([n(ASTNodeType.NUMBER, 3), l([n(ASTNodeType.NUMBER, 4)])]),
+      ]),
+    ],
   ];
-  for (const testCase of invalid) {
-    expect(() => read(testCase), `${testCase} did not fail`).toThrow();
+
+  for (const [input, expected] of tests) {
+    expect(read(input), input).toEqual(expected);
   }
 });

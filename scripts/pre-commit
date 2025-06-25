@@ -1,0 +1,33 @@
+#!/bin/bash
+filter="*.ts"
+files=$(git diff --cached --name-only --diff-filter=ACM -- "$filter")
+
+echo "formatting staged files"
+if [ -z "$files" ]; then
+  echo "  ! no file matches '$filter'"
+  echo "formatting staged files - done"
+  exit 0
+fi
+
+for file in $files; do
+  [ -f "$file" ] || continue # skip deleted files
+
+  echo "  $file"
+  # backup local copy
+  backup=$(mktemp)
+  cp "$file" "$backup"
+
+  # restore file from staged
+  git show ":$file" > "$file"
+
+  # format
+  bun format -- "$file"
+  git add "$file"
+
+  # restore and cleanup
+  cp "$backup" "$file"
+  bun format -- "$file" # format local version too, but don't stage it
+  rm "$backup"
+  echo "  $file - done"
+done
+echo "formatting staged files - done"

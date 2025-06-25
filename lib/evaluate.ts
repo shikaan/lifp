@@ -1,79 +1,116 @@
-import { AST, Symbol, SymbolType, Token, TokenTag } from "./types.ts";
-import { isSubtree } from "./utils.ts";
-import { InvalidArgumentException, RoutineNotFound } from "./errors.ts";
+import { DEFINE, LET } from "./constants.js";
+import { Environment } from "./environment.js";
+import { InvalidArgumentException, SymbolNotFoundException } from "./errors.js";
+import {
+  type AbstractSyntaxTree,
+  type ASTNodeList,
+  ASTNodeType,
+  type Expression,
+  isListNode,
+} from "./types.js";
 
-const areNumbers = (a: AST): a is Token<number>[] =>
-  a.every((n) => typeof n[1] === "number");
+const handleDefine = (list: ASTNodeList, environment: Environment) => {
+  if (list.value.length !== 3 || list.value[1].type !== ASTNodeType.KEYWORD) {
+    throw new InvalidArgumentException(
+      `'def!' requires a keyword and a form only. Example: (def! :a 123)`,
+    );
+  }
 
-export type Environment = { [K in SymbolType]: (ast: AST) => AST };
-
-const ENVIRONMENT: Environment = {
-  [Symbol.PLUS]: (args: AST) => {
-    if (!areNumbers(args) || args.length < 2)
-      throw new InvalidArgumentException(Symbol.PLUS);
-    return [[TokenTag.NUMBER, args.reduce((sum, [, value]) => sum + value, 0)]];
-  },
-  [Symbol.MINUS]: (args: AST) => {
-    if (!areNumbers(args) || args.length < 2)
-      throw new InvalidArgumentException(Symbol.MINUS);
-    const [first, ...rest] = args;
-    return [
-      [
-        TokenTag.NUMBER,
-        rest.reduce((diff, [, value]) => diff - value, first[1]),
-      ],
-    ];
-  },
-  [Symbol.WILDCARD]: (args: AST) => {
-    if (!areNumbers(args) || args.length < 2)
-      throw new InvalidArgumentException(Symbol.WILDCARD);
-    return [
-      [TokenTag.NUMBER, args.reduce((prod, [, value]) => prod * value, 1)],
-    ];
-  },
-  [Symbol.SLASH]: (args: AST) => {
-    if (!areNumbers(args) || args.length < 2)
-      throw new InvalidArgumentException(Symbol.SLASH);
-    const [first, ...rest] = args;
-    return [
-      [
-        TokenTag.NUMBER,
-        rest.reduce((prod, [, value]) => prod / value, first[1]),
-      ],
-    ];
-  },
-  [Symbol.NOT]: (args: AST) => {
-    if (args.length !== 1 || typeof args[0][1] !== "boolean")
-      throw new InvalidArgumentException(Symbol.NOT);
-    return [[TokenTag.BOOLEAN, !args[0]]];
-  },
+  const [_, symbol, form] = list.value;
+  environment.setVariable(symbol.value.slice(1), evaluate(form, environment));
+  return { type: ASTNodeType.NIL, value: null };
 };
 
-const isRoutine = (a: unknown): a is Token<SymbolType> =>
-  a[0] === TokenTag.SYMBOL;
-
-export const evaluate = (ast: AST): AST => {
-  let argsTobeReduced = ast,
-    routine: (ast: AST) => AST = null;
-  if (isRoutine(ast[0])) {
-    const [, rootValue] = ast[0];
-    argsTobeReduced = ast.slice(1);
-    routine = ENVIRONMENT[rootValue as string];
-
-    if (!routine) {
-      throw new RoutineNotFound(rootValue);
-    }
+const handleLet = (list: ASTNodeList, environment: Environment) => {
+  if (list.value.length !== 3 || !isListNode(list.value[1])) {
+    throw new InvalidArgumentException(
+      `'let*' requires a list of assignments. Example: (let* ((:a 12) (:b 34)) (other-form))`,
+    );
   }
 
-  const result = [];
-  for (const node of argsTobeReduced) {
-    if (isSubtree(node)) {
-      result.push(...evaluate(node));
-      continue;
-    }
+  const [_, assignments, form] = list.value;
+  const innerEnvironment = new Environment(environment);
 
-    result.push(node);
+  for (const pair of assignments.value) {
+    if (!isListNode(pair) || pair.value[0].type !== ASTNodeType.KEYWORD) {
+      throw new InvalidArgumentException(
+        `'let*' requires a list of assignments. Example: (let* ((:a 12) (:b 34)) (other-form))`,
+      );
+    }
+    const [symbol, form] = pair.value;
+    innerEnvironment.setVariable(
+      symbol.value.slice(1),
+      evaluate(form, innerEnvironment),
+    );
   }
 
-  return routine?.(result) ?? result;
+  return evaluate(form, innerEnvironment);
+};
+
+const handleFunctionOrVariable = (
+  tree: ASTNodeList,
+  environment: Environment,
+  firstNode: {
+    type: ASTNodeType.SYMBOL;
+    value: string;
+  },
+) => {
+  const fn = environment.getFunction(firstNode.value);
+  if (fn) {
+    const args = tree.value
+      .slice(1)
+      .map((subtree) => evaluate(subtree, environment));
+
+    return fn(args);
+  }
+
+  const val = environment.getVariable(firstNode.value);
+  if (val) return val;
+
+  throw new SymbolNotFoundException(
+    `Symbol '${firstNode.value}' cannot be found in the current environment.`,
+  );
+};
+
+export const evaluate = (
+  tree: AbstractSyntaxTree,
+  environment: Environment,
+): Expression => {
+  if (!isListNode(tree)) {
+    if (tree.type === ASTNodeType.SYMBOL) {
+      const fn = environment.getFunction(tree.value);
+      if (fn) return tree;
+
+      const val = environment.getVariable(tree.value);
+      if (val) return val;
+
+      throw new SymbolNotFoundException(
+        `Symbol '${tree.value}' cannot be found in the current environment.`,
+      );
+    }
+
+    return tree;
+  }
+
+  if (tree.value.length === 0) {
+    return tree;
+  }
+
+  const firstNode = tree.value[0];
+  if (firstNode.type === ASTNodeType.SYMBOL) {
+    if (firstNode.value === DEFINE) {
+      return handleDefine(tree, environment);
+    }
+
+    if (firstNode.value === LET) {
+      return handleLet(tree, environment);
+    }
+
+    return handleFunctionOrVariable(tree, environment, firstNode);
+  }
+
+  return {
+    type: ASTNodeType.LIST,
+    value: tree.value.map((subtree) => evaluate(subtree, environment)),
+  };
 };

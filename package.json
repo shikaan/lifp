@@ -1,21 +1,21 @@
 {
   "name": "lisp-node",
-  "version": "1.0.0",
-  "main": "index.ts",
+  "version": "0.0.1-alpha.1",
+  "main": "bin/repl.ts",
   "scripts": {
     "start": "bun .",
-    "build": "bun build index.ts --compile --outfile build/lisp",
+    "build": "bun build bin/repl.ts --compile --outfile build/lisp",
     "format": "bunx --bun biome format --write",
     "lint": "bunx --bun biome format",
-    "postinstall": "mkdir -p .git/hooks && echo 'bun lint' > .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit"
+    "postinstall": "mkdir -p .git/hooks && cp ./scripts/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit"
   },
   "engines": {
     "bun": "1.2.13"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "author": "Manuel Spagnolo",
+  "license": "MIT",
+  "description": "A single binary lisp iterpreter",
   "type": "module",
   "devDependencies": {
     "@biomejs/biome": "2.0.2",
