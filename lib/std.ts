@@ -52,7 +52,7 @@ const subtractOrDivide = (
     const node = nodes[i];
     if (node.type !== ASTNodeType.NUMBER) {
       throw new InvalidArgumentException(
-        `Function '${name}' takes only numbers as argument. Got '${nodes[0].value}'.`,
+        `Function '${name}' takes only numbers as argument. Got '${node.value}'.`,
       );
     }
     value = cb(value, node.value);
