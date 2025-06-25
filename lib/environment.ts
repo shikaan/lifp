@@ -30,6 +30,31 @@ const mathFunction = (
   };
 };
 
+const compareFunction = (
+  nodes: ASTNode[],
+  name: string,
+  callback: <T>(a: T, b: T) => boolean,
+): ASTNode => {
+  if (nodes.length !== 2) {
+    throw new InvalidArgumentException(
+      `Function '${name}' requires 2 arguments. Got ${nodes.length}`,
+    );
+  }
+
+  const [first, second] = nodes;
+
+  if (first.type !== second.type) {
+    throw new InvalidArgumentException(
+      `Cannot compare arguments of different type`,
+    );
+  }
+
+  return {
+    type: ASTNodeType.BOOLEAN,
+    value: callback(first.value, second.value),
+  };
+};
+
 export const defaultEnvironment: Environment = {
   functions: {
     "+": (nodes) => mathFunction(nodes, "+", (a, b) => a + b),
@@ -67,6 +92,12 @@ export const defaultEnvironment: Environment = {
         value,
       };
     },
+    "=": (nodes) => compareFunction(nodes, "=", (a, b) => a === b),
+    "<": (nodes) => compareFunction(nodes, "<", (a, b) => a < b),
+    ">": (nodes) => compareFunction(nodes, ">", (a, b) => a > b),
+    "!=": (nodes) => compareFunction(nodes, "!=", (a, b) => a !== b),
+    "<=": (nodes) => compareFunction(nodes, "<=", (a, b) => a <= b),
+    ">=": (nodes) => compareFunction(nodes, ">=", (a, b) => a >= b),
   },
   variables: {},
 };
