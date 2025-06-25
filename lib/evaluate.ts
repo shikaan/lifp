@@ -40,7 +40,7 @@ const handleLet = (list: ASTNodeList, environment: Environment) => {
     const [symbol, form] = pair.value;
     innerEnvironment.setVariable(
       symbol.value.slice(1),
-      evaluate(form, environment),
+      evaluate(form, innerEnvironment),
     );
   }
 
