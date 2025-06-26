@@ -1,42 +1,63 @@
-lisp.js
----
+<p align="center">
+  <img width="96" height="96" src="./docs/logo.png" alt="logo">
+</p>
 
-A JavaScript lisp interpreter bundled in a single binary
+<h1 align="center">lifp</h1>
 
-## Warning!
+<p align="center">
+A Lisp dialect and toolchain. All in one binary.
+</p>
 
-This is very young and highly unstable. Don't take it too seriously.
+## Quick start
 
-## Binaries
+### Installation
 
-Pre-built binaries are available for the following platforms:
+_MacOS and Linux_
+```sh
+sudo sh -c "curl -s https://shikaan.github.io/sup/install | REPO=shikaan/lifp sh -"
+```
 
-- macOS (Intel and Apple Silicon)
-- Linux (x64 and ARM64)
-- Windows (x64)
+or
 
-You can download the latest binaries from the [Releases](https://github.com/shikaan/lisp-node/releases) page.
+```sh
+sudo sh -c "wget -q https://shikaan.github.io/sup/install -O- | REPO=shikaan/lifp sh -"
+```
 
-## Building from Source
+_Windows and manual instructions_
+
+Head to the [releases](https://github.com/shikaan/lifp/releases) page and download the executable for your system and architecture.
+
+### Usage
+
+> [!WARNING]  
+> This is very young and highly unstable. Don't take it too seriously.
+
+Launch the executable to start the REPL 
+```shell
+lifp
+```
+
+## Development
 
 To build the project from source, you need [Bun](https://bun.sh/) installed.
 
 ```bash
 # Clone the repository
-git clone https://github.com/shikaan/lisp-node.git
-cd lisp-node
+git clone https://github.com/shikaan/lifp.git
+cd lifp
 
-# Install dependencies
+# Install dependencies and pre-commit hooks
 bun install
 
-# Build for your current platform
+# Run locally
+bun start
+
+# Build a development version for the current platform
 bun run build
 ```
 
 The binary will be created in the `build` directory.
 
-## CI/CD
+## License
 
-This project uses GitHub Actions to automatically build binaries for multiple platforms using Bun's cross-compiler. The workflow runs on every push to the main branch, pull request to main, and when a new release is created.
-
-When a release is created, the binaries are automatically attached to the release.
+[MIT](./LICENSE)

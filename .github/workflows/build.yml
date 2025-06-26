@@ -15,15 +15,15 @@ jobs:
       matrix:
         build:
           - target: bun-darwin-x64
-            outfile: lisp-darwin-amd64
+            outfile: lifp-darwin-amd64
           - target: bun-darwin-arm64
-            outfile: lisp-darwin-arm64
+            outfile: lifp-darwin-arm64
           - target: bun-linux-x64
-            outfile: lisp-linux-amd64
+            outfile: lifp-linux-amd64
           - target: bun-linux-arm64
-            outfile: lisp-linux-arm64
+            outfile: lifp-linux-arm64
           - target: bun-windows-x64-modern
-            outfile: lisp-windows-amd64.exe
+            outfile: lifp-windows-amd64.exe
     
     steps:
       - name: Checkout code
@@ -76,8 +76,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            build/lisp-darwin-amd64
-            build/lisp-darwin-arm64
-            build/lisp-linux-amd64
-            build/lisp-linux-arm64
-            build/lisp-windows-amd64.exe
+            build/lifp-darwin-amd64
+            build/lifp-darwin-arm64
+            build/lifp-linux-amd64
+            build/lifp-linux-arm64
+            build/lifp-windows-amd64.exe

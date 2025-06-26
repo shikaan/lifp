@@ -2,7 +2,7 @@
   "lockfileVersion": 1,
   "workspaces": {
     "": {
-      "name": "lisp-node",
+      "name": "lifp",
       "devDependencies": {
         "@biomejs/biome": "2.0.2",
         "@types/bun": "latest",
