@@ -1,5 +1,7 @@
 import { InvalidArgumentException } from "./errors.js";
-import { ASTNodeType, type Expression, type Lambda } from "./types.js";
+import { ASTNode, ASTNodeType, type Expression, type Lambda } from "./types.js";
+import { print } from "./print.js";
+import { evaluate } from "./evaluate.js";
 
 const addOrMultiply = (
   nodes: Expression[],
@@ -9,7 +11,7 @@ const addOrMultiply = (
 ): Expression => {
   if (nodes.length < 2) {
     throw new InvalidArgumentException(
-      `Function '${name}' requires at least 2 arguments. Got ${nodes.length}.`,
+      `'${name}' requires at least 2 arguments. Got ${nodes.length}.`,
     );
   }
 
@@ -17,7 +19,7 @@ const addOrMultiply = (
   for (const node of nodes) {
     if (node.type !== ASTNodeType.NUMBER) {
       throw new InvalidArgumentException(
-        `Function '${name}' takes only numbers as argument. Got '${node.value}'.`,
+        `'${name}' takes only numbers as argument. Got '${node.value}'.`,
       );
     }
 
@@ -37,13 +39,13 @@ const subtractOrDivide = (
 ): Expression => {
   if (nodes.length < 2) {
     throw new InvalidArgumentException(
-      `Function '${name}' requires at least 2 arguments. Got ${nodes.length}.`,
+      `'${name}' requires at least 2 arguments. Got ${nodes.length}.`,
     );
   }
 
   if (nodes[0].type !== ASTNodeType.NUMBER) {
     throw new InvalidArgumentException(
-      `Function '${name}' takes only numbers as argument. Got '${nodes[0].value}'.`,
+      `'${name}' takes only numbers as argument. Got '${nodes[0].value}'.`,
     );
   }
 
@@ -52,7 +54,7 @@ const subtractOrDivide = (
     const node = nodes[i];
     if (node.type !== ASTNodeType.NUMBER) {
       throw new InvalidArgumentException(
-        `Function '${name}' takes only numbers as argument. Got '${node.value}'.`,
+        `'${name}' takes only numbers as argument. Got '${node.value}'.`,
       );
     }
     value = cb(value, node.value);
@@ -71,7 +73,7 @@ const compareFunction = (
 ): Expression => {
   if (nodes.length !== 2) {
     throw new InvalidArgumentException(
-      `Function '${name}' requires 2 arguments. Got ${nodes.length}`,
+      `'${name}' requires 2 arguments. Got ${nodes.length}`,
     );
   }
 
@@ -89,6 +91,26 @@ const compareFunction = (
   };
 };
 
+const ioWriteFunction = (
+  nodes: Expression[],
+  name: string,
+  stream: NodeJS.WriteStream,
+  suffix = "",
+) => {
+  if (nodes.length !== 1) {
+    throw new InvalidArgumentException(
+      `'${name}' requires one argument. Got ${nodes.length}`,
+    );
+  }
+
+  stream.write(print(nodes[0]) + suffix);
+
+  return {
+    type: ASTNodeType.NIL,
+    value: null,
+  };
+};
+
 export const std: Record<string, Lambda> = {
   "+": (nodes) => addOrMultiply(nodes, "+", (a, b) => a + b),
   "-": (nodes) => subtractOrDivide(nodes, "-", (a, b) => a - b),
@@ -102,4 +124,26 @@ export const std: Record<string, Lambda> = {
   ">=": (nodes) => compareFunction(nodes, ">=", (a, b) => a >= b),
   and: (nodes) => compareFunction(nodes, "and", (a, b) => !!(a && b)),
   or: (nodes) => compareFunction(nodes, "or", (a, b) => !!(a || b)),
+  "io.stdout": (nodes) => ioWriteFunction(nodes, "io.stdout", process.stdout),
+  "io.stderr": (nodes) => ioWriteFunction(nodes, "io.stderr", process.stderr),
+  printf: (nodes, environment) => {
+    if (
+      nodes.length !== 2 ||
+      nodes[0].type !== ASTNodeType.STRING ||
+      nodes[1].type !== ASTNodeType.LIST
+    ) {
+      throw new InvalidArgumentException(
+        `'printf' requires a format string, and a list of arguments. Example: (printf "hello %s" ("world"))`,
+      );
+    }
+    const [format, values] = nodes;
+    const resolved = values.value.map(
+      (v: ASTNode) => evaluate(v, environment).value,
+    );
+    console.log(format.value, ...resolved);
+    return {
+      type: ASTNodeType.NIL,
+      value: null,
+    };
+  },
 };
