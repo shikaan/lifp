@@ -1,5 +1,5 @@
 import { InvalidArgumentException } from "./errors.js";
-import { ASTNodeType, type Expression, type Reduction } from "./types.js";
+import { ASTNodeType, type Expression, type Lambda } from "./types.js";
 
 const addOrMultiply = (
   nodes: Expression[],
@@ -89,7 +89,7 @@ const compareFunction = (
   };
 };
 
-export const std: Record<string, Reduction> = {
+export const std: Record<string, Lambda> = {
   "+": (nodes) => addOrMultiply(nodes, "+", (a, b) => a + b),
   "-": (nodes) => subtractOrDivide(nodes, "-", (a, b) => a - b),
   "*": (nodes) => addOrMultiply(nodes, "*", (a, b) => a * b, 1),
