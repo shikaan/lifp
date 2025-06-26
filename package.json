@@ -1,9 +1,8 @@
 {
-  "name": "lisp-node",
-  "version": "0.0.1-alpha.1",
+  "name": "lifp",
   "main": "bin/repl.ts",
   "scripts": {
-    "start": "bun .",
+    "start": "bun --define __VERSION__=\"'development'\" .",
     "build": "bun build bin/repl.ts --compile --outfile build/lisp",
     "format": "bunx --bun biome format --write",
     "lint": "bunx --bun biome format",
@@ -12,10 +11,8 @@
   "engines": {
     "bun": "1.2.13"
   },
-  "keywords": [],
   "author": "Manuel Spagnolo",
   "license": "MIT",
-  "description": "A single binary lisp iterpreter",
   "type": "module",
   "devDependencies": {
     "@biomejs/biome": "2.0.2",
