@@ -9,13 +9,13 @@ import {
 import { Environment } from "./environment.js";
 import { InvalidArgumentException } from "./errors.js";
 import { evaluate } from "./evaluate.js";
-import { DEF, FN, LET } from "./constants.js";
+import { DEF, FN, IF, LET } from "./constants.js";
 
 export const specials: Record<SpecialFormType, SpecialFormHandler> = {
   [DEF]: (nodes, environment) => {
     if (nodes.length !== 3 || nodes[1].type !== ASTNodeType.KEYWORD) {
       throw new InvalidArgumentException(
-        `'def!' requires a keyword and a form only. Example: (def! :a 123)`,
+        `'${DEF}' requires a keyword and a form only. Example: (${DEF} :a 123)`,
       );
     }
 
@@ -26,14 +26,14 @@ export const specials: Record<SpecialFormType, SpecialFormHandler> = {
   [FN]: (nodes, environment) => {
     if (nodes.length !== 3) {
       throw new InvalidArgumentException(
-        `'fn*' requires a binding list and a form. Example: (fn* (a b) (+ a b))`,
+        `'${FN}' requires a binding list and a form. Example: (${FN} (a b) (+ a b))`,
       );
     }
 
     const [, bindings, form] = nodes;
     if (!isListNode(bindings) || bindings.value.some((n) => !isSymbol(n))) {
       throw new InvalidArgumentException(
-        `'fn*' requires a binding list and a form. Example: (fn* (a b) (+ a b))`,
+        `'${FN}' requires a binding list and a form. Example: (${FN} (a b) (+ a b))`,
       );
     }
 
@@ -51,7 +51,7 @@ export const specials: Record<SpecialFormType, SpecialFormHandler> = {
   [LET]: (list, environment) => {
     if (list.length !== 3 || !isListNode(list[1])) {
       throw new InvalidArgumentException(
-        `'let*' requires a list of assignments. Example: (let* ((:a 12) (:b 34)) (other-form))`,
+        `'${LET}' requires a list of assignments. Example: (${LET} ((:a 12) (:b 34)) (other-form))`,
       );
     }
 
@@ -61,7 +61,7 @@ export const specials: Record<SpecialFormType, SpecialFormHandler> = {
     for (const pair of assignments.value) {
       if (!isListNode(pair) || pair.value[0].type !== ASTNodeType.KEYWORD) {
         throw new InvalidArgumentException(
-          `'let*' requires a list of assignments. Example: (let* ((:a 12) (:b 34)) (other-form))`,
+          `'${LET}' requires a list of assignments. Example: (${LET} ((:a 12) (:b 34)) (other-form))`,
         );
       }
       const [sym, form] = pair.value;
@@ -72,5 +72,35 @@ export const specials: Record<SpecialFormType, SpecialFormHandler> = {
     }
 
     return evaluate(form, innerEnvironment);
+  },
+  [IF]: (list, environment) => {
+    if (list.length < 3 || list.length > 4) {
+      throw new InvalidArgumentException(
+        `'${IF}' requires a condition, a then branch, and on optional else branch.\nExamples: (${IF} (= 1 2) (1) (+ 1 2)) (${IF} (= 1 2) (1))`,
+      );
+    }
+
+    const [, condition, thenBranch, elseBranch] = list;
+
+    const resolved = evaluate(condition, environment);
+
+    if (resolved.type !== ASTNodeType.BOOLEAN) {
+      throw new InvalidArgumentException(
+        `Condition must resolve to a boolean.`,
+      );
+    }
+
+    if (resolved.value) {
+      return evaluate(thenBranch, environment);
+    }
+
+    if (elseBranch) {
+      return evaluate(elseBranch, environment);
+    }
+
+    return {
+      type: ASTNodeType.NIL,
+      value: null,
+    };
   },
 };

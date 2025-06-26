@@ -5,6 +5,7 @@ import {
   DEF,
   FN,
   LET,
+  IF,
 } from "./constants.ts";
 import type { Environment } from "./environment.js";
 
@@ -75,7 +76,7 @@ export type Lambda = (
   environment?: Environment,
 ) => Expression;
 
-export type SpecialFormType = typeof DEF | typeof FN | typeof LET;
+export type SpecialFormType = typeof DEF | typeof FN | typeof LET | typeof IF;
 export type SpecialFormHandler = (
   nodes: ASTNode[],
   environment: Environment,

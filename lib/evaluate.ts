@@ -5,6 +5,7 @@ import {
   ASTNodeType,
   type Expression,
   isListNode,
+  SpecialFormHandler,
 } from "./types.js";
 import { specials } from "./specials.js";
 
@@ -39,7 +40,8 @@ export const evaluate = (
 
   const firstNode = tree.value[0];
   if (firstNode.type === ASTNodeType.SYMBOL) {
-    const specialForm = specials[firstNode.value];
+    const specialForm: SpecialFormHandler | undefined =
+      specials[firstNode.value];
 
     if (specialForm) {
       return specialForm(tree.value, environment);
