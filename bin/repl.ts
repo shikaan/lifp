@@ -5,9 +5,9 @@ import { evaluate, format, print, read } from "../lib/index.js";
 
 const rl = createInterface({ input: stdin, output: stdout });
 
-(async function main() {
+export async function repl(): Promise<number> {
   // @ts-expect-error this comes from the --define flag
-  console.log(`Lisp.js - ${__VERSION__}`);
+  console.log(`lifp - ${__VERSION__}`);
   console.log("Press Ctrl+C exit\n");
   while (true) {
     try {
@@ -18,4 +18,4 @@ const rl = createInterface({ input: stdin, output: stdout });
       stderr.write(format.error(e));
     }
   }
-})();
+}

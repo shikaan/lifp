@@ -58,7 +58,7 @@ jobs:
 
       - name: Build for ${{ matrix.build.target }}
         run: >
-          bun build ./bin/repl.ts \
+          bun build . \
             --compile \
             --target=${{ matrix.build.target }} \
             --outfile=build/${{ matrix.build.outfile }} \
