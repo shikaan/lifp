@@ -1,4 +1,4 @@
-import { FALSE, KEYWORD_PREFIX, NIL, TRUE } from "./constants.js";
+import { FALSE, NIL, TRUE } from "./constants.js";
 import { SyntaxException } from "./errors.js";
 import { tokenize } from "./lexer.js";
 import {
