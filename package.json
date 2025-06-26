@@ -1,9 +1,9 @@
 {
   "name": "lifp",
-  "main": "bin/repl.ts",
+  "main": "bin/index.ts",
   "scripts": {
-    "start": "bun --define __VERSION__=\"'development'\" .",
-    "build": "bun build bin/repl.ts --compile --outfile build/lisp",
+    "start": "bun --define __VERSION__=\"'v0.0.0 (dev)'\" .",
+    "build": "bun build . --compile --outfile build/lifp",
     "format": "bunx --bun biome format --write",
     "lint": "bunx --bun biome format",
     "postinstall": "mkdir -p .git/hooks && cp ./scripts/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit"
