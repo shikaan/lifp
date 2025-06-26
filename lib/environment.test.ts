@@ -4,46 +4,54 @@ import { Environment } from "./environment.js";
 import { std } from "./std.js";
 import { ASTNodeType } from "./types.js";
 
-test("allows overrides", () => {
+test("allows same-scope overrides", () => {
   const num = n(ASTNodeType.NUMBER, 12);
   const env = new Environment();
-  env.setVariable("a", n(ASTNodeType.NUMBER, 23));
-  env.setVariable("a", num);
+  env.set("a", n(ASTNodeType.NUMBER, 23));
+  env.set("a", num);
 
-  expect(env.getVariable("a")).toEqual(num);
+  expect(env.get("a")).toEqual(num);
+});
+
+test("shadows upper scopes", () => {
+  const num = n(ASTNodeType.NUMBER, 12);
+  const parent = new Environment();
+  parent.set("a", n(ASTNodeType.NUMBER, 34));
+  const child = new Environment(parent);
+  child.set("a", num);
+
+  expect(child.get("a")).toEqual(num);
+});
+
+test("shadows std", () => {
+  const num = n(ASTNodeType.NUMBER, 12);
+  const env = new Environment();
+  env.set("+", num);
+
+  expect(env.get("+")).toEqual(num);
 });
 
 test("looks for variables in current scope", () => {
   const num = n(ASTNodeType.NUMBER, 12);
   const env = new Environment();
-  env.setVariable("a", num);
+  env.set("a", num);
 
-  expect(env.getVariable("a")).toEqual(num);
+  expect(env.get("a")).toEqual(num);
 });
 
 test("looks for variables in upper scopes", () => {
   const num = n(ASTNodeType.NUMBER, 12);
   const parent = new Environment();
   const child = new Environment(parent);
-  parent.setVariable("a", num);
+  parent.set("a", num);
 
-  expect(child.getVariable("a")).toEqual(num);
-});
-
-test("lower scopes shadow upper scopes", () => {
-  const num = n(ASTNodeType.NUMBER, 12);
-  const parent = new Environment();
-  parent.setVariable("a", n(ASTNodeType.NUMBER, 34));
-  const child = new Environment(parent);
-  child.setVariable("a", num);
-
-  expect(child.getVariable("a")).toEqual(num);
+  expect(child.get("a")).toEqual(num);
 });
 
 test("returns functions from standard library", () => {
   const environment = new Environment();
 
   for (const fn of Object.keys(std)) {
-    expect(environment.getFunction(fn)).not.toBeNil();
+    expect(environment.get(fn)).not.toBeNil();
   }
 });

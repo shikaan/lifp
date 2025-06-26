@@ -8,5 +8,6 @@ export const KEYWORD_PREFIX = ":";
 export const STRING_DELIMITER = '"';
 
 // Special forms
-export const DEFINE = "def!";
+export const DEF = "def!";
 export const LET = "let*";
+export const FN = "fn*";

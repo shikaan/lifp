@@ -1,23 +1,25 @@
-import { DEFINE, LET } from "./constants.js";
+import { DEF, FN, LET } from "./constants.js";
 import { Environment } from "./environment.js";
-import { InvalidArgumentException, SymbolNotFoundException } from "./errors.js";
+import { InvalidArgumentException } from "./errors.js";
 import {
   type AbstractSyntaxTree,
   type ASTNodeList,
+  type ASTNodeSymbol,
   ASTNodeType,
   type Expression,
   isListNode,
+  isSymbol,
 } from "./types.js";
 
-const handleDefine = (list: ASTNodeList, environment: Environment) => {
+const handleDef = (list: ASTNodeList, environment: Environment) => {
   if (list.value.length !== 3 || list.value[1].type !== ASTNodeType.KEYWORD) {
     throw new InvalidArgumentException(
       `'def!' requires a keyword and a form only. Example: (def! :a 123)`,
     );
   }
 
-  const [_, symbol, form] = list.value;
-  environment.setVariable(symbol.value.slice(1), evaluate(form, environment));
+  const [, symbol, form] = list.value;
+  environment.set(symbol.value.slice(1), evaluate(form, environment));
   return { type: ASTNodeType.NIL, value: null };
 };
 
@@ -28,7 +30,7 @@ const handleLet = (list: ASTNodeList, environment: Environment) => {
     );
   }
 
-  const [_, assignments, form] = list.value;
+  const [, assignments, form] = list.value;
   const innerEnvironment = new Environment(environment);
 
   for (const pair of assignments.value) {
@@ -37,39 +39,55 @@ const handleLet = (list: ASTNodeList, environment: Environment) => {
         `'let*' requires a list of assignments. Example: (let* ((:a 12) (:b 34)) (other-form))`,
       );
     }
-    const [symbol, form] = pair.value;
-    innerEnvironment.setVariable(
-      symbol.value.slice(1),
-      evaluate(form, innerEnvironment),
-    );
+    const [sym, form] = pair.value;
+    innerEnvironment.set(sym.value.slice(1), evaluate(form, innerEnvironment));
   }
 
   return evaluate(form, innerEnvironment);
 };
 
-const handleFunctionOrVariable = (
+const handleFn = (tree: ASTNodeList, environment: Environment): Expression => {
+  if (!isListNode(tree) || tree.value.length !== 3) {
+    throw new InvalidArgumentException(
+      `'fn*' requires a binding list and a form. Example: (fn* (a b) (+ a b))`,
+    );
+  }
+
+  const [, bindings, form] = tree.value;
+
+  if (!isListNode(bindings) || bindings.value.some((n) => !isSymbol(n))) {
+    throw new InvalidArgumentException(
+      `'fn*' requires a binding list and a form. Example: (fn* (a b) (+ a b))`,
+    );
+  }
+
+  // Array.some does not enforce types
+  const values = bindings.value as ASTNodeSymbol[];
+  return {
+    type: ASTNodeType.FUNCTION,
+    value: (nodes) => {
+      const innerEnvironment = new Environment(environment);
+      values.forEach((sym, i) => innerEnvironment.set(sym.value, nodes[i]));
+      return evaluate(form, innerEnvironment);
+    },
+  };
+};
+
+const handleEnvironmentSymbol = (
   tree: ASTNodeList,
   environment: Environment,
-  firstNode: {
-    type: ASTNodeType.SYMBOL;
-    value: string;
-  },
+  symbol: string,
 ) => {
-  const fn = environment.getFunction(firstNode.value);
-  if (fn) {
+  const expression = environment.get(symbol);
+  if (expression.type === ASTNodeType.FUNCTION) {
     const args = tree.value
       .slice(1)
       .map((subtree) => evaluate(subtree, environment));
 
-    return fn(args);
+    return expression.value(args);
   }
 
-  const val = environment.getVariable(firstNode.value);
-  if (val) return val;
-
-  throw new SymbolNotFoundException(
-    `Symbol '${firstNode.value}' cannot be found in the current environment.`,
-  );
+  return expression;
 };
 
 export const evaluate = (
@@ -77,36 +95,25 @@ export const evaluate = (
   environment: Environment,
 ): Expression => {
   if (!isListNode(tree)) {
-    if (tree.type === ASTNodeType.SYMBOL) {
-      const fn = environment.getFunction(tree.value);
-      if (fn) return tree;
-
-      const val = environment.getVariable(tree.value);
-      if (val) return val;
-
-      throw new SymbolNotFoundException(
-        `Symbol '${tree.value}' cannot be found in the current environment.`,
-      );
-    }
-
-    return tree;
+    return tree.type === ASTNodeType.SYMBOL
+      ? environment.get(tree.value)
+      : tree;
   }
 
-  if (tree.value.length === 0) {
-    return tree;
-  }
+  if (tree.value.length === 0) return tree;
 
   const firstNode = tree.value[0];
   if (firstNode.type === ASTNodeType.SYMBOL) {
-    if (firstNode.value === DEFINE) {
-      return handleDefine(tree, environment);
+    switch (firstNode.value) {
+      case DEF:
+        return handleDef(tree, environment);
+      case LET:
+        return handleLet(tree, environment);
+      case FN:
+        return handleFn(tree, environment);
+      default:
+        return handleEnvironmentSymbol(tree, environment, firstNode.value);
     }
-
-    if (firstNode.value === LET) {
-      return handleLet(tree, environment);
-    }
-
-    return handleFunctionOrVariable(tree, environment, firstNode);
   }
 
   return {

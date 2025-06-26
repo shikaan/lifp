@@ -1,5 +1,5 @@
 import { FALSE, NIL, STRING_DELIMITER, TRUE } from "./constants.js";
-import { ASTNodeType, type Expression } from "./types.js";
+import { type Expression, ASTNodeType } from "./types.js";
 
 export const print = (expression: Expression): string => {
   switch (expression.type) {
@@ -13,6 +13,8 @@ export const print = (expression: Expression): string => {
       return NIL;
     case ASTNodeType.BOOLEAN:
       return expression.value ? TRUE : FALSE;
+    case ASTNodeType.FUNCTION:
+      return `#<function>`;
     case ASTNodeType.LIST:
       return `(${expression.value.map((i) => print(i)).join(" ")})`;
   }

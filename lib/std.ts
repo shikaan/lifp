@@ -1,12 +1,12 @@
 import { InvalidArgumentException } from "./errors.js";
-import { type ASTNode, ASTNodeType, type Reduction } from "./types.js";
+import { ASTNodeType, type Expression, type Reduction } from "./types.js";
 
 const addOrMultiply = (
-  nodes: ASTNode[],
+  nodes: Expression[],
   name: "+" | "*",
   cb: (a: number, b: number) => number,
   initialValue = 0,
-): ASTNode => {
+): Expression => {
   if (nodes.length < 2) {
     throw new InvalidArgumentException(
       `Function '${name}' requires at least 2 arguments. Got ${nodes.length}.`,
@@ -31,10 +31,10 @@ const addOrMultiply = (
 };
 
 const subtractOrDivide = (
-  nodes: ASTNode[],
+  nodes: Expression[],
   name: "-" | "/",
   cb: (a: number, b: number) => number,
-): ASTNode => {
+): Expression => {
   if (nodes.length < 2) {
     throw new InvalidArgumentException(
       `Function '${name}' requires at least 2 arguments. Got ${nodes.length}.`,
@@ -65,10 +65,10 @@ const subtractOrDivide = (
 };
 
 const compareFunction = (
-  nodes: ASTNode[],
+  nodes: Expression[],
   name: string,
   callback: <T>(a: T, b: T) => boolean,
-): ASTNode => {
+): Expression => {
   if (nodes.length !== 2) {
     throw new InvalidArgumentException(
       `Function '${name}' requires 2 arguments. Got ${nodes.length}`,

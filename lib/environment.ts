@@ -1,28 +1,39 @@
+import { SymbolNotFoundException } from "./errors.js";
 import { std } from "./std.js";
-import type { ASTNode, Reduction } from "./types.js";
+import { ASTNodeType, type Expression } from "./types.js";
 
 export class Environment {
   constructor(private parent: Environment = null) {}
 
   private readonly std = std;
+  private locals: Map<string, Expression> = new Map();
 
-  private functions: Map<string, Reduction> = new Map();
-  private variables: Map<string, ASTNode> = new Map();
-
-  setVariable(name: string, node: ASTNode) {
-    this.variables.set(name, node);
+  private getFromStandardLibrary(name: string): Expression | undefined {
+    return this.std[name] != null
+      ? {
+          type: ASTNodeType.FUNCTION,
+          value: this.std[name],
+        }
+      : null;
   }
 
-  getVariable(name: string): ASTNode | undefined {
-    return this.variables.get(name) ?? this.parent?.getVariable(name);
+  set(name: string, fn: Expression) {
+    this.locals.set(name, fn);
   }
 
-  getFunction(name: string): Reduction | undefined {
-    return (
-      this.std[name] ??
-      this.functions.get(name) ??
-      this.parent?.getFunction(name)
-    );
+  get(name: string): Expression {
+    const expression =
+      this.locals.get(name) ??
+      this.parent?.get(name) ??
+      this.getFromStandardLibrary(name);
+
+    if (expression == null) {
+      throw new SymbolNotFoundException(
+        `Symbol '${name}' cannot be found in the current environment.`,
+      );
+    }
+
+    return expression;
   }
 }
 

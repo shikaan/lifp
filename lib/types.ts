@@ -1,6 +1,10 @@
-import { KEYWORD_PREFIX } from "./constants.ts";
+import { KEYWORD_PREFIX, type LPAREN, type RPAREN } from "./constants.ts";
+import type { Environment } from "./environment.js";
 
-export type Expression = AbstractSyntaxTree;
+export type Expression =
+  | ASTNode
+  | { type: ASTNodeType.LIST; value: Expression[] }
+  | { type: ASTNodeType.FUNCTION; value: Reduction };
 
 export enum ASTNodeType {
   LIST,
@@ -10,6 +14,7 @@ export enum ASTNodeType {
   STRING,
   SYMBOL,
   KEYWORD,
+  FUNCTION,
 }
 
 export type Keyword = `${typeof KEYWORD_PREFIX}${string}`;
@@ -20,24 +25,28 @@ export type ASTNodeList = { type: ASTNodeType.LIST; value: ASTNode[] };
 export const isListNode = (n: ASTNode): n is ASTNodeList =>
   n.type === ASTNodeType.LIST;
 
+export type ASTNodeSymbol = { type: ASTNodeType.SYMBOL; value: string };
+export const isSymbol = (n: ASTNode): n is ASTNodeSymbol =>
+  n.type === ASTNodeType.SYMBOL;
+
 export type ASTNode =
   | ASTNodeList
   | { type: ASTNodeType.NUMBER; value: number }
   | { type: ASTNodeType.BOOLEAN; value: boolean }
   | { type: ASTNodeType.NIL; value: null }
   | { type: ASTNodeType.STRING; value: string }
-  | { type: ASTNodeType.SYMBOL; value: string }
+  | ASTNodeSymbol
   | { type: ASTNodeType.KEYWORD; value: Keyword };
 
 export type AbstractSyntaxTree = ASTNode;
 
 export enum TokenType {
-  LPAREN = "LPAREN",
-  RPAREN = "RPAREN",
-  NUMBER = "NUMBER",
-  SYMBOL = "SYMBOL",
-  STRING = "STRING",
-  EOF = "EOF",
+  LPAREN,
+  RPAREN,
+  NUMBER,
+  SYMBOL,
+  STRING,
+  EOF,
 }
 
 export type AtomToken =
@@ -50,8 +59,11 @@ export const isAtomToken = (token: Token): token is AtomToken =>
 
 export type Token =
   | AtomToken
-  | { type: TokenType.LPAREN; literal: "(" }
-  | { type: TokenType.RPAREN; literal: ")" }
+  | { type: TokenType.LPAREN; literal: typeof LPAREN }
+  | { type: TokenType.RPAREN; literal: typeof RPAREN }
   | { type: TokenType.EOF };
 
-export type Reduction = (nodes: ASTNode[]) => ASTNode;
+export type Reduction = (
+  nodes: Expression[],
+  environment?: Environment,
+) => Expression;
