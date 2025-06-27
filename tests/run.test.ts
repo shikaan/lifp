@@ -1,7 +1,14 @@
-import { test, expect, spyOn, beforeEach, afterEach } from "bun:test";
+import {
+  afterEach,
+  beforeEach,
+  expect,
+  type Mock,
+  spyOn,
+  test,
+} from "bun:test";
 import { execute } from "../bin/run.js";
 
-let write;
+let write: Mock<(s: string) => void>;
 beforeEach(() => {
   write = spyOn(process.stdout, "write");
   write.mockImplementation(() => null);
@@ -52,9 +59,12 @@ test("special forms", () => {
   const script = `
 (def! :fibonacci
   (fn* (n) 
-    (if (< n 2) 1 (fibonacci (- n 1))))))
+    (if (< n 2) 
+      1 
+      (+ (fibonacci (- n 1)) (fibonacci (- n 2))))))
+
+(printf "%d" ((fibonacci 5)))
 `.trim();
   execute(script);
-  expect(write).toBeCalledWith("Hello, user!");
-  expect(write).toBeCalledWith("Hello, world!");
+  expect(write).toBeCalledWith("8");
 });
