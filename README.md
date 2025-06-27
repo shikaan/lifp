@@ -6,7 +6,7 @@
 
 <p align="center">
 A Lisp dialect and toolchain. All in one binary.
-</p>z
+</p>
 
 > [!WARNING]  
 > This is very young and highly unstable. Don't take it too seriously.
