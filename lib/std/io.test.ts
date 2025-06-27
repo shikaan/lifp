@@ -43,6 +43,17 @@ test("printf", () => {
   spy.mockRestore();
 });
 
+test("printf - line breaks", () => {
+  const spy = spyOn(process.stdout, "write");
+  spy.mockImplementation(() => null);
+  const format = n(ASTNodeType.STRING, "hello %s\n");
+  const values = n(ASTNodeType.LIST, [n(ASTNodeType.STRING, "world")]);
+  const result = io.printf([format, values]);
+  expect(spy, JSON.stringify(spy.mock.calls)).toBeCalledWith("hello world\n");
+  expect(result).toEqual({ type: ASTNodeType.NIL, value: null });
+  spy.mockRestore();
+});
+
 test("printf - errors", () => {
   const format = n(ASTNodeType.STRING, "hello %s");
   const values = n(ASTNodeType.LIST, [n(ASTNodeType.STRING, "world")]);

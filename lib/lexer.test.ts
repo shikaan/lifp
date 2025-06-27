@@ -55,6 +55,7 @@ test("strings", () => {
   const tests: [string, Token[]][] = [
     ['("true")', [LPAREN, t(TokenType.STRING, "true"), RPAREN, EOF]],
     [`("t\\"rue")`, [LPAREN, t(TokenType.STRING, 't"rue'), RPAREN, EOF]],
+    [`("t\\true")`, [LPAREN, t(TokenType.STRING, "t\true"), RPAREN, EOF]],
     [
       `("t\\"r" "u e")`,
       [

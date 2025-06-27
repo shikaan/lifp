@@ -38,10 +38,10 @@ export const tokenize = (line: string): Token[] => {
     } else if (paren === RPAREN) {
       result.push({ type: TokenType.RPAREN, literal: RPAREN });
     } else if (isStringLiteral(token)) {
-      const unescaped = token.replaceAll('\\"', '"');
+      const unescaped = JSON.parse(`${token}`);
       result.push({
         type: TokenType.STRING,
-        literal: unescaped.slice(1, unescaped.length - 1),
+        literal: unescaped,
       });
     } else {
       const isNumber = /^-?\d+(\.\d+)?$/.test(token);
