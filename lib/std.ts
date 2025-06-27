@@ -1,7 +1,7 @@
 import { InvalidArgumentException } from "./errors.js";
 import { ASTNode, ASTNodeType, type Expression, type Lambda } from "./types.js";
 import { print } from "./print.js";
-import { evaluate } from "./evaluate.js";
+import * as util from "node:util";
 
 const addOrMultiply = (
   nodes: Expression[],
@@ -126,7 +126,7 @@ export const std: Record<string, Lambda> = {
   or: (nodes) => compareFunction(nodes, "or", (a, b) => !!(a || b)),
   "io.stdout": (nodes) => ioWriteFunction(nodes, "io.stdout", process.stdout),
   "io.stderr": (nodes) => ioWriteFunction(nodes, "io.stderr", process.stderr),
-  printf: (nodes, environment) => {
+  printf: (nodes) => {
     if (
       nodes.length !== 2 ||
       nodes[0].type !== ASTNodeType.STRING ||
@@ -137,10 +137,9 @@ export const std: Record<string, Lambda> = {
       );
     }
     const [format, values] = nodes;
-    const resolved = values.value.map(
-      (v: ASTNode) => evaluate(v, environment).value,
+    process.stdout.write(
+      util.format(format.value, ...values.value.map((i: ASTNode) => i.value)),
     );
-    console.log(format.value, ...resolved);
     return {
       type: ASTNodeType.NIL,
       value: null,

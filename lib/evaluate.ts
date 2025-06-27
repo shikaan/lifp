@@ -1,30 +1,12 @@
 import { Environment } from "./environment.js";
 import {
   type AbstractSyntaxTree,
-  type ASTNodeList,
   ASTNodeType,
   type Expression,
   isListNode,
   SpecialFormHandler,
 } from "./types.js";
 import { specials } from "./specials.js";
-
-const handleEnvironmentSymbol = (
-  tree: ASTNodeList,
-  environment: Environment,
-  symbol: string,
-) => {
-  const expression = environment.get(symbol);
-  if (expression.type === ASTNodeType.FUNCTION) {
-    const args = tree.value
-      .slice(1)
-      .map((subtree) => evaluate(subtree, environment));
-
-    return expression.value(args);
-  }
-
-  return expression;
-};
 
 export const evaluate = (
   tree: AbstractSyntaxTree,
@@ -47,7 +29,17 @@ export const evaluate = (
       return specialForm(tree.value, environment);
     }
 
-    return handleEnvironmentSymbol(tree, environment, firstNode.value);
+    const expression = environment.get(firstNode.value);
+
+    if (expression.type === ASTNodeType.FUNCTION) {
+      const lambda = expression.value;
+      const args = tree.value.slice(1);
+      const resolvedArgs = args.map((subtree) => {
+        return evaluate(subtree, environment);
+      });
+
+      return lambda(resolvedArgs, environment);
+    }
   }
 
   return {
