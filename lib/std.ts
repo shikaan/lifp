@@ -95,7 +95,6 @@ const ioWriteFunction = (
   nodes: Expression[],
   name: string,
   stream: NodeJS.WriteStream,
-  suffix = "",
 ) => {
   if (nodes.length !== 1) {
     throw new InvalidArgumentException(
@@ -103,7 +102,7 @@ const ioWriteFunction = (
     );
   }
 
-  stream.write(print(nodes[0]) + suffix);
+  stream.write(print(nodes[0]));
 
   return {
     type: ASTNodeType.NIL,
