@@ -1,7 +1,12 @@
-import { InvalidArgumentException } from "./errors.js";
-import { ASTNode, ASTNodeType, type Expression, type Lambda } from "./types.js";
-import { print } from "./print.js";
 import * as util from "node:util";
+import { InvalidArgumentException } from "./errors.js";
+import { print } from "./print.js";
+import {
+  type ASTNode,
+  ASTNodeType,
+  type Expression,
+  type Lambda,
+} from "./types.js";
 
 const addOrMultiply = (
   nodes: Expression[],

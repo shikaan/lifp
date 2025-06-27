@@ -1,16 +1,17 @@
-import { Environment } from "./environment.js";
+import type { Environment } from "./environment.js";
+import { specials } from "./specials.js";
 import {
   type AbstractSyntaxTree,
   ASTNodeType,
   type Expression,
   isListNode,
-  SpecialFormHandler,
+  type SpecialFormHandler,
 } from "./types.js";
-import { specials } from "./specials.js";
 
 export const evaluate = (
   tree: AbstractSyntaxTree,
   environment: Environment,
+  specialForms: typeof specials = specials,
 ): Expression => {
   if (!isListNode(tree)) {
     return tree.type === ASTNodeType.SYMBOL
@@ -23,7 +24,7 @@ export const evaluate = (
   const firstNode = tree.value[0];
   if (firstNode.type === ASTNodeType.SYMBOL) {
     const specialForm: SpecialFormHandler | undefined =
-      specials[firstNode.value];
+      specialForms[firstNode.value];
 
     if (specialForm) {
       return specialForm(tree.value, environment);
