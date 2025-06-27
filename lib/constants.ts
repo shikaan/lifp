@@ -11,3 +11,4 @@ export const STRING_DELIMITER = '"';
 export const DEF = "def!";
 export const LET = "let*";
 export const FN = "fn*";
+export const IF = "if";

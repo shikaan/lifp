@@ -1,10 +1,18 @@
-import { KEYWORD_PREFIX, type LPAREN, type RPAREN } from "./constants.ts";
+import {
+  KEYWORD_PREFIX,
+  type LPAREN,
+  type RPAREN,
+  DEF,
+  FN,
+  LET,
+  IF,
+} from "./constants.ts";
 import type { Environment } from "./environment.js";
 
 export type Expression =
   | ASTNode
   | { type: ASTNodeType.LIST; value: Expression[] }
-  | { type: ASTNodeType.FUNCTION; value: Reduction };
+  | { type: ASTNodeType.FUNCTION; value: Lambda };
 
 export enum ASTNodeType {
   LIST,
@@ -63,7 +71,13 @@ export type Token =
   | { type: TokenType.RPAREN; literal: typeof RPAREN }
   | { type: TokenType.EOF };
 
-export type Reduction = (
+export type Lambda = (
   nodes: Expression[],
   environment?: Environment,
+) => Expression;
+
+export type SpecialFormType = typeof DEF | typeof FN | typeof LET | typeof IF;
+export type SpecialFormHandler = (
+  nodes: ASTNode[],
+  environment: Environment,
 ) => Expression;

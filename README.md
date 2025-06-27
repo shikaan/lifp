@@ -6,7 +6,10 @@
 
 <p align="center">
 A Lisp dialect and toolchain. All in one binary.
-</p>
+</p>z
+
+> [!WARNING]  
+> This is very young and highly unstable. Don't take it too seriously.
 
 ## Quick start
 
@@ -29,12 +32,15 @@ Head to the [releases](https://github.com/shikaan/lifp/releases) page and downlo
 
 ### Usage
 
-> [!WARNING]  
-> This is very young and highly unstable. Don't take it too seriously.
-
 Launch the executable to start the REPL 
 ```shell
 lifp
+```
+
+or execute a file `script.lisp`
+
+```shell
+lifp run ./script.lisp
 ```
 
 ## Development

@@ -1,36 +1,48 @@
 import * as fs from "node:fs";
 import { LPAREN, RPAREN } from "../lib/constants.js";
-import { evaluate, print, read } from "../lib/index.js";
 import { defaultEnvironment, Environment } from "../lib/environment.js";
+import { evaluate, read } from "../lib/index.js";
+
+export const execute = (buffer: string) => {
+  const environment = new Environment(defaultEnvironment);
+
+  let depth = -1;
+  let lineStart = 0;
+  let skip = false;
+  for (let i = 0; i < buffer.length; i++) {
+    const char = buffer[i];
+
+    if (char === ";") {
+      skip = true;
+    }
+
+    if (char === "\n") {
+      skip = false;
+    }
+
+    if (skip) continue;
+
+    if (char === LPAREN) {
+      lineStart = depth === -1 ? i : lineStart;
+      depth = depth === -1 ? 1 : depth + 1;
+    } else if (char === RPAREN) depth--;
+
+    if (depth === 0) {
+      const line = buffer.slice(lineStart, i + 1);
+      evaluate(read(line), environment);
+      depth = -1;
+    }
+  }
+};
 
 export function run(args: string[]): number {
   if (args.length < 1) {
     throw new Error(`'run' requires one file.`);
   }
-  const file = args[0];
+  const file = args.at(-1);
 
-  // TODO: this could actually be streamed...
+  // TODO: this could be streamed since we are not looking up the environment first...
   const buffer = fs.readFileSync(file, "utf-8");
-
-  const environment = new Environment(defaultEnvironment);
-
-  let depth = -1;
-  let lineStart = 0;
-  for (let i = 0; i < buffer.length; i++) {
-    const char = buffer[i];
-    if (char == LPAREN) {
-      lineStart = depth === -1 ? i : lineStart;
-      depth = depth === -1 ? 1 : depth + 1;
-    } else if (char == RPAREN) depth--;
-
-    if (depth == 0) {
-      const line = buffer.slice(lineStart, i + 1);
-      const output = evaluate(read(line), environment);
-      console.log(line);
-      console.log("~>", print(output));
-      depth = -1;
-    }
-  }
-
+  execute(buffer);
   return 0;
 }

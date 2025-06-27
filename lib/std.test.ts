@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { expect, spyOn, test } from "bun:test";
 import { n } from "../tests/utils.js";
 import { std } from "./std.js";
 import { type ASTNode, ASTNodeType } from "./types.js";
@@ -199,3 +199,52 @@ for (const fn of ["=", "<", ">", "!=", "<=", ">=", "and", "or"]) {
     }
   });
 }
+
+test("io.stdout", () => {
+  const spy = spyOn(process.stdout, "write");
+  spy.mockImplementation(() => null);
+  const node = n(ASTNodeType.STRING, "hello");
+  const result = std["io.stdout"]([node]);
+  expect(spy).toBeCalledWith('"hello"');
+  expect(result).toEqual({ type: ASTNodeType.NIL, value: null });
+  spy.mockRestore();
+});
+
+test("io.stderr", () => {
+  const spy = spyOn(process.stderr, "write");
+  spy.mockImplementation(() => null);
+  const node = n(ASTNodeType.STRING, "hello");
+  const result = std["io.stderr"]([node]);
+  expect(spy).toBeCalledWith('"hello"');
+  expect(result).toEqual({ type: ASTNodeType.NIL, value: null });
+  spy.mockRestore();
+});
+
+test("io functions - errors", () => {
+  const node = n(ASTNodeType.STRING, "hello");
+  expect(() => std["io.stdout"]([])).toThrow();
+  expect(() => std["io.stderr"]([node, node])).toThrow();
+});
+
+test("printf", () => {
+  const spy = spyOn(process.stdout, "write");
+  spy.mockImplementation(() => null);
+  const format = n(ASTNodeType.STRING, "hello %s %d");
+  const values = n(ASTNodeType.LIST, [
+    n(ASTNodeType.STRING, "world"),
+    n(ASTNodeType.NUMBER, 42),
+  ]);
+  const result = std.printf([format, values]);
+  expect(spy).toBeCalledWith("hello world 42");
+  expect(result).toEqual({ type: ASTNodeType.NIL, value: null });
+  spy.mockRestore();
+});
+
+test("printf - errors", () => {
+  const format = n(ASTNodeType.STRING, "hello %s");
+  const values = n(ASTNodeType.LIST, [n(ASTNodeType.STRING, "world")]);
+  expect(() => std.printf([])).toThrow();
+  expect(() => std.printf([format])).toThrow();
+  expect(() => std.printf([values, values])).toThrow();
+  expect(() => std.printf([format, n(ASTNodeType.NUMBER, 1)])).toThrow();
+});
