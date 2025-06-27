@@ -54,4 +54,44 @@ export const lists: Record<string, Lambda> = {
     type: ASTNodeType.LIST,
     value: nodes,
   }),
+  "list.nth": (nodes) => {
+    if (
+      nodes.length !== 2 ||
+      nodes[0].type !== ASTNodeType.NUMBER ||
+      nodes[1].type !== ASTNodeType.LIST
+    ) {
+      throw new InvalidArgumentException(
+        "'list.nth' takes a number and a list as argument. Example: (list.nth 0 my-list).",
+      );
+    }
+
+    const [index, list] = nodes;
+    const item = list.value[index.value];
+
+    return (
+      item ?? {
+        type: ASTNodeType.NIL,
+        value: null,
+      }
+    );
+  },
+  "list.filter": (nodes) => {
+    if (
+      nodes.length !== 2 ||
+      nodes[1].type !== ASTNodeType.LIST ||
+      nodes[0].type !== ASTNodeType.FUNCTION
+    ) {
+      throw new InvalidArgumentException(
+        "'list.filter' takes a lambda and a list as argument. Example: (list.filter (fn* (item idx) (= item 0)) my-list).",
+      );
+    }
+    const [lambda, list] = nodes;
+    return {
+      type: ASTNodeType.LIST,
+      value: list.value.filter(
+        (node: ASTNodeList, value: number) =>
+          lambda.value([node, { type: ASTNodeType.NUMBER, value }]).value,
+      ),
+    };
+  },
 };

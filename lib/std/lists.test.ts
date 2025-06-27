@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { n, l } from "../../tests/utils.js";
 import { lists } from "./lists.js";
-import { ASTNodeType } from "../types.js";
+import { ASTNodeList, ASTNodeType, Expression } from "../types.js";
 
 test("list.count", () => {
   const listNode = l([n(ASTNodeType.NUMBER, 1), n(ASTNodeType.NUMBER, 2)]);
@@ -37,4 +37,42 @@ test("list.each", () => {
   expect(result).toEqual(n(ASTNodeType.NIL, null));
   expect(acc).toBe(1 + 0 + 2 + 1);
   expect(() => lists["list.each"]([fn, n(ASTNodeType.NUMBER, 1)])).toThrow();
+});
+
+test("list.nth", () => {
+  const listNode = l([
+    n(ASTNodeType.NUMBER, 1),
+    n(ASTNodeType.NUMBER, 2),
+    n(ASTNodeType.NUMBER, 3),
+  ]);
+  expect(lists["list.nth"]([n(ASTNodeType.NUMBER, 0), listNode])).toEqual(
+    n(ASTNodeType.NUMBER, 1),
+  );
+  expect(lists["list.nth"]([n(ASTNodeType.NUMBER, 2), listNode])).toEqual(
+    n(ASTNodeType.NUMBER, 3),
+  );
+  expect(lists["list.nth"]([n(ASTNodeType.NUMBER, 10), listNode])).toEqual(
+    n(ASTNodeType.NIL, null),
+  );
+  expect(() =>
+    lists["list.nth"]([n(ASTNodeType.NUMBER, 0), n(ASTNodeType.NUMBER, 1)]),
+  ).toThrow();
+});
+
+test("list.filter", () => {
+  const fn: Expression = {
+    type: ASTNodeType.FUNCTION,
+    value: ([item]) => n(ASTNodeType.BOOLEAN, (item.value as number) % 2 === 1),
+  };
+  const listNode = l([
+    n(ASTNodeType.NUMBER, 1),
+    n(ASTNodeType.NUMBER, 2),
+    n(ASTNodeType.NUMBER, 3),
+  ]);
+  const result = lists["list.filter"]([fn, listNode]) as ASTNodeList;
+  expect(result.type).toBe(ASTNodeType.LIST);
+  expect(result.value.length).toBe(2);
+  expect(result.value[0].value).toBe(1);
+  expect(result.value[1].value).toBe(3);
+  expect(() => lists["list.filter"]([fn, n(ASTNodeType.NUMBER, 1)])).toThrow();
 });
