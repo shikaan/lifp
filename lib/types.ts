@@ -1,11 +1,11 @@
 import {
+  type DEF,
+  type FN,
+  type IF,
   KEYWORD_PREFIX,
+  type LET,
   type LPAREN,
   type RPAREN,
-  DEF,
-  FN,
-  LET,
-  IF,
 } from "./constants.ts";
 import type { Environment } from "./environment.js";
 

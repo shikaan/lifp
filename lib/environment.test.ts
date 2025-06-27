@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { n } from "../tests/utils.js";
 import { Environment } from "./environment.js";
-import { std } from "./std.js";
+import { std } from "./std/index.ts";
 import { ASTNodeType } from "./types.js";
 
 test("allows same-scope overrides", () => {

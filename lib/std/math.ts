@@ -1,12 +1,5 @@
-import * as util from "node:util";
-import { InvalidArgumentException } from "./errors.js";
-import { print } from "./print.js";
-import {
-  type ASTNode,
-  ASTNodeType,
-  type Expression,
-  type Lambda,
-} from "./types.js";
+import { InvalidArgumentException } from "../errors.js";
+import { ASTNodeType, type Expression, type Lambda } from "../types.js";
 
 const addOrMultiply = (
   nodes: Expression[],
@@ -27,7 +20,6 @@ const addOrMultiply = (
         `'${name}' takes only numbers as argument. Got '${node.value}'.`,
       );
     }
-
     value = cb(node.value, value);
   }
 
@@ -96,26 +88,7 @@ const compareFunction = (
   };
 };
 
-const ioWriteFunction = (
-  nodes: Expression[],
-  name: string,
-  stream: NodeJS.WriteStream,
-) => {
-  if (nodes.length !== 1) {
-    throw new InvalidArgumentException(
-      `'${name}' requires one argument. Got ${nodes.length}`,
-    );
-  }
-
-  stream.write(print(nodes[0]));
-
-  return {
-    type: ASTNodeType.NIL,
-    value: null,
-  };
-};
-
-export const std: Record<string, Lambda> = {
+export const math: Record<string, Lambda> = {
   "+": (nodes) => addOrMultiply(nodes, "+", (a, b) => a + b),
   "-": (nodes) => subtractOrDivide(nodes, "-", (a, b) => a - b),
   "*": (nodes) => addOrMultiply(nodes, "*", (a, b) => a * b, 1),
@@ -128,25 +101,4 @@ export const std: Record<string, Lambda> = {
   ">=": (nodes) => compareFunction(nodes, ">=", (a, b) => a >= b),
   and: (nodes) => compareFunction(nodes, "and", (a, b) => !!(a && b)),
   or: (nodes) => compareFunction(nodes, "or", (a, b) => !!(a || b)),
-  "io.stdout": (nodes) => ioWriteFunction(nodes, "io.stdout", process.stdout),
-  "io.stderr": (nodes) => ioWriteFunction(nodes, "io.stderr", process.stderr),
-  printf: (nodes) => {
-    if (
-      nodes.length !== 2 ||
-      nodes[0].type !== ASTNodeType.STRING ||
-      nodes[1].type !== ASTNodeType.LIST
-    ) {
-      throw new InvalidArgumentException(
-        `'printf' requires a format string, and a list of arguments. Example: (printf "hello %s" ("world"))`,
-      );
-    }
-    const [format, values] = nodes;
-    process.stdout.write(
-      util.format(format.value, ...values.value.map((i: ASTNode) => i.value)),
-    );
-    return {
-      type: ASTNodeType.NIL,
-      value: null,
-    };
-  },
 };

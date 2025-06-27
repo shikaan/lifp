@@ -1,5 +1,5 @@
 import { SymbolNotFoundException } from "./errors.js";
-import { std } from "./std.js";
+import { std } from "./std/index.js";
 import { ASTNodeType, type Expression } from "./types.js";
 
 export class Environment {
