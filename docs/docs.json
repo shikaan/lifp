@@ -1,31 +1,6 @@
 {
-  "version": "v0.0.0 (dev)",
+  "version": "v0.2.0 (eaa9b08)",
   "functions": {
-    "string.length": {
-      "description": "Returns the length of a string.",
-      "example": "(string.length \"hello\") ; 5",
-      "name": "string.length"
-    },
-    "string.join": {
-      "description": "Joins a list of strings with a separator.",
-      "example": "(string.join \",\" (\"foo\" \"bar\")) ; \"foo,bar\"",
-      "name": "string.join"
-    },
-    "string.slice": {
-      "description": "Returns a substring from start to end indices.",
-      "example": "(string.slice \"hello\" 1 4) ; \"ell\"",
-      "name": "string.slice"
-    },
-    "string.includes": {
-      "description": "Checks if a string contains a substring.",
-      "example": "(string.includes \"hello\" \"ell\") ; true",
-      "name": "string.includes"
-    },
-    "string.trim": {
-      "description": "Trims whitespace from both ends of a string.",
-      "example": "(string.trim \"  hello  \") ; \"hello\"",
-      "name": "string.trim"
-    },
     "+": {
       "description": "Adds numbers together.",
       "example": "(+ 1 2 3) ; 6",
@@ -86,20 +61,30 @@
       "example": "(or true false) ; true",
       "name": "or"
     },
-    "io.stdout": {
-      "description": "Stringifies an atom and writes it to stdout. Use `io.print` to format output.",
-      "example": "(io.stdout \"hello\")",
-      "name": "io.stdout"
+    "string.length": {
+      "description": "Returns the length of a string.",
+      "example": "(string.length \"hello\") ; 5",
+      "name": "string.length"
     },
-    "io.stderr": {
-      "description": "Stringifies an atom and writes it to stderr.",
-      "example": "(io.stderr \"error\")",
-      "name": "io.stderr"
+    "string.join": {
+      "description": "Joins a list of strings with a separator.",
+      "example": "(string.join \",\" (\"foo\" \"bar\")) ; \"foo,bar\"",
+      "name": "string.join"
     },
-    "io.printf": {
-      "description": "Writes a formatted string to stdout. Specifiers:\n - `%s` for strings\n - `%d` for numbers\n - `%i` casts a string to an integer\n - `%f` casts a string to a float",
-      "example": "(io.printf \"hello %s %d\" (\"world\" 42))",
-      "name": "io.printf"
+    "string.slice": {
+      "description": "Returns a substring from start to end indices.",
+      "example": "(string.slice \"hello\" 1 4) ; \"ell\"",
+      "name": "string.slice"
+    },
+    "string.includes": {
+      "description": "Checks if a string contains a substring.",
+      "example": "(string.includes \"hello\" \"ell\") ; true",
+      "name": "string.includes"
+    },
+    "string.trim": {
+      "description": "Trims whitespace from both ends of a string.",
+      "example": "(string.trim \"  hello  \") ; \"hello\"",
+      "name": "string.trim"
     },
     "list.count": {
       "description": "Counts elements in a list.",
@@ -130,6 +115,21 @@
       "description": "Filters a list using a lambda predicate.",
       "example": "(list.filter (fn* (item idx) (> item 0)) (-1 0 1 2)) ; (1 2)",
       "name": "list.filter"
+    },
+    "io.stdout": {
+      "description": "Stringifies an atom and writes it to stdout. Use `io.print` to format output.",
+      "example": "(io.stdout \"hello\")",
+      "name": "io.stdout"
+    },
+    "io.stderr": {
+      "description": "Stringifies an atom and writes it to stderr.",
+      "example": "(io.stderr \"error\")",
+      "name": "io.stderr"
+    },
+    "io.printf": {
+      "description": "Writes a formatted string to stdout. Specifiers:\n - `%s` for strings\n - `%d` for numbers\n - `%i` casts a string to an integer\n - `%f` casts a string to a float",
+      "example": "(io.printf \"hello %s %d\" (\"world\" 42))",
+      "name": "io.printf"
     }
   }
 }

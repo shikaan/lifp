@@ -1,55 +1,5 @@
-lifp - v0.0.0 (dev)
+lifp - v0.2.0 (eaa9b08)
 ---
-
-## string.length
-
-Returns the length of a string.
-
-```common lisp
-(string.length "hello") ; 5
-```
-
-
-
-## string.join
-
-Joins a list of strings with a separator.
-
-```common lisp
-(string.join "," ("foo" "bar")) ; "foo,bar"
-```
-
-
-
-## string.slice
-
-Returns a substring from start to end indices.
-
-```common lisp
-(string.slice "hello" 1 4) ; "ell"
-```
-
-
-
-## string.includes
-
-Checks if a string contains a substring.
-
-```common lisp
-(string.includes "hello" "ell") ; true
-```
-
-
-
-## string.trim
-
-Trims whitespace from both ends of a string.
-
-```common lisp
-(string.trim "  hello  ") ; "hello"
-```
-
-
 
 ## +
 
@@ -171,36 +121,52 @@ Logical OR for two boolean values.
 
 
 
-## io.stdout
+## string.length
 
-Stringifies an atom and writes it to stdout. Use `io.print` to format output.
+Returns the length of a string.
 
 ```common lisp
-(io.stdout "hello")
+(string.length "hello") ; 5
 ```
 
 
 
-## io.stderr
+## string.join
 
-Stringifies an atom and writes it to stderr.
+Joins a list of strings with a separator.
 
 ```common lisp
-(io.stderr "error")
+(string.join "," ("foo" "bar")) ; "foo,bar"
 ```
 
 
 
-## io.printf
+## string.slice
 
-Writes a formatted string to stdout. Specifiers:
- - `%s` for strings
- - `%d` for numbers
- - `%i` casts a string to an integer
- - `%f` casts a string to a float
+Returns a substring from start to end indices.
 
 ```common lisp
-(io.printf "hello %s %d" ("world" 42))
+(string.slice "hello" 1 4) ; "ell"
+```
+
+
+
+## string.includes
+
+Checks if a string contains a substring.
+
+```common lisp
+(string.includes "hello" "ell") ; true
+```
+
+
+
+## string.trim
+
+Trims whitespace from both ends of a string.
+
+```common lisp
+(string.trim "  hello  ") ; "hello"
 ```
 
 
@@ -261,6 +227,40 @@ Filters a list using a lambda predicate.
 
 ```common lisp
 (list.filter (fn* (item idx) (> item 0)) (-1 0 1 2)) ; (1 2)
+```
+
+
+
+## io.stdout
+
+Stringifies an atom and writes it to stdout. Use `io.print` to format output.
+
+```common lisp
+(io.stdout "hello")
+```
+
+
+
+## io.stderr
+
+Stringifies an atom and writes it to stderr.
+
+```common lisp
+(io.stderr "error")
+```
+
+
+
+## io.printf
+
+Writes a formatted string to stdout. Specifiers:
+ - `%s` for strings
+ - `%d` for numbers
+ - `%i` casts a string to an integer
+ - `%f` casts a string to a float
+
+```common lisp
+(io.printf "hello %s %d" ("world" 42))
 ```
 
 
