@@ -23,7 +23,7 @@ test("variables across forms", () => {
 (def! :a 10)
 (def! :b (+ a 5))
 
-(printf "%d" ((+ a b)))
+(io.printf "%d" ((+ a b)))
 `.trim();
   execute(script);
   expect(write).toBeCalledWith("25");
@@ -34,7 +34,7 @@ test("lambdas", () => {
 (def! :a 10)
 (def! :+5 (fn* (a) (+ a 5)))
 
-(printf "%d" ((+5 a)))
+(io.printf "%d" ((+5 a)))
 `.trim();
   execute(script);
   expect(write).toBeCalledWith("15");
@@ -45,7 +45,7 @@ test("lambdas and variables", () => {
 (def! :planet "world")
 (def! :greet
   (fn* (name)
-    (printf "Hello, %s!" (name))))
+    (io.printf "Hello, %s!" (name))))
 
 (greet "user")
 (greet planet)
@@ -63,7 +63,7 @@ test("special forms", () => {
       1 
       (+ (fibonacci (- n 1)) (fibonacci (- n 2))))))
 
-(printf "%d" ((fibonacci 5)))
+(io.printf "%d" ((fibonacci 5)))
 `.trim();
   execute(script);
   expect(write).toBeCalledWith("8");

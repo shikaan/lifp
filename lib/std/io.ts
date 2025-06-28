@@ -18,16 +18,29 @@ const ioWriteFunction = (
 };
 
 export const io: Record<string, Lambda> = {
+  // Writes an atom to stdout. Use `io.print` to format output.
+  //
+  //  (io.stdout "hello")
   "io.stdout": (nodes) => ioWriteFunction(nodes, "io.stdout", process.stdout),
+  // Writes an atom to stderr.
+  //
+  //  (io.stderr "Error!")
   "io.stderr": (nodes) => ioWriteFunction(nodes, "io.stderr", process.stderr),
-  printf: (nodes) => {
+  // Writes a formatted string to stdout. Specifiers:
+  //  - "%s" for strings
+  //  - "%d" for numbers
+  //  - "%i" casts a string to an integer
+  //  - "%f" casts a string to a float
+  //
+  //  (io.stdout "hello")
+  "io.printf": (nodes) => {
     if (
       nodes.length !== 2 ||
       nodes[0].type !== ASTNodeType.STRING ||
       nodes[1].type !== ASTNodeType.LIST
     ) {
       throw new InvalidArgumentException(
-        `'printf' requires a format string, and a list of arguments. Example: (printf "hello %s" ("world"))`,
+        `'io.printf' requires a format string, and a list of arguments. Example: (printf "hello %s" ("world"))`,
       );
     }
     const [format, values] = nodes;
