@@ -23,13 +23,13 @@ test("io.stderr", () => {
   spy.mockRestore();
 });
 
-test("io functions - errors", () => {
+test("io stream - errors", () => {
   const node = n(ASTNodeType.STRING, "hello");
   expect(() => io["io.stdout"]([])).toThrow();
   expect(() => io["io.stderr"]([node, node])).toThrow();
 });
 
-test("printf", () => {
+test("io.printf", () => {
   const spy = spyOn(process.stdout, "write");
   spy.mockImplementation(() => null);
   const format = n(ASTNodeType.STRING, "hello %s %d");
@@ -37,18 +37,18 @@ test("printf", () => {
     n(ASTNodeType.STRING, "world"),
     n(ASTNodeType.NUMBER, 42),
   ]);
-  const result = io.printf([format, values]);
+  const result = io["io.printf"]([format, values]);
   expect(spy).toBeCalledWith("hello world 42");
   expect(result).toEqual({ type: ASTNodeType.NIL, value: null });
   spy.mockRestore();
 });
 
-test("printf - line breaks", () => {
+test("io.printf - line breaks", () => {
   const spy = spyOn(process.stdout, "write");
   spy.mockImplementation(() => null);
   const format = n(ASTNodeType.STRING, "hello %s\n");
   const values = n(ASTNodeType.LIST, [n(ASTNodeType.STRING, "world")]);
-  const result = io.printf([format, values]);
+  const result = io["io.printf"]([format, values]);
   expect(spy, JSON.stringify(spy.mock.calls)).toBeCalledWith("hello world\n");
   expect(result).toEqual({ type: ASTNodeType.NIL, value: null });
   spy.mockRestore();
@@ -57,8 +57,8 @@ test("printf - line breaks", () => {
 test("printf - errors", () => {
   const format = n(ASTNodeType.STRING, "hello %s");
   const values = n(ASTNodeType.LIST, [n(ASTNodeType.STRING, "world")]);
-  expect(() => io.printf([])).toThrow();
-  expect(() => io.printf([format])).toThrow();
-  expect(() => io.printf([values, values])).toThrow();
-  expect(() => io.printf([format, n(ASTNodeType.NUMBER, 1)])).toThrow();
+  expect(() => io["io.printf"]([])).toThrow();
+  expect(() => io["io.printf"]([format])).toThrow();
+  expect(() => io["io.printf"]([values, values])).toThrow();
+  expect(() => io["io.printf"]([format, n(ASTNodeType.NUMBER, 1)])).toThrow();
 });

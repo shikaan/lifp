@@ -39,7 +39,7 @@ export const evaluate = (
         return evaluate(subtree, environment);
       });
 
-      return lambda(resolvedArgs, environment);
+      return lambda(resolvedArgs);
     }
   }
 

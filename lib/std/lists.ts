@@ -2,6 +2,12 @@ import { InvalidArgumentException } from "../errors.js";
 import { type ASTNodeList, ASTNodeType, type Lambda } from "../types.js";
 
 export const lists: Record<string, Lambda> = {
+  /**
+   * Counts elements in a list.
+   * @name list.count
+   * @example
+   *   (list.count (1 2)) ; 2
+   */
   "list.count": (nodes) => {
     if (nodes.length !== 1 || nodes[0].type !== ASTNodeType.LIST) {
       throw new InvalidArgumentException(
@@ -13,6 +19,12 @@ export const lists: Record<string, Lambda> = {
       value: nodes[0].value.length,
     };
   },
+  /**
+   * Maps a lambda over a list.
+   * @name list.map
+   * @example
+   *   (list.map (fn* (item idx) (+ item idx)) (1 2 3)) ; (1 3 5)
+   */
   "list.map": (nodes) => {
     if (
       nodes.length !== 2 ||
@@ -31,6 +43,12 @@ export const lists: Record<string, Lambda> = {
       ),
     };
   },
+  /**
+   * Applies a lambda to each element in a list (for side effects).
+   * @name list.each
+   * @example
+   *   (list.each (fn* (item idx) (print item)) (1 2 3)) ; nil
+   */
   "list.each": (nodes) => {
     if (
       nodes.length !== 2 ||
@@ -50,10 +68,22 @@ export const lists: Record<string, Lambda> = {
       value: null,
     };
   },
+  /**
+   * Creates a list from the given arguments.
+   * @name list.from
+   * @example
+   *   (list.from 1 2 3) ; (1 2 3)
+   */
   "list.from": (nodes) => ({
     type: ASTNodeType.LIST,
     value: nodes,
   }),
+  /**
+   * Returns the nth element of a list, or nil if out of bounds.
+   * @name list.nth
+   * @example
+   *   (list.nth 1 (10 20 30)) ; 20
+   */
   "list.nth": (nodes) => {
     if (
       nodes.length !== 2 ||
@@ -75,6 +105,12 @@ export const lists: Record<string, Lambda> = {
       }
     );
   },
+  /**
+   * Filters a list using a lambda predicate.
+   * @name list.filter
+   * @example
+   *   (list.filter (fn* (item idx) (> item 0)) (-1 0 1 2)) ; (1 2)
+   */
   "list.filter": (nodes) => {
     if (
       nodes.length !== 2 ||

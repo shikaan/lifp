@@ -20,7 +20,7 @@ test("defines a variable and uses is", () => {
 test("defines a variable, a function and uses them", () => {
   const env = new Environment(defaultEnvironment);
   evaluate(read("(def! :a 1)"), env);
-  evaluate(read("(def! :add (fn* (a b) (+ a b))))"), env);
+  evaluate(read("(def! :add (fn* (a b) (+ a b)))"), env);
   const expr = evaluate(read("(add 4 1)"), env);
 
   expect(print(expr)).toEqual("5");
@@ -30,7 +30,7 @@ test("implements cond", () => {
   const env = new Environment(defaultEnvironment);
   evaluate(read("(def! :a 1)"), env);
   evaluate(
-    read("(def! :cond2 (fn* (c1 b1 c2 b2 else) (if c1 b1 (if c2 b2 else)))))"),
+    read("(def! :cond2 (fn* (c1 b1 c2 b2 else) (if c1 b1 (if c2 b2 else))))"),
     env,
   );
 
