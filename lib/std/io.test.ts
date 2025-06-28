@@ -1,7 +1,7 @@
 import { expect, spyOn, test } from "bun:test";
 import { n } from "../../tests/utils.js";
-import { io } from "./io.js";
 import { ASTNodeType } from "../types.js";
+import { io } from "./io.js";
 
 test("io.stdout", () => {
   const spy = spyOn(process.stdout, "write");

@@ -1,26 +1,26 @@
+import { DEF, FN, IF, LET } from "./constants.js";
+import { Environment } from "./environment.js";
+import { InvalidArgumentException } from "./errors.js";
+import { evaluate } from "./evaluate.js";
 import {
   type ASTNodeSymbol,
   ASTNodeType,
   isListNode,
   isSymbol,
-  SpecialFormHandler,
-  SpecialFormType,
+  type SpecialFormHandler,
+  type SpecialFormType,
 } from "./types.js";
-import { Environment } from "./environment.js";
-import { InvalidArgumentException } from "./errors.js";
-import { evaluate } from "./evaluate.js";
-import { DEF, FN, IF, LET } from "./constants.js";
 
 export const specials: Record<SpecialFormType, SpecialFormHandler> = {
   [DEF]: (nodes, environment) => {
-    if (nodes.length !== 3 || nodes[1].type !== ASTNodeType.KEYWORD) {
+    if (nodes.length !== 3 || nodes[1].type !== ASTNodeType.SYMBOL) {
       throw new InvalidArgumentException(
-        `'${DEF}' requires a keyword and a form only. Example: (${DEF} :a 123)`,
+        `'${DEF}' requires a keyword and a form only. Example: (${DEF} a 123)`,
       );
     }
 
     const [, symbol, form] = nodes;
-    environment.set(symbol.value.slice(1), evaluate(form, environment));
+    environment.set(symbol.value, evaluate(form, environment));
     return { type: ASTNodeType.NIL, value: null };
   },
   [FN]: (nodes, environment) => {
@@ -59,16 +59,13 @@ export const specials: Record<SpecialFormType, SpecialFormHandler> = {
     const innerEnvironment = new Environment(environment);
 
     for (const pair of assignments.value) {
-      if (!isListNode(pair) || pair.value[0].type !== ASTNodeType.KEYWORD) {
+      if (!isListNode(pair) || pair.value[0].type !== ASTNodeType.SYMBOL) {
         throw new InvalidArgumentException(
-          `'${LET}' requires a list of assignments. Example: (${LET} ((:a 12) (:b 34)) (other-form))`,
+          `'${LET}' requires a list of assignments. Example: (${LET} ((a 12) (b 34)) (other-form))`,
         );
       }
       const [sym, form] = pair.value;
-      innerEnvironment.set(
-        sym.value.slice(1),
-        evaluate(form, innerEnvironment),
-      );
+      innerEnvironment.set(sym.value, evaluate(form, innerEnvironment));
     }
 
     return evaluate(form, innerEnvironment);

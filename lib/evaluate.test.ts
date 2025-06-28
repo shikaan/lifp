@@ -4,7 +4,7 @@ import { ASTNodeType, type Expression } from "./types.js";
 import { n, l } from "../tests/utils.js";
 import { Environment } from "./environment.js";
 import { FN } from "./constants.ts";
-import { specials } from "./specials.ts";
+import type { specials } from "./specials.ts";
 
 test("number literal", () => {
   const env = new Environment();

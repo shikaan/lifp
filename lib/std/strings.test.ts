@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { l, n } from "../../tests/utils.js";
-import { strings } from "./strings.js";
 import { ASTNodeType } from "../types.js";
+import { strings } from "./strings.js";
 
 test("string.length", () => {
   expect(strings["string.length"]([n(ASTNodeType.STRING, "abc")])).toEqual(

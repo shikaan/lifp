@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { n, l } from "../../tests/utils.js";
 import { lists } from "./lists.js";
-import { ASTNodeList, ASTNodeType, Expression } from "../types.js";
+import { type ASTNodeList, ASTNodeType, type Expression } from "../types.js";
 
 test("list.count", () => {
   const listNode = l([n(ASTNodeType.NUMBER, 1), n(ASTNodeType.NUMBER, 2)]);

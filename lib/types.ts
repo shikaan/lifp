@@ -1,12 +1,4 @@
-import {
-  type DEF,
-  type FN,
-  type IF,
-  KEYWORD_PREFIX,
-  type LET,
-  type LPAREN,
-  type RPAREN,
-} from "./constants.ts";
+import type { DEF, FN, IF, LET, LPAREN, RPAREN } from "./constants.ts";
 import type { Environment } from "./environment.js";
 
 export type Expression =
@@ -21,13 +13,8 @@ export enum ASTNodeType {
   NIL,
   STRING,
   SYMBOL,
-  KEYWORD,
   FUNCTION,
 }
-
-export type Keyword = `${typeof KEYWORD_PREFIX}${string}`;
-export const isKeyword = (s: string): s is Keyword =>
-  s.startsWith(KEYWORD_PREFIX);
 
 export type ASTNodeList = { type: ASTNodeType.LIST; value: ASTNode[] };
 export const isListNode = (n: ASTNode): n is ASTNodeList =>
@@ -39,12 +26,11 @@ export const isSymbol = (n: ASTNode): n is ASTNodeSymbol =>
 
 export type ASTNode =
   | ASTNodeList
+  | ASTNodeSymbol
   | { type: ASTNodeType.NUMBER; value: number }
   | { type: ASTNodeType.BOOLEAN; value: boolean }
   | { type: ASTNodeType.NIL; value: null }
-  | { type: ASTNodeType.STRING; value: string }
-  | ASTNodeSymbol
-  | { type: ASTNodeType.KEYWORD; value: Keyword };
+  | { type: ASTNodeType.STRING; value: string };
 
 export type AbstractSyntaxTree = ASTNode;
 

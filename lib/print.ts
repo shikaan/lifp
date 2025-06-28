@@ -7,7 +7,6 @@ export const print = (expression: Expression): string => {
       return `${STRING_DELIMITER}${expression.value}${STRING_DELIMITER}`;
     case ASTNodeType.SYMBOL:
     case ASTNodeType.NUMBER:
-    case ASTNodeType.KEYWORD:
       return `${expression.value}`;
     case ASTNodeType.NIL:
       return NIL;

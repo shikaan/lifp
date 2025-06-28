@@ -9,7 +9,6 @@ test("atoms", () => {
     [n(ASTNodeType.NUMBER, 1), "1"],
     [n(ASTNodeType.SYMBOL, "asd"), "asd"],
     [n(ASTNodeType.STRING, "asd"), '"asd"'],
-    [n(ASTNodeType.KEYWORD, ":asd"), ":asd"],
     [n(ASTNodeType.BOOLEAN, true), "true"],
   ];
 
@@ -26,9 +25,9 @@ test("lists", () => {
         n(ASTNodeType.NIL, null),
         n(ASTNodeType.NUMBER, 1),
         n(ASTNodeType.BOOLEAN, true),
-        n(ASTNodeType.KEYWORD, ":lol"),
+        n(ASTNodeType.SYMBOL, "lol"),
       ]),
-      "(nil 1 true :lol)",
+      "(nil 1 true lol)",
     ],
     [l([n(ASTNodeType.NIL, null), l([n(ASTNodeType.NUMBER, 1)])]), "(nil (1))"],
   ];

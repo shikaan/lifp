@@ -9,7 +9,6 @@ test("reads atoms", () => {
     ["true", n(ASTNodeType.BOOLEAN, true)],
     ["false", n(ASTNodeType.BOOLEAN, false)],
     ['"lol"', n(ASTNodeType.STRING, "lol")],
-    [":key", n(ASTNodeType.KEYWORD, ":key")],
     ["add-one", n(ASTNodeType.SYMBOL, "add-one")],
     ["nil", n(ASTNodeType.NIL, null)],
   ];
@@ -24,7 +23,6 @@ test("reads unary lists", () => {
     ["(1)", l([n(ASTNodeType.NUMBER, 1)])],
     ["(true)", l([n(ASTNodeType.BOOLEAN, true)])],
     ['("true")', l([n(ASTNodeType.STRING, "true")])],
-    ["(:key)", l([n(ASTNodeType.KEYWORD, ":key")])],
     ["(nil)", l([n(ASTNodeType.NIL, null)])],
   ];
 
@@ -64,9 +62,9 @@ test("reads complex lists", () => {
       ]),
     ],
     [
-      '(:key 1 (nil "l"))',
+      '(key 1 (nil "l"))',
       l([
-        n(ASTNodeType.KEYWORD, ":key"),
+        n(ASTNodeType.SYMBOL, "key"),
         n(ASTNodeType.NUMBER, 1),
         l([n(ASTNodeType.NIL, null), n(ASTNodeType.STRING, "l")]),
       ]),

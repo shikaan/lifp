@@ -8,7 +8,6 @@ import {
   ASTNodeType,
   type AtomToken,
   isAtomToken,
-  isKeyword,
   type Token,
   TokenType,
 } from "./types.js";
@@ -20,9 +19,6 @@ const parseAtom = (token: AtomToken): ASTNode => {
     case TokenType.STRING:
       return { type: ASTNodeType.STRING, value: token.literal };
     case TokenType.SYMBOL: {
-      if (isKeyword(token.literal)) {
-        return { type: ASTNodeType.KEYWORD, value: token.literal };
-      }
       if ([TRUE, FALSE].includes(token.literal)) {
         return { type: ASTNodeType.BOOLEAN, value: token.literal === TRUE };
       }

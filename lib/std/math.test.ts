@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { n } from "../../tests/utils.js";
-import { math } from "./math.js";
 import { type ASTNode, ASTNodeType } from "../types.js";
+import { math } from "./math.js";
 
 const num = (x: number) => n(ASTNodeType.NUMBER, x);
 const bool = (x: boolean) => n(ASTNodeType.BOOLEAN, x);
