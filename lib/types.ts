@@ -54,7 +54,6 @@ export enum TokenType {
   NUMBER,
   SYMBOL,
   STRING,
-  EOF,
 }
 
 export type AtomToken =
@@ -68,13 +67,9 @@ export const isAtomToken = (token: Token): token is AtomToken =>
 export type Token =
   | AtomToken
   | { type: TokenType.LPAREN; literal: typeof LPAREN }
-  | { type: TokenType.RPAREN; literal: typeof RPAREN }
-  | { type: TokenType.EOF };
+  | { type: TokenType.RPAREN; literal: typeof RPAREN };
 
-export type Lambda = (
-  nodes: Expression[],
-  environment?: Environment,
-) => Expression;
+export type Lambda = (nodes: Expression[]) => Expression;
 
 export type SpecialFormType = typeof DEF | typeof FN | typeof LET | typeof IF;
 export type SpecialFormHandler = (

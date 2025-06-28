@@ -40,7 +40,7 @@ const parseList = (
   tokens: Token[],
   reader: { depth: number; index: number },
 ): ASTNodeList => {
-  if (tokens.length <= 2 || tokens[reader.index].type !== TokenType.LPAREN) {
+  if (tokens.length <= 1 || tokens[reader.index].type !== TokenType.LPAREN) {
     throw new SyntaxException("Invalid list");
   }
 
@@ -56,11 +56,6 @@ const parseList = (
     }
 
     if (token.type === TokenType.RPAREN) {
-      reader.depth--;
-      break;
-    }
-
-    if (token.type === TokenType.EOF) {
       reader.depth--;
       break;
     }
@@ -81,13 +76,15 @@ export const read = (line: string): AbstractSyntaxTree => {
 
   if (first.type === TokenType.LPAREN) {
     const result = parseList(tokens, reader);
-    if (reader.depth !== 0)
+    const hasReadEverything = reader.index === tokens.length - 1;
+    if (reader.depth !== 0 || !hasReadEverything) {
       throw new SyntaxException("Unbalanced parentheses.");
+    }
     return result;
   }
 
   // This can only be a single atom plus an end of file, else it's a mistake
-  if (tokens.length !== 2 || !isAtomToken(first))
+  if (tokens.length !== 1 || !isAtomToken(first))
     throw new SyntaxException(`Invalid tokens ${line}.`);
 
   return parseAtom(first);

@@ -65,7 +65,5 @@ export const tokenize = (line: string): Token[] => {
     throw new SyntaxException(`Unexpected character(s): "${remainingContent}"`);
   }
 
-  result.push({ type: TokenType.EOF });
-
   return result;
 };

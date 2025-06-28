@@ -5,7 +5,6 @@ import { type Token, TokenType } from "./types.js";
 
 const LPAREN = t(TokenType.LPAREN, "(");
 const RPAREN = t(TokenType.RPAREN, ")");
-const EOF = t(TokenType.EOF);
 
 test("whitespace", () => {
   const tests = ["  (1)", "\n(1)", "\t(1)", "\r(1)", "(\n1\n)"];
@@ -15,18 +14,17 @@ test("whitespace", () => {
       LPAREN,
       t(TokenType.NUMBER, 1),
       RPAREN,
-      EOF,
     ]);
   }
 });
 
 test("numbers", () => {
   const tests: [string, Token[]][] = [
-    ["(12)", [LPAREN, t(TokenType.NUMBER, 12), RPAREN, EOF]],
-    ["(1)", [LPAREN, t(TokenType.NUMBER, 1), RPAREN, EOF]],
-    ["(1.56)", [LPAREN, t(TokenType.NUMBER, 1.56), RPAREN, EOF]],
-    ["(-1)", [LPAREN, t(TokenType.NUMBER, -1), RPAREN, EOF]],
-    ["(-1.0)", [LPAREN, t(TokenType.NUMBER, -1), RPAREN, EOF]],
+    ["(12)", [LPAREN, t(TokenType.NUMBER, 12), RPAREN]],
+    ["(1)", [LPAREN, t(TokenType.NUMBER, 1), RPAREN]],
+    ["(1.56)", [LPAREN, t(TokenType.NUMBER, 1.56), RPAREN]],
+    ["(-1)", [LPAREN, t(TokenType.NUMBER, -1), RPAREN]],
+    ["(-1.0)", [LPAREN, t(TokenType.NUMBER, -1), RPAREN]],
   ];
 
   for (const [input, expected] of tests) {
@@ -36,14 +34,14 @@ test("numbers", () => {
 
 test("symbols", () => {
   const tests: [string, Token[]][] = [
-    ["(true)", [LPAREN, t(TokenType.SYMBOL, "true"), RPAREN, EOF]],
-    ["(add)", [LPAREN, t(TokenType.SYMBOL, "add"), RPAREN, EOF]],
-    ["(def!)", [LPAREN, t(TokenType.SYMBOL, "def!"), RPAREN, EOF]],
-    ["(add-one)", [LPAREN, t(TokenType.SYMBOL, "add-one"), RPAREN, EOF]],
-    ["(add-1)", [LPAREN, t(TokenType.SYMBOL, "add-1"), RPAREN, EOF]],
-    ["(1-dos)", [LPAREN, t(TokenType.SYMBOL, "1-dos"), RPAREN, EOF]],
-    ["(:keyword)", [LPAREN, t(TokenType.SYMBOL, ":keyword"), RPAREN, EOF]],
-    ["(/)", [LPAREN, t(TokenType.SYMBOL, "/"), RPAREN, EOF]],
+    ["(true)", [LPAREN, t(TokenType.SYMBOL, "true"), RPAREN]],
+    ["(add)", [LPAREN, t(TokenType.SYMBOL, "add"), RPAREN]],
+    ["(def!)", [LPAREN, t(TokenType.SYMBOL, "def!"), RPAREN]],
+    ["(add-one)", [LPAREN, t(TokenType.SYMBOL, "add-one"), RPAREN]],
+    ["(add-1)", [LPAREN, t(TokenType.SYMBOL, "add-1"), RPAREN]],
+    ["(1-dos)", [LPAREN, t(TokenType.SYMBOL, "1-dos"), RPAREN]],
+    ["(:keyword)", [LPAREN, t(TokenType.SYMBOL, ":keyword"), RPAREN]],
+    ["(/)", [LPAREN, t(TokenType.SYMBOL, "/"), RPAREN]],
   ];
 
   for (const [input, expected] of tests) {
@@ -53,20 +51,14 @@ test("symbols", () => {
 
 test("strings", () => {
   const tests: [string, Token[]][] = [
-    ['("true")', [LPAREN, t(TokenType.STRING, "true"), RPAREN, EOF]],
-    [`("t\\"rue")`, [LPAREN, t(TokenType.STRING, 't"rue'), RPAREN, EOF]],
-    [`("t\\true")`, [LPAREN, t(TokenType.STRING, "t\true"), RPAREN, EOF]],
+    ['("true")', [LPAREN, t(TokenType.STRING, "true"), RPAREN]],
+    [`("t\\"rue")`, [LPAREN, t(TokenType.STRING, 't"rue'), RPAREN]],
+    [`("t\\true")`, [LPAREN, t(TokenType.STRING, "t\true"), RPAREN]],
     [
       `("t\\"r" "u e")`,
-      [
-        LPAREN,
-        t(TokenType.STRING, 't"r'),
-        t(TokenType.STRING, "u e"),
-        RPAREN,
-        EOF,
-      ],
+      [LPAREN, t(TokenType.STRING, 't"r'), t(TokenType.STRING, "u e"), RPAREN],
     ],
-    ['("1")', [LPAREN, t(TokenType.STRING, "1"), RPAREN, EOF]],
+    ['("1")', [LPAREN, t(TokenType.STRING, "1"), RPAREN]],
   ];
 
   for (const [input, expected] of tests) {
@@ -85,7 +77,6 @@ test("sub expressions", () => {
         t(TokenType.NUMBER, 2),
         RPAREN,
         RPAREN,
-        EOF,
       ],
     ],
   ];
@@ -105,7 +96,6 @@ test("complex expressions", () => {
         t(TokenType.NUMBER, 1),
         t(TokenType.NUMBER, 2),
         RPAREN,
-        EOF,
       ],
     ],
     [
@@ -120,7 +110,6 @@ test("complex expressions", () => {
         t(TokenType.NUMBER, 3),
         RPAREN,
         RPAREN,
-        EOF,
       ],
     ],
     [
@@ -134,7 +123,6 @@ test("complex expressions", () => {
         t(TokenType.STRING, "o"),
         RPAREN,
         RPAREN,
-        EOF,
       ],
     ],
   ];
@@ -146,9 +134,9 @@ test("complex expressions", () => {
 
 test("atoms", () => {
   const tests: [string, Token[]][] = [
-    ["1", [t(TokenType.NUMBER, 1), EOF]],
-    ['"str"', [t(TokenType.STRING, "str"), EOF]],
-    ["str", [t(TokenType.SYMBOL, "str"), EOF]],
+    ["1", [t(TokenType.NUMBER, 1)]],
+    ['"str"', [t(TokenType.STRING, "str")]],
+    ["str", [t(TokenType.SYMBOL, "str")]],
   ];
 
   for (const [input, expected] of tests) {
@@ -158,11 +146,11 @@ test("atoms", () => {
 
 test("comments", () => {
   const tests: [string, Token[]][] = [
-    ["1 ; one", [t(TokenType.NUMBER, 1), EOF]],
-    ["; one\n1", [t(TokenType.NUMBER, 1), EOF]],
+    ["1 ; one", [t(TokenType.NUMBER, 1)]],
+    ["; one\n1", [t(TokenType.NUMBER, 1)]],
     [
       "(1\n; lol\n2)",
-      [LPAREN, t(TokenType.NUMBER, 1), t(TokenType.NUMBER, 2), RPAREN, EOF],
+      [LPAREN, t(TokenType.NUMBER, 1), t(TokenType.NUMBER, 2), RPAREN],
     ],
   ];
 
