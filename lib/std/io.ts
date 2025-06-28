@@ -1,10 +1,10 @@
+import * as util from "node:util";
 import { InvalidArgumentException } from "../errors.js";
 import { print } from "../print.js";
-import { ASTNodeType, type Expression, type Lambda } from "../types.js";
-import * as util from "node:util";
+import { isList, isString, Lambda, Value } from "../types.js";
 
 const ioWriteFunction = (
-  nodes: Expression[],
+  nodes: Value[],
   name: string,
   stream: NodeJS.WriteStream,
 ) => {
@@ -14,7 +14,7 @@ const ioWriteFunction = (
     );
   }
   stream.write(print(nodes[0]));
-  return { type: ASTNodeType.NIL, value: null };
+  return null;
 };
 
 export const io: Record<string, Lambda> = {
@@ -43,19 +43,13 @@ export const io: Record<string, Lambda> = {
    *   (io.printf "hello %s %d" ("world" 42))
    */
   "io.printf": (nodes) => {
-    if (
-      nodes.length !== 2 ||
-      nodes[0].type !== ASTNodeType.STRING ||
-      nodes[1].type !== ASTNodeType.LIST
-    ) {
+    if (nodes.length !== 2 || !isString(nodes[0]) || !isList(nodes[1])) {
       throw new InvalidArgumentException(
-        `'io.printf' requires a format string, and a list of arguments. Example: (printf "hello %s" ("world"))`,
+        `'io.printf' requires a format string, and a list of arguments. Example: (io.printf "hello %s" ("world"))`,
       );
     }
     const [format, values] = nodes;
-    process.stdout.write(
-      util.format(format.value, ...values.value.map((i: any) => i.value)),
-    );
-    return { type: ASTNodeType.NIL, value: null };
+    process.stdout.write(util.format(format, ...values));
+    return null;
   },
 };

@@ -5,8 +5,8 @@ import { print } from "../lib/print.ts";
 import { read } from "../lib/read.ts";
 
 test("prints exactly what comes in", () => {
-  const input = '(1 key "lol" true)';
-  expect(print(read(input))).toEqual(input);
+  const input = '(1 "lol" true)';
+  expect(print(evaluate(read(input), defaultEnvironment))).toEqual(input);
 });
 
 test("defines a variable and uses is", () => {

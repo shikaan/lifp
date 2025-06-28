@@ -1,15 +1,14 @@
 import { expect, test } from "bun:test";
-import { l, n } from "../tests/utils.js";
 import { print } from "./print.js";
-import { ASTNodeType, type Expression } from "./types.js";
+import { type Value } from "./types.js";
 
 test("atoms", () => {
-  const tests: [Expression, string][] = [
-    [n(ASTNodeType.NIL, null), "nil"],
-    [n(ASTNodeType.NUMBER, 1), "1"],
-    [n(ASTNodeType.SYMBOL, "asd"), "asd"],
-    [n(ASTNodeType.STRING, "asd"), '"asd"'],
-    [n(ASTNodeType.BOOLEAN, true), "true"],
+  const tests: [Value, string][] = [
+    [null, "nil"],
+    [1, "1"],
+    ["asd", '"asd"'],
+    [true, "true"],
+    [() => null, "#<function>"],
   ];
 
   for (const [input, expected] of tests) {
@@ -18,18 +17,10 @@ test("atoms", () => {
 });
 
 test("lists", () => {
-  const tests: [Expression, string][] = [
-    [l([n(ASTNodeType.NIL, null)]), "(nil)"],
-    [
-      l([
-        n(ASTNodeType.NIL, null),
-        n(ASTNodeType.NUMBER, 1),
-        n(ASTNodeType.BOOLEAN, true),
-        n(ASTNodeType.SYMBOL, "lol"),
-      ]),
-      "(nil 1 true lol)",
-    ],
-    [l([n(ASTNodeType.NIL, null), l([n(ASTNodeType.NUMBER, 1)])]), "(nil (1))"],
+  const tests: [Value, string][] = [
+    [[null], "(nil)"],
+    [[null, 1, true, "lol"], '(nil 1 true "lol")'],
+    [[null, [1]], "(nil (1))"],
   ];
 
   for (const [input, expected] of tests) {

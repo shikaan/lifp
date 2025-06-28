@@ -1,28 +1,28 @@
 import type { Environment } from "./environment.js";
 import { specials } from "./specials.js";
 import {
-  type AbstractSyntaxTree,
-  ASTNodeType,
-  type Expression,
   isListNode,
+  Node,
+  NodeType,
   type SpecialFormHandler,
+  type Value,
 } from "./types.js";
 
 export const evaluate = (
-  tree: AbstractSyntaxTree,
+  tree: Node,
   environment: Environment,
   specialForms: typeof specials = specials,
-): Expression => {
+): Value => {
   if (!isListNode(tree)) {
-    return tree.type === ASTNodeType.SYMBOL
+    return tree.type === NodeType.SYMBOL
       ? environment.get(tree.value)
-      : tree;
+      : tree.value;
   }
 
-  if (tree.value.length === 0) return tree;
+  if (tree.value.length === 0) return [];
 
   const firstNode = tree.value[0];
-  if (firstNode.type === ASTNodeType.SYMBOL) {
+  if (firstNode.type === NodeType.SYMBOL) {
     const specialForm: SpecialFormHandler | undefined =
       specialForms[firstNode.value];
 
@@ -30,21 +30,18 @@ export const evaluate = (
       return specialForm(tree.value, environment);
     }
 
-    const expression = environment.get(firstNode.value);
+    const value = environment.get(firstNode.value);
 
-    if (expression.type === ASTNodeType.FUNCTION) {
-      const lambda = expression.value;
+    if (typeof value === "function") {
+      const lambda = value;
       const args = tree.value.slice(1);
-      const resolvedArgs = args.map((subtree) => {
-        return evaluate(subtree, environment);
-      });
+      const resolvedArgs = args.map((subtree) =>
+        evaluate(subtree, environment),
+      );
 
       return lambda(resolvedArgs);
     }
   }
 
-  return {
-    type: ASTNodeType.LIST,
-    value: tree.value.map((subtree) => evaluate(subtree, environment)),
-  };
+  return tree.value.map((subtree) => evaluate(subtree, environment));
 };

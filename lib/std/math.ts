@@ -1,73 +1,73 @@
 import { InvalidArgumentException } from "../errors.js";
-import { ASTNodeType, type Expression, type Lambda } from "../types.js";
+import { isList, isNull, isNumber, type Lambda, type Value } from "../types.js";
 
 const addOrMultiply = (
-  nodes: Expression[],
+  values: Value[],
   name: "+" | "*",
   cb: (a: number, b: number) => number,
   initialValue = 0,
-): Expression => {
-  if (nodes.length < 2) {
+): Value => {
+  if (values.length < 2) {
     throw new InvalidArgumentException(
-      `'${name}' requires at least 2 arguments. Got ${nodes.length}.`,
+      `'${name}' requires at least 2 arguments. Got ${values.length}.`,
     );
   }
 
-  let value = initialValue;
-  for (const node of nodes) {
-    if (node.type !== ASTNodeType.NUMBER) {
+  let result = initialValue;
+  for (const value of values) {
+    if (!isNumber(value)) {
       throw new InvalidArgumentException(
-        `'${name}' takes only numbers as argument. Got '${node.value}'.`,
+        `'${name}' takes only numbers as argument. Got '${value}'.`,
       );
     }
-    value = cb(node.value, value);
+    result = cb(value, result);
   }
 
-  return {
-    type: ASTNodeType.NUMBER,
-    value,
-  };
+  return result;
 };
 
 const subtractOrDivide = (
-  nodes: Expression[],
+  values: Value[],
   name: "-" | "/",
   cb: (a: number, b: number) => number,
-): Expression => {
-  if (nodes.length < 2) {
+): Value => {
+  if (values.length < 2) {
     throw new InvalidArgumentException(
-      `'${name}' requires at least 2 arguments. Got ${nodes.length}.`,
+      `'${name}' requires at least 2 arguments. Got ${values.length}.`,
     );
   }
 
-  if (nodes[0].type !== ASTNodeType.NUMBER) {
+  if (!isNumber(values[0])) {
     throw new InvalidArgumentException(
-      `'${name}' takes only numbers as argument. Got '${nodes[0].value}'.`,
+      `'${name}' takes only numbers as argument. Got '${values[0]}'.`,
     );
   }
 
-  let value = nodes[0].value;
-  for (let i = 1; i < nodes.length; i++) {
-    const node = nodes[i];
-    if (node.type !== ASTNodeType.NUMBER) {
+  let result = values[0];
+  for (let i = 1; i < values.length; i++) {
+    const value = values[i];
+    if (!isNumber(value)) {
       throw new InvalidArgumentException(
-        `'${name}' takes only numbers as argument. Got '${node.value}'.`,
+        `'${name}' takes only numbers as argument. Got '${value}'.`,
       );
     }
-    value = cb(value, node.value);
+    result = cb(result, value);
   }
 
-  return {
-    type: ASTNodeType.NUMBER,
-    value,
-  };
+  return result;
+};
+
+const isSameType = (a: unknown, b: unknown) => {
+  if (isNull(a) || isNull(b)) return isNull(a) && isNull(b);
+  if (isList(a) || isList(b)) return isList(a) && isList(b);
+  return typeof a === typeof b;
 };
 
 const compareFunction = (
-  nodes: Expression[],
+  nodes: Value[],
   name: string,
   callback: <T>(a: T, b: T) => boolean,
-): Expression => {
+): Value => {
   if (nodes.length !== 2) {
     throw new InvalidArgumentException(
       `'${name}' requires 2 arguments. Got ${nodes.length}`,
@@ -76,16 +76,13 @@ const compareFunction = (
 
   const [first, second] = nodes;
 
-  if (first.type !== second.type) {
+  if (!isSameType(first, second)) {
     throw new InvalidArgumentException(
       `Cannot compare arguments of different type`,
     );
   }
 
-  return {
-    type: ASTNodeType.BOOLEAN,
-    value: callback(first.value, second.value),
-  };
+  return callback(first, second);
 };
 
 export const math: Record<string, Lambda> = {
