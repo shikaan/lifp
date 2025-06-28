@@ -1,5 +1,5 @@
 {
-  "version": {},
+  "version": "v0.2.0 (08e4a75)",
   "functions": {
     "+": {
       "description": "Adds numbers together.",
