@@ -18,21 +18,30 @@ const ioWriteFunction = (
 };
 
 export const io: Record<string, Lambda> = {
-  // Writes an atom to stdout. Use `io.print` to format output.
-  //
-  //  (io.stdout "hello")
+  /**
+   * Stringifies an atom and writes it to stdout. Use `io.print` to format output.
+   * @name io.stdout
+   * @example
+   *   (io.stdout "hello")
+   */
   "io.stdout": (nodes) => ioWriteFunction(nodes, "io.stdout", process.stdout),
-  // Writes an atom to stderr.
-  //
-  //  (io.stderr "Error!")
+  /**
+   * Stringifies an atom and writes it to stderr.
+   * @name io.stderr
+   * @example
+   *   (io.stderr "error")
+   */
   "io.stderr": (nodes) => ioWriteFunction(nodes, "io.stderr", process.stderr),
-  // Writes a formatted string to stdout. Specifiers:
-  //  - "%s" for strings
-  //  - "%d" for numbers
-  //  - "%i" casts a string to an integer
-  //  - "%f" casts a string to a float
-  //
-  //  (io.stdout "hello")
+  /**
+   * Writes a formatted string to stdout. Specifiers:
+   *  - `%s` for strings
+   *  - `%d` for numbers
+   *  - `%i` casts a string to an integer
+   *  - `%f` casts a string to a float
+   * @name io.printf
+   * @example
+   *   (io.printf "hello %s %d" ("world" 42))
+   */
   "io.printf": (nodes) => {
     if (
       nodes.length !== 2 ||

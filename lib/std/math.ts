@@ -89,16 +89,88 @@ const compareFunction = (
 };
 
 export const math: Record<string, Lambda> = {
+  /**
+   * Adds numbers together.
+   * @name +
+   * @example
+   *   (+ 1 2 3) ; 6
+   */
   "+": (nodes) => addOrMultiply(nodes, "+", (a, b) => a + b),
+  /**
+   * Subtracts numbers from the first argument.
+   * @name -
+   * @example
+   *   (- 5 2 1) ; 2
+   */
   "-": (nodes) => subtractOrDivide(nodes, "-", (a, b) => a - b),
+  /**
+   * Multiplies numbers together.
+   * @name *
+   * @example
+   *   (* 2 3 4) ; 24
+   */
   "*": (nodes) => addOrMultiply(nodes, "*", (a, b) => a * b, 1),
+  /**
+   * Divides the first argument by the rest.
+   * @name /
+   * @example
+   *   (/ 8 2 2) ; 2
+   */
   "/": (nodes) => subtractOrDivide(nodes, "/", (a, b) => a / b),
+  /**
+   * Checks if two values are equal.
+   * @name =
+   * @example
+   *   (= 1 1) ; true
+   */
   "=": (nodes) => compareFunction(nodes, "=", (a, b) => a === b),
+  /**
+   * Checks if the first value is less than the second.
+   * @name <
+   * @example
+   *   (< 1 2) ; true
+   */
   "<": (nodes) => compareFunction(nodes, "<", (a, b) => a < b),
+  /**
+   * Checks if the first value is greater than the second.
+   * @name >
+   * @example
+   *   (> 2 1) ; true
+   */
   ">": (nodes) => compareFunction(nodes, ">", (a, b) => a > b),
+  /**
+   * Checks if two values are not equal.
+   * @name !=
+   * @example
+   *   (!= 1 2) ; true
+   */
   "!=": (nodes) => compareFunction(nodes, "!=", (a, b) => a !== b),
+  /**
+   * Checks if the first value is less than or equal to the second.
+   * @name <=
+   * @example
+   *   (<= 1 2) ; true
+   */
   "<=": (nodes) => compareFunction(nodes, "<=", (a, b) => a <= b),
+  /**
+   * Checks if the first value is greater than or equal to the second.
+   * @name >=
+   * @example
+   *   (>= 2 1) ; true
+   */
   ">=": (nodes) => compareFunction(nodes, ">=", (a, b) => a >= b),
+  /**
+   * Logical AND for two boolean values.
+   * @name and
+   * @example
+   *   (and true false) ; false
+   */
   and: (nodes) => compareFunction(nodes, "and", (a, b) => !!(a && b)),
+  /**
+   * Logical OR for two boolean values.
+   * @name or
+   * @example
+   *   (or true false) ; true
+   */
   or: (nodes) => compareFunction(nodes, "or", (a, b) => !!(a || b)),
 };

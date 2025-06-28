@@ -56,6 +56,12 @@ jobs:
       - name: Create build directory
         run: mkdir -p build
 
+      - name: Generate documentation
+        run: >
+          bun \
+            --define __VERSION__="${{ steps.version.outputs.VERSION_STRING }}" \
+            scripts/generate-docs.ts
+
       - name: Build for ${{ matrix.build.target }}
         run: >
           bun build . \
@@ -70,6 +76,15 @@ jobs:
           name: ${{ matrix.build.outfile }}
           path: build/
           retention-days: 7
+      
+      - name: Commit and push updated docs
+        if: github.event_name == 'release'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/docs.json docs/docs.md
+          git commit -m "chore(docs): update generated documentation for ${{ steps.version.outputs.VERSION_STRING }}"
+          git push origin HEAD:main
 
       - name: Upload release assets
         if: github.event_name == 'release'

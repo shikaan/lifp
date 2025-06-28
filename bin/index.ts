@@ -3,7 +3,7 @@ import { repl } from "./repl.js";
 import { run } from "./run.js";
 
 const HELP = `
-${packageJSON.name} is a Lisp dialect and a toolchain to build general purpose applications.
+  ${packageJSON.name} is a Lisp dialect and a toolchain to build general purpose applications.
 
 Usage:
   ${packageJSON.name} <command> [...flags] [...args]
