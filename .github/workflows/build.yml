@@ -40,6 +40,8 @@ jobs:
           git push origin HEAD:main
   build:
     runs-on: ubuntu-latest
+    outputs:
+      VERSION_STRING: ${{ steps.version.outputs.VERSION_STRING }}
     strategy:
       matrix:
         build:
