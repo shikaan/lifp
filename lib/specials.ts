@@ -16,7 +16,7 @@ export const specials: Record<SpecialFormType, SpecialFormHandler> = {
   [DEF]: (nodes, environment) => {
     if (nodes.length !== 3 || nodes[1].type !== NodeType.SYMBOL) {
       throw new InvalidArgumentException(
-        `'${DEF}' requires a keyword and a form only. Example: (${DEF} a 123)`,
+        `'${DEF}' requires a symbol and a form only. Example: (${DEF} a 123)`,
       );
     }
 

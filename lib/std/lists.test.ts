@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { lists } from "./lists.js";
-import { isList } from "../types.ts";
+import { isList } from "../types.js";
 
 test("list.count", () => {
   expect(lists["list.count"]([[1, 2]])).toBe(2);

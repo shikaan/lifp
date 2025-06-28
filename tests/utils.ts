@@ -6,11 +6,11 @@ import {
   type TokenType,
 } from "../lib/types.js";
 
-// Creates an Node. Short notation for tests
+// Creates a Node. Short notation for tests
 export const n = (type: NodeType, value: unknown): Node =>
   ({ type, value }) as Node;
 
-// Creates an NodeList. Short notation for tests
+// Creates a NodeList. Short notation for tests
 export const l = (elements: unknown[]): NodeList =>
   n(NodeType.LIST, elements) as NodeList;
 
