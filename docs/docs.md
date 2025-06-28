@@ -1,4 +1,4 @@
-lifp - v0.2.0 (eaa9b08)
+lifp - [object Object]
 ---
 
 ## +
