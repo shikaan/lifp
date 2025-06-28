@@ -1,52 +1,45 @@
-import {
-  type DEF,
-  type FN,
-  type IF,
-  KEYWORD_PREFIX,
-  type LET,
-  type LPAREN,
-  type RPAREN,
-} from "./constants.ts";
+import type { DEF, FN, IF, LET, LPAREN, RPAREN } from "./constants.ts";
 import type { Environment } from "./environment.js";
 
-export type Expression =
-  | ASTNode
-  | { type: ASTNodeType.LIST; value: Expression[] }
-  | { type: ASTNodeType.FUNCTION; value: Lambda };
+// Expressions
 
-export enum ASTNodeType {
+export type Lambda = (nodes: Value[]) => Value;
+export type Value = Value[] | number | boolean | null | string | Lambda;
+
+export const isNumber = (n: unknown): n is number => typeof n === "number";
+export const isString = (n: unknown): n is string => typeof n === "string";
+export const isBoolean = (n: unknown): n is boolean => typeof n === "boolean";
+export const isNull = (n: unknown): n is null => n == null;
+export const isLambda = (n: unknown): n is Lambda => typeof n === "function";
+export const isList = (n: unknown): n is Value[] => Array.isArray(n);
+
+// Abstract Syntax Tree
+
+export enum NodeType {
   LIST,
   NUMBER,
   BOOLEAN,
   NIL,
   STRING,
   SYMBOL,
-  KEYWORD,
-  FUNCTION,
 }
 
-export type Keyword = `${typeof KEYWORD_PREFIX}${string}`;
-export const isKeyword = (s: string): s is Keyword =>
-  s.startsWith(KEYWORD_PREFIX);
+export type Node =
+  | NodeList
+  | NodeSymbol
+  | { type: NodeType.NUMBER; value: number }
+  | { type: NodeType.BOOLEAN; value: boolean }
+  | { type: NodeType.NIL; value: null }
+  | { type: NodeType.STRING; value: string };
 
-export type ASTNodeList = { type: ASTNodeType.LIST; value: ASTNode[] };
-export const isListNode = (n: ASTNode): n is ASTNodeList =>
-  n.type === ASTNodeType.LIST;
+export type NodeList = { type: NodeType.LIST; value: Node[] };
+export const isListNode = (n: Node): n is NodeList => n.type === NodeType.LIST;
 
-export type ASTNodeSymbol = { type: ASTNodeType.SYMBOL; value: string };
-export const isSymbol = (n: ASTNode): n is ASTNodeSymbol =>
-  n.type === ASTNodeType.SYMBOL;
+export type NodeSymbol = { type: NodeType.SYMBOL; value: string };
+export const isSymbol = (n: Node): n is NodeSymbol =>
+  n.type === NodeType.SYMBOL;
 
-export type ASTNode =
-  | ASTNodeList
-  | { type: ASTNodeType.NUMBER; value: number }
-  | { type: ASTNodeType.BOOLEAN; value: boolean }
-  | { type: ASTNodeType.NIL; value: null }
-  | { type: ASTNodeType.STRING; value: string }
-  | ASTNodeSymbol
-  | { type: ASTNodeType.KEYWORD; value: Keyword };
-
-export type AbstractSyntaxTree = ASTNode;
+// Tokenization
 
 export enum TokenType {
   LPAREN,
@@ -69,10 +62,10 @@ export type Token =
   | { type: TokenType.LPAREN; literal: typeof LPAREN }
   | { type: TokenType.RPAREN; literal: typeof RPAREN };
 
-export type Lambda = (nodes: Expression[]) => Expression;
+////
 
 export type SpecialFormType = typeof DEF | typeof FN | typeof LET | typeof IF;
 export type SpecialFormHandler = (
-  nodes: ASTNode[],
+  nodes: Node[],
   environment: Environment,
-) => Expression;
+) => Value;

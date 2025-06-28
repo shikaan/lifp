@@ -1,27 +1,28 @@
-import {
-  type ASTNodeSymbol,
-  ASTNodeType,
-  isListNode,
-  isSymbol,
-  SpecialFormHandler,
-  SpecialFormType,
-} from "./types.js";
+import { DEF, FN, IF, LET } from "./constants.js";
 import { Environment } from "./environment.js";
 import { InvalidArgumentException } from "./errors.js";
 import { evaluate } from "./evaluate.js";
-import { DEF, FN, IF, LET } from "./constants.js";
+import {
+  type NodeSymbol,
+  NodeType,
+  isListNode,
+  isSymbol,
+  type SpecialFormHandler,
+  type SpecialFormType,
+  isBoolean,
+} from "./types.js";
 
 export const specials: Record<SpecialFormType, SpecialFormHandler> = {
   [DEF]: (nodes, environment) => {
-    if (nodes.length !== 3 || nodes[1].type !== ASTNodeType.KEYWORD) {
+    if (nodes.length !== 3 || nodes[1].type !== NodeType.SYMBOL) {
       throw new InvalidArgumentException(
-        `'${DEF}' requires a keyword and a form only. Example: (${DEF} :a 123)`,
+        `'${DEF}' requires a symbol and a form only. Example: (${DEF} a 123)`,
       );
     }
 
     const [, symbol, form] = nodes;
-    environment.set(symbol.value.slice(1), evaluate(form, environment));
-    return { type: ASTNodeType.NIL, value: null };
+    environment.set(symbol.value, evaluate(form, environment));
+    return null;
   },
   [FN]: (nodes, environment) => {
     if (nodes.length !== 3) {
@@ -38,14 +39,11 @@ export const specials: Record<SpecialFormType, SpecialFormHandler> = {
     }
 
     // Array.some does not enforce types
-    const values = bindings.value as ASTNodeSymbol[];
-    return {
-      type: ASTNodeType.FUNCTION,
-      value: (nodes) => {
-        const innerEnvironment = new Environment(environment);
-        values.forEach((sym, i) => innerEnvironment.set(sym.value, nodes[i]));
-        return evaluate(form, innerEnvironment);
-      },
+    const values = bindings.value as NodeSymbol[];
+    return (nodes) => {
+      const innerEnvironment = new Environment(environment);
+      values.forEach((sym, i) => innerEnvironment.set(sym.value, nodes[i]));
+      return evaluate(form, innerEnvironment);
     };
   },
   [LET]: (list, environment) => {
@@ -59,16 +57,13 @@ export const specials: Record<SpecialFormType, SpecialFormHandler> = {
     const innerEnvironment = new Environment(environment);
 
     for (const pair of assignments.value) {
-      if (!isListNode(pair) || pair.value[0].type !== ASTNodeType.KEYWORD) {
+      if (!isListNode(pair) || pair.value[0].type !== NodeType.SYMBOL) {
         throw new InvalidArgumentException(
-          `'${LET}' requires a list of assignments. Example: (${LET} ((:a 12) (:b 34)) (other-form))`,
+          `'${LET}' requires a list of assignments. Example: (${LET} ((a 12) (b 34)) (other-form))`,
         );
       }
       const [sym, form] = pair.value;
-      innerEnvironment.set(
-        sym.value.slice(1),
-        evaluate(form, innerEnvironment),
-      );
+      innerEnvironment.set(sym.value, evaluate(form, innerEnvironment));
     }
 
     return evaluate(form, innerEnvironment);
@@ -84,13 +79,13 @@ export const specials: Record<SpecialFormType, SpecialFormHandler> = {
 
     const resolved = evaluate(condition, environment);
 
-    if (resolved.type !== ASTNodeType.BOOLEAN) {
+    if (!isBoolean(resolved)) {
       throw new InvalidArgumentException(
         `Condition must resolve to a boolean.`,
       );
     }
 
-    if (resolved.value) {
+    if (resolved) {
       return evaluate(thenBranch, environment);
     }
 
@@ -98,9 +93,6 @@ export const specials: Record<SpecialFormType, SpecialFormHandler> = {
       return evaluate(elseBranch, environment);
     }
 
-    return {
-      type: ASTNodeType.NIL,
-      value: null,
-    };
+    return null;
   },
 };

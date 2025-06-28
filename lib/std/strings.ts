@@ -1,5 +1,5 @@
 import { InvalidArgumentException } from "../errors.js";
-import { type ASTNode, ASTNodeType, type Lambda } from "../types.js";
+import { type Lambda, isString, isList, isNumber } from "../types.js";
 
 export const strings: Record<string, Lambda> = {
   /**
@@ -9,12 +9,12 @@ export const strings: Record<string, Lambda> = {
    *   (string.length "hello") ; 5
    */
   "string.length": (nodes) => {
-    if (nodes.length !== 1 || nodes[0].type !== ASTNodeType.STRING) {
+    if (nodes.length !== 1 || !isString(nodes[0])) {
       throw new InvalidArgumentException(
         "'string.length' takes a string as argument. Example: (string.length \"hello\")",
       );
     }
-    return { type: ASTNodeType.NUMBER, value: nodes[0].value.length };
+    return nodes[0].length;
   },
   /**
    * Joins a list of strings with a separator.
@@ -25,9 +25,9 @@ export const strings: Record<string, Lambda> = {
   "string.join": (nodes) => {
     if (
       nodes.length !== 2 ||
-      nodes[0].type !== ASTNodeType.STRING ||
-      nodes[1].type !== ASTNodeType.LIST ||
-      nodes[1].value.some((n) => n.type !== ASTNodeType.STRING)
+      !isString(nodes[0]) ||
+      !isList(nodes[1]) ||
+      !nodes[1].every(isString)
     ) {
       throw new InvalidArgumentException(
         '\'string.join\' takes a separator and a list of strings as arguments. Example: (string.join "," ("foo" "bar"))',
@@ -35,11 +35,7 @@ export const strings: Record<string, Lambda> = {
     }
 
     const [separator, list] = nodes;
-
-    return {
-      type: ASTNodeType.STRING,
-      value: list.value.map((n: ASTNode) => n.value).join(separator.value),
-    };
+    return list.join(separator);
   },
   /**
    * Returns a substring from start to end indices.
@@ -50,18 +46,15 @@ export const strings: Record<string, Lambda> = {
   "string.slice": (nodes) => {
     if (
       nodes.length !== 3 ||
-      nodes[0].type !== ASTNodeType.STRING ||
-      nodes[1].type !== ASTNodeType.NUMBER ||
-      nodes[2].type !== ASTNodeType.NUMBER
+      !isString(nodes[0]) ||
+      !isNumber(nodes[1]) ||
+      !isNumber(nodes[2])
     ) {
       throw new InvalidArgumentException(
-        "'string.slice' takes a string and two numbers as arguments.",
+        "'string.slice' takes a string and two numbers as arguments. Example: (string.slice \"hello\" 1 4)",
       );
     }
-    return {
-      type: ASTNodeType.STRING,
-      value: nodes[0].value.slice(nodes[1].value, nodes[2].value),
-    };
+    return nodes[0].slice(nodes[1], nodes[2]);
   },
   /**
    * Checks if a string contains a substring.
@@ -70,19 +63,12 @@ export const strings: Record<string, Lambda> = {
    *   (string.includes "hello" "ell") ; true
    */
   "string.includes": (nodes) => {
-    if (
-      nodes.length !== 2 ||
-      nodes[0].type !== ASTNodeType.STRING ||
-      nodes[1].type !== ASTNodeType.STRING
-    ) {
+    if (nodes.length !== 2 || !nodes.every(isString)) {
       throw new InvalidArgumentException(
         "'string.includes' takes two strings as arguments.",
       );
     }
-    return {
-      type: ASTNodeType.BOOLEAN,
-      value: nodes[0].value.includes(nodes[1].value),
-    };
+    return nodes[0].includes(nodes[1]);
   },
   /**
    * Trims whitespace from both ends of a string.
@@ -91,11 +77,11 @@ export const strings: Record<string, Lambda> = {
    *   (string.trim "  hello  ") ; "hello"
    */
   "string.trim": (nodes) => {
-    if (nodes.length !== 1 || nodes[0].type !== ASTNodeType.STRING) {
+    if (nodes.length !== 1 || !isString(nodes[0])) {
       throw new InvalidArgumentException(
         "'string.trim' takes a string as argument.",
       );
     }
-    return { type: ASTNodeType.STRING, value: nodes[0].value.trim() };
+    return nodes[0].trim();
   },
 };

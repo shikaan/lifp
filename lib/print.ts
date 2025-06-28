@@ -1,21 +1,22 @@
 import { FALSE, NIL, STRING_DELIMITER, TRUE } from "./constants.js";
-import { type Expression, ASTNodeType } from "./types.js";
+import { isList, isNull, type Value } from "./types.js";
 
-export const print = (expression: Expression): string => {
-  switch (expression.type) {
-    case ASTNodeType.STRING:
-      return `${STRING_DELIMITER}${expression.value}${STRING_DELIMITER}`;
-    case ASTNodeType.SYMBOL:
-    case ASTNodeType.NUMBER:
-    case ASTNodeType.KEYWORD:
-      return `${expression.value}`;
-    case ASTNodeType.NIL:
-      return NIL;
-    case ASTNodeType.BOOLEAN:
-      return expression.value ? TRUE : FALSE;
-    case ASTNodeType.FUNCTION:
+export const print = (value: Value): string => {
+  switch (typeof value) {
+    case "string":
+      return `${STRING_DELIMITER}${value}${STRING_DELIMITER}`;
+    case "number":
+      return `${value}`;
+    case "boolean":
+      return value ? TRUE : FALSE;
+    case "function":
       return `#<function>`;
-    case ASTNodeType.LIST:
-      return `(${expression.value.map((i) => print(i)).join(" ")})`;
+    case "object": {
+      if (isNull(value)) {
+        return NIL;
+      } else if (isList(value)) {
+        return `(${value.map((i) => print(i)).join(" ")})`;
+      }
+    }
   }
 };

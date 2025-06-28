@@ -2,21 +2,21 @@ import { expect, test } from "bun:test";
 import { n } from "../tests/utils.js";
 import { Environment } from "./environment.js";
 import { std } from "./std/index.ts";
-import { ASTNodeType } from "./types.js";
+import { NodeType } from "./types.js";
 
 test("allows same-scope overrides", () => {
-  const num = n(ASTNodeType.NUMBER, 12);
+  const num = n(NodeType.NUMBER, 12);
   const env = new Environment();
-  env.set("a", n(ASTNodeType.NUMBER, 23));
+  env.set("a", n(NodeType.NUMBER, 23));
   env.set("a", num);
 
   expect(env.get("a")).toEqual(num);
 });
 
 test("shadows upper scopes", () => {
-  const num = n(ASTNodeType.NUMBER, 12);
+  const num = n(NodeType.NUMBER, 12);
   const parent = new Environment();
-  parent.set("a", n(ASTNodeType.NUMBER, 34));
+  parent.set("a", n(NodeType.NUMBER, 34));
   const child = new Environment(parent);
   child.set("a", num);
 
@@ -24,7 +24,7 @@ test("shadows upper scopes", () => {
 });
 
 test("shadows std", () => {
-  const num = n(ASTNodeType.NUMBER, 12);
+  const num = n(NodeType.NUMBER, 12);
   const env = new Environment();
   env.set("+", num);
 
@@ -32,7 +32,7 @@ test("shadows std", () => {
 });
 
 test("looks for variables in current scope", () => {
-  const num = n(ASTNodeType.NUMBER, 12);
+  const num = n(NodeType.NUMBER, 12);
   const env = new Environment();
   env.set("a", num);
 
@@ -40,7 +40,7 @@ test("looks for variables in current scope", () => {
 });
 
 test("looks for variables in upper scopes", () => {
-  const num = n(ASTNodeType.NUMBER, 12);
+  const num = n(NodeType.NUMBER, 12);
   const parent = new Environment();
   const child = new Environment(parent);
   parent.set("a", num);

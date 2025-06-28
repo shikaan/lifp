@@ -1,27 +1,22 @@
 import { SymbolNotFoundException } from "./errors.js";
 import { std } from "./std/index.js";
-import { ASTNodeType, type Expression } from "./types.js";
+import type { Value } from "./types.js";
 
 export class Environment {
   constructor(private parent: Environment = null) {}
 
   private readonly std = std;
-  private locals: Map<string, Expression> = new Map();
+  private locals: Map<string, Value> = new Map();
 
-  private getFromStandardLibrary(name: string): Expression | undefined {
-    return this.std[name] != null
-      ? {
-          type: ASTNodeType.FUNCTION,
-          value: this.std[name],
-        }
-      : null;
+  private getFromStandardLibrary(name: string): Value | undefined {
+    return this.std[name] ?? null;
   }
 
-  set(name: string, fn: Expression) {
+  set(name: string, fn: Value) {
     this.locals.set(name, fn);
   }
 
-  get(name: string): Expression {
+  get(name: string): Value {
     const expression =
       this.locals.get(name) ??
       this.parent?.get(name) ??

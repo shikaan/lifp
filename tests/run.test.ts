@@ -20,8 +20,8 @@ afterEach(() => {
 
 test("variables across forms", () => {
   const script = `
-(def! :a 10)
-(def! :b (+ a 5))
+(def! a 10)
+(def! b (+ a 5))
 
 (io.printf "%d" ((+ a b)))
 `.trim();
@@ -31,8 +31,8 @@ test("variables across forms", () => {
 
 test("lambdas", () => {
   const script = `
-(def! :a 10)
-(def! :+5 (fn* (a) (+ a 5)))
+(def! a 10)
+(def! +5 (fn* (a) (+ a 5)))
 
 (io.printf "%d" ((+5 a)))
 `.trim();
@@ -42,8 +42,8 @@ test("lambdas", () => {
 
 test("lambdas and variables", () => {
   const script = `
-(def! :planet "world")
-(def! :greet
+(def! planet "world")
+(def! greet
   (fn* (name)
     (io.printf "Hello, %s!" (name))))
 
@@ -57,7 +57,7 @@ test("lambdas and variables", () => {
 
 test("special forms", () => {
   const script = `
-(def! :fibonacci
+(def! fibonacci
   (fn* (n) 
     (if (< n 2) 
       1 
