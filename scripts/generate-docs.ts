@@ -53,7 +53,7 @@ console.group(`Generating docs.json...`);
 fs.writeFileSync(
   path.join(__dirname, "..", "docs", "docs.json"),
   // @ts-expect-error comes from runner
-  JSON.stringify({ version: __VERSION__, functions: result }, null, 2),
+  JSON.stringify({ version: __VERSION__, functions: result }, null, 2) + "\n",
 );
 console.groupEnd();
 console.log(`Generating docs.json - done`);
