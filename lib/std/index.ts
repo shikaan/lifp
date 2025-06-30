@@ -4,6 +4,7 @@ import { io } from "./io.js";
 import { lists } from "./lists.js";
 import { math } from "./math.ts";
 import { strings } from "./strings.ts";
+import { flow } from "./flow.ts";
 
 export const std: Record<string, Lambda> = {
   ...core,
@@ -11,4 +12,5 @@ export const std: Record<string, Lambda> = {
   ...lists,
   ...strings,
   ...math,
+  ...flow,
 };
