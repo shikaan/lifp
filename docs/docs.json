@@ -1,65 +1,25 @@
 {
-  "version": "v0.3.0 (0fee70f)",
+  "version": "v0.4.0 (dfd2cbd)",
   "functions": {
-    "+": {
-      "description": "Adds numbers together.",
-      "example": "(+ 1 2 3) ; 6",
-      "name": "+"
+    "math.floor": {
+      "description": "Returns the floor of a number.",
+      "example": "(math.floor 1.9) ; 1",
+      "name": "math.floor"
     },
-    "-": {
-      "description": "Subtracts numbers from the first argument.",
-      "example": "(- 5 2 1) ; 2",
-      "name": "-"
+    "math.ceil": {
+      "description": "Returns the ceiling of a number.",
+      "example": "(math.ceil 1.1) ; 2",
+      "name": "math.ceil"
     },
-    "*": {
-      "description": "Multiplies numbers together.",
-      "example": "(* 2 3 4) ; 24",
-      "name": "*"
+    "math.max": {
+      "description": "Returns the maximum value in a list of numbers.",
+      "example": "(math.max (1 2 3)) ; 3",
+      "name": "math.max"
     },
-    "/": {
-      "description": "Divides the first argument by the rest.",
-      "example": "(/ 8 2 2) ; 2",
-      "name": "/"
-    },
-    "=": {
-      "description": "Checks if two values are equal.",
-      "example": "(= 1 1) ; true",
-      "name": "="
-    },
-    "<": {
-      "description": "Checks if the first value is less than the second.",
-      "example": "(< 1 2) ; true",
-      "name": "<"
-    },
-    ">": {
-      "description": "Checks if the first value is greater than the second.",
-      "example": "(> 2 1) ; true",
-      "name": ">"
-    },
-    "!=": {
-      "description": "Checks if two values are not equal.",
-      "example": "(!= 1 2) ; true",
-      "name": "!="
-    },
-    "<=": {
-      "description": "Checks if the first value is less than or equal to the second.",
-      "example": "(<= 1 2) ; true",
-      "name": "<="
-    },
-    ">=": {
-      "description": "Checks if the first value is greater than or equal to the second.",
-      "example": "(>= 2 1) ; true",
-      "name": ">="
-    },
-    "and": {
-      "description": "Logical AND for two boolean values.",
-      "example": "(and true false) ; false",
-      "name": "and"
-    },
-    "or": {
-      "description": "Logical OR for two boolean values.",
-      "example": "(or true false) ; true",
-      "name": "or"
+    "math.min": {
+      "description": "Returns the minimum value in a list of numbers.",
+      "example": "(math.min (1 2 3)) ; 1",
+      "name": "math.min"
     },
     "string.length": {
       "description": "Returns the length of a string.",
@@ -116,6 +76,71 @@
       "example": "(list.filter (fn* (item idx) (> item 0)) (-1 0 1 2)) ; (1 2)",
       "name": "list.filter"
     },
+    "+": {
+      "description": "Adds numbers together.",
+      "example": "(+ 1 2 3) ; 6",
+      "name": "+"
+    },
+    "-": {
+      "description": "Subtracts numbers from the first argument.",
+      "example": "(- 5 2 1) ; 2",
+      "name": "-"
+    },
+    "*": {
+      "description": "Multiplies numbers together.",
+      "example": "(* 2 3 4) ; 24",
+      "name": "*"
+    },
+    "/": {
+      "description": "Divides the first argument by the rest.",
+      "example": "(/ 8 2 2) ; 2",
+      "name": "/"
+    },
+    "%": {
+      "description": "Performs division with modulo.",
+      "example": "(% 4 2) ; 0",
+      "name": "%"
+    },
+    "=": {
+      "description": "Checks if two values are equal.",
+      "example": "(= 1 1) ; true",
+      "name": "="
+    },
+    "<": {
+      "description": "Checks if the first value is less than the second.",
+      "example": "(< 1 2) ; true",
+      "name": "<"
+    },
+    ">": {
+      "description": "Checks if the first value is greater than the second.",
+      "example": "(> 2 1) ; true",
+      "name": ">"
+    },
+    "!=": {
+      "description": "Checks if two values are not equal.",
+      "example": "(!= 1 2) ; true",
+      "name": "!="
+    },
+    "<=": {
+      "description": "Checks if the first value is less than or equal to the second.",
+      "example": "(<= 1 2) ; true",
+      "name": "<="
+    },
+    ">=": {
+      "description": "Checks if the first value is greater than or equal to the second.",
+      "example": "(>= 2 1) ; true",
+      "name": ">="
+    },
+    "and": {
+      "description": "Logical AND for two boolean values.",
+      "example": "(and true false) ; false",
+      "name": "and"
+    },
+    "or": {
+      "description": "Logical OR for two boolean values.",
+      "example": "(or true false) ; true",
+      "name": "or"
+    },
     "io.stdout": {
       "description": "Stringifies an atom and writes it to stdout. Use `io.print` to format output.",
       "example": "(io.stdout \"hello\")",
@@ -130,6 +155,16 @@
       "description": "Writes a formatted string to stdout. Specifiers:\n - `%s` for strings\n - `%d` for numbers\n - `%i` casts a string to an integer\n - `%f` casts a string to a float",
       "example": "(io.printf \"hello %s %d\" (\"world\" 42))",
       "name": "io.printf"
+    },
+    "io.readline": {
+      "description": "Writes the question on stdout and waits for user input.\n",
+      "example": "(io.readline \"What is your favorite food? \") ; \"USER_TYPED_CONTENT\"",
+      "name": "io.readline"
+    },
+    "io.clear": {
+      "description": "Clear the console output.\n",
+      "example": "(io.clear)",
+      "name": "io.clear"
     }
   }
 }

@@ -1,122 +1,42 @@
-lifp - v0.3.0 (0fee70f)
+lifp - v0.4.0 (dfd2cbd)
 ---
 
-## +
+## math.floor
 
-Adds numbers together.
+Returns the floor of a number.
 
 ```common lisp
-(+ 1 2 3) ; 6
+(math.floor 1.9) ; 1
 ```
 
 
 
-## -
+## math.ceil
 
-Subtracts numbers from the first argument.
+Returns the ceiling of a number.
 
 ```common lisp
-(- 5 2 1) ; 2
+(math.ceil 1.1) ; 2
 ```
 
 
 
-## *
+## math.max
 
-Multiplies numbers together.
+Returns the maximum value in a list of numbers.
 
 ```common lisp
-(* 2 3 4) ; 24
+(math.max (1 2 3)) ; 3
 ```
 
 
 
-## /
+## math.min
 
-Divides the first argument by the rest.
-
-```common lisp
-(/ 8 2 2) ; 2
-```
-
-
-
-## =
-
-Checks if two values are equal.
+Returns the minimum value in a list of numbers.
 
 ```common lisp
-(= 1 1) ; true
-```
-
-
-
-## <
-
-Checks if the first value is less than the second.
-
-```common lisp
-(< 1 2) ; true
-```
-
-
-
-## >
-
-Checks if the first value is greater than the second.
-
-```common lisp
-(> 2 1) ; true
-```
-
-
-
-## !=
-
-Checks if two values are not equal.
-
-```common lisp
-(!= 1 2) ; true
-```
-
-
-
-## <=
-
-Checks if the first value is less than or equal to the second.
-
-```common lisp
-(<= 1 2) ; true
-```
-
-
-
-## >=
-
-Checks if the first value is greater than or equal to the second.
-
-```common lisp
-(>= 2 1) ; true
-```
-
-
-
-## and
-
-Logical AND for two boolean values.
-
-```common lisp
-(and true false) ; false
-```
-
-
-
-## or
-
-Logical OR for two boolean values.
-
-```common lisp
-(or true false) ; true
+(math.min (1 2 3)) ; 1
 ```
 
 
@@ -231,6 +151,136 @@ Filters a list using a lambda predicate.
 
 
 
+## +
+
+Adds numbers together.
+
+```common lisp
+(+ 1 2 3) ; 6
+```
+
+
+
+## -
+
+Subtracts numbers from the first argument.
+
+```common lisp
+(- 5 2 1) ; 2
+```
+
+
+
+## *
+
+Multiplies numbers together.
+
+```common lisp
+(* 2 3 4) ; 24
+```
+
+
+
+## /
+
+Divides the first argument by the rest.
+
+```common lisp
+(/ 8 2 2) ; 2
+```
+
+
+
+## %
+
+Performs division with modulo.
+
+```common lisp
+(% 4 2) ; 0
+```
+
+
+
+## =
+
+Checks if two values are equal.
+
+```common lisp
+(= 1 1) ; true
+```
+
+
+
+## <
+
+Checks if the first value is less than the second.
+
+```common lisp
+(< 1 2) ; true
+```
+
+
+
+## >
+
+Checks if the first value is greater than the second.
+
+```common lisp
+(> 2 1) ; true
+```
+
+
+
+## !=
+
+Checks if two values are not equal.
+
+```common lisp
+(!= 1 2) ; true
+```
+
+
+
+## <=
+
+Checks if the first value is less than or equal to the second.
+
+```common lisp
+(<= 1 2) ; true
+```
+
+
+
+## >=
+
+Checks if the first value is greater than or equal to the second.
+
+```common lisp
+(>= 2 1) ; true
+```
+
+
+
+## and
+
+Logical AND for two boolean values.
+
+```common lisp
+(and true false) ; false
+```
+
+
+
+## or
+
+Logical OR for two boolean values.
+
+```common lisp
+(or true false) ; true
+```
+
+
+
 ## io.stdout
 
 Stringifies an atom and writes it to stdout. Use `io.print` to format output.
@@ -261,6 +311,28 @@ Writes a formatted string to stdout. Specifiers:
 
 ```common lisp
 (io.printf "hello %s %d" ("world" 42))
+```
+
+
+
+## io.readline
+
+Writes the question on stdout and waits for user input.
+
+
+```common lisp
+(io.readline "What is your favorite food? ") ; "USER_TYPED_CONTENT"
+```
+
+
+
+## io.clear
+
+Clear the console output.
+
+
+```common lisp
+(io.clear)
 ```
 
 
