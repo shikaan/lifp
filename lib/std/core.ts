@@ -1,5 +1,11 @@
 import { InvalidArgumentException } from "../errors.js";
-import { isNumber, type Lambda, type Value } from "../types.js";
+import {
+  isBoolean,
+  isList,
+  isNumber,
+  type Lambda,
+  type Value,
+} from "../types.js";
 
 const addOrMultiply = (
   values: Value[],
@@ -69,6 +75,30 @@ const compare = (
   }
 
   return callback(nodes[0], nodes[1]);
+};
+
+const bool = (
+  values: Value[],
+  name: string,
+  cb: (a: unknown, b: unknown) => boolean,
+): Value => {
+  if (values.length < 2) {
+    throw new InvalidArgumentException(
+      `'${name}' requires at least 2 boolean arguments. Got ${values.length}.`,
+    );
+  }
+
+  let result = values[0];
+  for (const value of values) {
+    if (!isBoolean(value)) {
+      throw new InvalidArgumentException(
+        `'${name}' takes only booleans as argument. Got '${value}'.`,
+      );
+    }
+    result = cb(value, result);
+  }
+
+  return result;
 };
 
 export const core: Record<string, Lambda> = {
@@ -160,12 +190,12 @@ export const core: Record<string, Lambda> = {
    * @example
    *   (and true false) ; false
    */
-  and: async (nodes) => compare(nodes, "and", (a, b) => !!(a && b)),
+  and: async (nodes) => bool(nodes, "and", (a, b) => !!(a && b)),
   /**
    * Logical OR for two boolean values.
    * @name or
    * @example
    *   (or true false) ; true
    */
-  or: async (nodes) => compare(nodes, "or", (a, b) => !!(a || b)),
+  or: async (nodes) => bool(nodes, "or", (a, b) => !!(a || b)),
 };

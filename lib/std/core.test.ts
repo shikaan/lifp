@@ -167,6 +167,18 @@ test(">=", () => {
   }
 });
 
+for (const fn of ["=", "<", ">", "!=", "<=", ">="]) {
+  test(`${fn} - errors`, () => {
+    const tests: [string, Value[]][] = [
+      ["unary", [1]],
+      ["n-ary", [1, 2, 3]],
+    ];
+    for (const [name, input] of tests) {
+      expect(core[fn](input), name).rejects.toThrow();
+    }
+  });
+}
+
 test("and", () => {
   const tests: [string, Value[], Value][] = [
     ["success", [true, true], true],
@@ -174,6 +186,16 @@ test("and", () => {
   ];
   for (const [name, input, output] of tests) {
     expect(core.and(input), name).resolves.toBe(output);
+  }
+});
+
+test(`and - errors`, () => {
+  const tests: [string, Value[]][] = [
+    ["unary", [true]],
+    ["not bool", [1, true, 3]],
+  ];
+  for (const [name, input] of tests) {
+    expect(core.and(input), name).rejects.toThrow();
   }
 });
 
@@ -187,14 +209,12 @@ test("or", () => {
   }
 });
 
-for (const fn of ["=", "<", ">", "!=", "<=", ">=", "and", "or"]) {
-  test(`${fn} - errors`, () => {
-    const tests: [string, Value[]][] = [
-      ["unary", [1]],
-      ["n-ary", [1, 2, 3]],
-    ];
-    for (const [name, input] of tests) {
-      expect(core[fn](input), name).rejects.toThrow();
-    }
-  });
-}
+test(`or - errors`, () => {
+  const tests: [string, Value[]][] = [
+    ["unary", [true]],
+    ["not bool", [1, true, 3]],
+  ];
+  for (const [name, input] of tests) {
+    expect(core.or(input), name).rejects.toThrow();
+  }
+});
