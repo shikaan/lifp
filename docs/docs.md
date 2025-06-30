@@ -1,4 +1,4 @@
-lifp - v0.4.0 (dfd2cbd)
+lifp - v0.5.0 (6506074)
 ---
 
 ## math.floor
@@ -37,6 +37,16 @@ Returns the minimum value in a list of numbers.
 
 ```common lisp
 (math.min (1 2 3)) ; 1
+```
+
+
+
+## math.random
+
+Returns a random number between 0 (inclusive) and 1 (exclusive).
+
+```common lisp
+(math.random) ; 0.123456
 ```
 
 
@@ -87,6 +97,16 @@ Trims whitespace from both ends of a string.
 
 ```common lisp
 (string.trim "  hello  ") ; "hello"
+```
+
+
+
+## flow.sleep
+
+Sleeps for the given number of milliseconds.
+
+```common lisp
+(flow.sleep 1000) ; sleeps for ~1 second
 ```
 
 

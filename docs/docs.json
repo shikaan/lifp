@@ -1,5 +1,5 @@
 {
-  "version": "v0.4.0 (dfd2cbd)",
+  "version": "v0.5.0 (6506074)",
   "functions": {
     "math.floor": {
       "description": "Returns the floor of a number.",
@@ -20,6 +20,11 @@
       "description": "Returns the minimum value in a list of numbers.",
       "example": "(math.min (1 2 3)) ; 1",
       "name": "math.min"
+    },
+    "math.random": {
+      "description": "Returns a random number between 0 (inclusive) and 1 (exclusive).",
+      "example": "(math.random) ; 0.123456",
+      "name": "math.random"
     },
     "string.length": {
       "description": "Returns the length of a string.",
@@ -45,6 +50,11 @@
       "description": "Trims whitespace from both ends of a string.",
       "example": "(string.trim \"  hello  \") ; \"hello\"",
       "name": "string.trim"
+    },
+    "flow.sleep": {
+      "description": "Sleeps for the given number of milliseconds.",
+      "example": "(flow.sleep 1000) ; sleeps for ~1 second",
+      "name": "flow.sleep"
     },
     "list.count": {
       "description": "Counts elements in a list.",
