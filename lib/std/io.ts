@@ -47,7 +47,7 @@ export const io: Record<string, Lambda> = {
   "io.printf": (nodes) => {
     if (nodes.length !== 2 || !isString(nodes[0]) || !isList(nodes[1])) {
       throw new InvalidArgumentException(
-        `'io.printf' requires a format string, and a list of arguments. Example: (io.printf "hello %s" ("world"))`,
+        `'io.printf' requires a format string, and a list of arguments.`,
       );
     }
     const [format, values] = nodes;
@@ -63,9 +63,7 @@ export const io: Record<string, Lambda> = {
    */
   "io.readline": async (nodes) => {
     if (nodes.length !== 1 || !isString(nodes[0])) {
-      throw new InvalidArgumentException(
-        `'io.readline' requires a question. Example: (io.readline "What is your favorite food? ")`,
-      );
+      throw new InvalidArgumentException(`'io.readline' requires a question.`);
     }
 
     const rl = createInterface({ input: stdin, output: stdout });
@@ -82,9 +80,7 @@ export const io: Record<string, Lambda> = {
    */
   "io.clear": async (nodes) => {
     if (nodes.length !== 0) {
-      throw new InvalidArgumentException(
-        `'io.clear' requires no arguments. Example: (io.clear)`,
-      );
+      throw new InvalidArgumentException(`'io.clear' requires no arguments.`);
     }
     console.clear();
     return null;

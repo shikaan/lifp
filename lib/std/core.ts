@@ -108,9 +108,7 @@ export const core: Record<string, Lambda> = {
    */
   "%": async (nodes) => {
     if (nodes.length !== 2 || !nodes.every(isNumber)) {
-      throw new InvalidArgumentException(
-        `'%' requires 2 number arguments. Example: (% 4 2)`,
-      );
+      throw new InvalidArgumentException(`'%' requires 2 number arguments.`);
     }
     return nodes[0] % nodes[1];
   },

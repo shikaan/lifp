@@ -11,7 +11,7 @@ export const strings: Record<string, Lambda> = {
   "string.length": async (nodes) => {
     if (nodes.length !== 1 || !isString(nodes[0])) {
       throw new InvalidArgumentException(
-        "'string.length' takes a string as argument. Example: (string.length \"hello\")",
+        "'string.length' takes a string as argument.",
       );
     }
     return nodes[0].length;
@@ -30,7 +30,7 @@ export const strings: Record<string, Lambda> = {
       !nodes[1].every(isString)
     ) {
       throw new InvalidArgumentException(
-        '\'string.join\' takes a separator and a list of strings as arguments. Example: (string.join "," ("foo" "bar"))',
+        "'string.join' takes a separator and a list of strings as arguments.",
       );
     }
 
@@ -51,7 +51,7 @@ export const strings: Record<string, Lambda> = {
       !isNumber(nodes[2])
     ) {
       throw new InvalidArgumentException(
-        "'string.slice' takes a string and two numbers as arguments. Example: (string.slice \"hello\" 1 4)",
+        "'string.slice' takes a string and two numbers as arguments.",
       );
     }
     return nodes[0].slice(nodes[1], nodes[2]);

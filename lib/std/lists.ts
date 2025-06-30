@@ -12,7 +12,7 @@ export const lists: Record<string, Lambda> = {
   "list.count": async (nodes) => {
     if (nodes.length !== 1 || !isList(nodes[0])) {
       throw new InvalidArgumentException(
-        "'list.count' takes a list as argument. Example: (list.count my-list).",
+        "'list.count' takes a list as argument.",
       );
     }
     return nodes[0].length;
@@ -26,7 +26,7 @@ export const lists: Record<string, Lambda> = {
   "list.map": async (nodes) => {
     if (nodes.length !== 2 || !isLambda(nodes[0]) || !isList(nodes[1])) {
       throw new InvalidArgumentException(
-        "'list.map' takes a lambda and a list as argument. Example: (list.map (fn* (item idx) (myfn item idx)) my-list).",
+        "'list.map' takes a lambda and a list as argument.",
       );
     }
     const [lambda, list] = nodes;
@@ -41,7 +41,7 @@ export const lists: Record<string, Lambda> = {
   "list.each": async (nodes) => {
     if (nodes.length !== 2 || !isLambda(nodes[0]) || !isList(nodes[1])) {
       throw new InvalidArgumentException(
-        "'list.each' takes a lambda and a list as argument. Example: (list.each (fn* (item idx) (myfn item idx)) my-list).",
+        "'list.each' takes a lambda and a list as argument.",
       );
     }
     const [lambda, list] = nodes;
@@ -67,7 +67,7 @@ export const lists: Record<string, Lambda> = {
   "list.nth": async (nodes) => {
     if (nodes.length !== 2 || !isNumber(nodes[0]) || !isList(nodes[1])) {
       throw new InvalidArgumentException(
-        "'list.nth' takes a number and a list as argument. Example: (list.nth 0 my-list).",
+        "'list.nth' takes a number and a list as argument.",
       );
     }
 
@@ -83,7 +83,7 @@ export const lists: Record<string, Lambda> = {
   "list.filter": async (nodes) => {
     if (nodes.length !== 2 || !isLambda(nodes[0]) || !isList(nodes[1])) {
       throw new InvalidArgumentException(
-        "'list.filter' takes a lambda and a list as argument. Example: (list.filter (fn* (item idx) (= item 0)) my-list).",
+        "'list.filter' takes a lambda and a list as argument.",
       );
     }
     const [lambda, list] = nodes;
