@@ -8,7 +8,7 @@ export const strings: Record<string, Lambda> = {
    * @example
    *   (string.length "hello") ; 5
    */
-  "string.length": (nodes) => {
+  "string.length": async (nodes) => {
     if (nodes.length !== 1 || !isString(nodes[0])) {
       throw new InvalidArgumentException(
         "'string.length' takes a string as argument. Example: (string.length \"hello\")",
@@ -22,7 +22,7 @@ export const strings: Record<string, Lambda> = {
    * @example
    *   (string.join "," ("foo" "bar")) ; "foo,bar"
    */
-  "string.join": (nodes) => {
+  "string.join": async (nodes) => {
     if (
       nodes.length !== 2 ||
       !isString(nodes[0]) ||
@@ -43,7 +43,7 @@ export const strings: Record<string, Lambda> = {
    * @example
    *   (string.slice "hello" 1 4) ; "ell"
    */
-  "string.slice": (nodes) => {
+  "string.slice": async (nodes) => {
     if (
       nodes.length !== 3 ||
       !isString(nodes[0]) ||
@@ -62,7 +62,7 @@ export const strings: Record<string, Lambda> = {
    * @example
    *   (string.includes "hello" "ell") ; true
    */
-  "string.includes": (nodes) => {
+  "string.includes": async (nodes) => {
     if (nodes.length !== 2 || !nodes.every(isString)) {
       throw new InvalidArgumentException(
         "'string.includes' takes two strings as arguments.",
@@ -76,7 +76,7 @@ export const strings: Record<string, Lambda> = {
    * @example
    *   (string.trim "  hello  ") ; "hello"
    */
-  "string.trim": (nodes) => {
+  "string.trim": async (nodes) => {
     if (nodes.length !== 1 || !isString(nodes[0])) {
       throw new InvalidArgumentException(
         "'string.trim' takes a string as argument.",

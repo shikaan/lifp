@@ -18,29 +18,29 @@ afterEach(() => {
   write.mockRestore();
 });
 
-test("variables across forms", () => {
+test("variables across forms", async () => {
   const script = `
 (def! a 10)
 (def! b (+ a 5))
 
 (io.printf "%d" ((+ a b)))
 `.trim();
-  execute(script);
+  await execute(script);
   expect(write).toBeCalledWith("25");
 });
 
-test("lambdas", () => {
+test("lambdas", async () => {
   const script = `
 (def! a 10)
 (def! +5 (fn* (a) (+ a 5)))
 
 (io.printf "%d" ((+5 a)))
 `.trim();
-  execute(script);
+  await execute(script);
   expect(write).toBeCalledWith("15");
 });
 
-test("lambdas and variables", () => {
+test("lambdas and variables", async () => {
   const script = `
 (def! planet "world")
 (def! greet
@@ -50,12 +50,12 @@ test("lambdas and variables", () => {
 (greet "user")
 (greet planet)
 `.trim();
-  execute(script);
+  await execute(script);
   expect(write).toBeCalledWith("Hello, user!");
   expect(write).toBeCalledWith("Hello, world!");
 });
 
-test("special forms", () => {
+test("special forms", async () => {
   const script = `
 (def! fibonacci
   (fn* (n) 
@@ -65,6 +65,6 @@ test("special forms", () => {
 
 (io.printf "%d" ((fibonacci 5)))
 `.trim();
-  execute(script);
+  await execute(script);
   expect(write).toBeCalledWith("8");
 });

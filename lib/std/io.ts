@@ -1,7 +1,9 @@
+import { stdin, stdout } from "node:process";
+import { createInterface } from "node:readline/promises";
 import * as util from "node:util";
 import { InvalidArgumentException } from "../errors.js";
 import { print } from "../print.js";
-import { isList, isString, Lambda, Value } from "../types.js";
+import { isList, isString, type Lambda, type Value } from "../types.js";
 
 const ioWriteFunction = (
   nodes: Value[],
@@ -50,6 +52,41 @@ export const io: Record<string, Lambda> = {
     }
     const [format, values] = nodes;
     process.stdout.write(util.format(format, ...values));
+    return null;
+  },
+  /**
+   * Writes the question on stdout and waits for user input.
+   *
+   * @name io.readline
+   * @example
+   *   (io.readline "What is your favorite food? ") ; "USER_TYPED_CONTENT"
+   */
+  "io.readline": async (nodes) => {
+    if (nodes.length !== 1 || !isString(nodes[0])) {
+      throw new InvalidArgumentException(
+        `'io.readline' requires a question. Example: (io.readline "What is your favorite food? ")`,
+      );
+    }
+
+    const rl = createInterface({ input: stdin, output: stdout });
+    const result = await rl.question(nodes[0]);
+    rl.close();
+    return result;
+  },
+  /**
+   * Clear the console output.
+   *
+   * @name io.clear
+   * @example
+   *   (io.clear)
+   */
+  "io.clear": async (nodes) => {
+    if (nodes.length !== 0) {
+      throw new InvalidArgumentException(
+        `'io.clear' requires no arguments. Example: (io.clear)`,
+      );
+    }
+    console.clear();
     return null;
   },
 };

@@ -9,7 +9,7 @@ export const lists: Record<string, Lambda> = {
    * @example
    *   (list.count (1 2)) ; 2
    */
-  "list.count": (nodes) => {
+  "list.count": async (nodes) => {
     if (nodes.length !== 1 || !isList(nodes[0])) {
       throw new InvalidArgumentException(
         "'list.count' takes a list as argument. Example: (list.count my-list).",
@@ -23,14 +23,14 @@ export const lists: Record<string, Lambda> = {
    * @example
    *   (list.map (fn* (item idx) (+ item idx)) (1 2 3)) ; (1 3 5)
    */
-  "list.map": (nodes) => {
+  "list.map": async (nodes) => {
     if (nodes.length !== 2 || !isLambda(nodes[0]) || !isList(nodes[1])) {
       throw new InvalidArgumentException(
         "'list.map' takes a lambda and a list as argument. Example: (list.map (fn* (item idx) (myfn item idx)) my-list).",
       );
     }
     const [lambda, list] = nodes;
-    return list.map((value, idx) => lambda([value, idx]));
+    return Promise.all(list.map((value, idx) => lambda([value, idx])));
   },
   /**
    * Applies a lambda to each element in a list (for side effects).
@@ -38,14 +38,17 @@ export const lists: Record<string, Lambda> = {
    * @example
    *   (list.each (fn* (item idx) (print item)) (1 2 3)) ; nil
    */
-  "list.each": (nodes) => {
+  "list.each": async (nodes) => {
     if (nodes.length !== 2 || !isLambda(nodes[0]) || !isList(nodes[1])) {
       throw new InvalidArgumentException(
         "'list.each' takes a lambda and a list as argument. Example: (list.each (fn* (item idx) (myfn item idx)) my-list).",
       );
     }
     const [lambda, list] = nodes;
-    list.forEach((value, idx) => lambda([value, idx]));
+    for (let i = 0; i < list.length; i++) {
+      const value = list[i];
+      await lambda([value, i]);
+    }
     return null;
   },
   /**
@@ -54,14 +57,14 @@ export const lists: Record<string, Lambda> = {
    * @example
    *   (list.from 1 2 3) ; (1 2 3)
    */
-  "list.from": (nodes: Value[]) => nodes,
+  "list.from": async (nodes: Value[]) => nodes,
   /**
    * Returns the nth element of a list, or nil if out of bounds.
    * @name list.nth
    * @example
    *   (list.nth 1 (10 20 30)) ; 20
    */
-  "list.nth": (nodes) => {
+  "list.nth": async (nodes) => {
     if (nodes.length !== 2 || !isNumber(nodes[0]) || !isList(nodes[1])) {
       throw new InvalidArgumentException(
         "'list.nth' takes a number and a list as argument. Example: (list.nth 0 my-list).",
@@ -77,13 +80,22 @@ export const lists: Record<string, Lambda> = {
    * @example
    *   (list.filter (fn* (item idx) (> item 0)) (-1 0 1 2)) ; (1 2)
    */
-  "list.filter": (nodes) => {
+  "list.filter": async (nodes) => {
     if (nodes.length !== 2 || !isLambda(nodes[0]) || !isList(nodes[1])) {
       throw new InvalidArgumentException(
         "'list.filter' takes a lambda and a list as argument. Example: (list.filter (fn* (item idx) (= item 0)) my-list).",
       );
     }
     const [lambda, list] = nodes;
-    return list.filter((value, idx) => lambda([value, idx]));
+
+    const result = [];
+    for (let i = 0; i < list.length; i++) {
+      const value = list[i];
+      if (await lambda([value, i])) {
+        result.push(value);
+      }
+    }
+
+    return result;
   },
 };

@@ -4,42 +4,42 @@ import { evaluate } from "../lib/index.ts";
 import { print } from "../lib/print.ts";
 import { read } from "../lib/read.ts";
 
-test("prints exactly what comes in", () => {
+test("prints exactly what comes in", async () => {
   const input = '(1 "lol" true)';
-  expect(print(evaluate(read(input), defaultEnvironment))).toEqual(input);
+  expect(print(await evaluate(read(input), defaultEnvironment))).toEqual(input);
 });
 
-test("defines a variable and uses is", () => {
+test("defines a variable and uses is", async () => {
   const env = new Environment(defaultEnvironment);
-  evaluate(read("(def! a 1)"), env);
-  const expr = evaluate(read("(+ a 1)"), env);
+  await evaluate(read("(def! a 1)"), env);
+  const expr = await evaluate(read("(+ a 1)"), env);
 
   expect(print(expr)).toEqual("2");
 });
 
-test("defines a variable, a function and uses them", () => {
+test("defines a variable, a function and uses them", async () => {
   const env = new Environment(defaultEnvironment);
-  evaluate(read("(def! a 1)"), env);
-  evaluate(read("(def! add (fn* (a b) (+ a b)))"), env);
-  const expr = evaluate(read("(add 4 1)"), env);
+  await evaluate(read("(def! a 1)"), env);
+  await evaluate(read("(def! add (fn* (a b) (+ a b)))"), env);
+  const expr = await evaluate(read("(add 4 1)"), env);
 
   expect(print(expr)).toEqual("5");
 });
 
-test("implements cond", () => {
+test("implements cond", async () => {
   const env = new Environment(defaultEnvironment);
-  evaluate(read("(def! a 1)"), env);
-  evaluate(
+  await evaluate(read("(def! a 1)"), env);
+  await evaluate(
     read("(def! cond2 (fn* (c1 b1 c2 b2 else) (if c1 b1 (if c2 b2 else))))"),
     env,
   );
 
-  let expr = evaluate(read("(cond2 true 1 false 2 3)"), env);
+  let expr = await evaluate(read("(cond2 true 1 false 2 3)"), env);
   expect(print(expr)).toEqual("1");
 
-  expr = evaluate(read("(cond2 false 1 true 2 3)"), env);
+  expr = await evaluate(read("(cond2 false 1 true 2 3)"), env);
   expect(print(expr)).toEqual("2");
 
-  expr = evaluate(read("(cond2 false 1 false 2 3)"), env);
+  expr = await evaluate(read("(cond2 false 1 false 2 3)"), env);
   expect(print(expr)).toEqual("3");
 });

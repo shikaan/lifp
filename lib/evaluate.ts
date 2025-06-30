@@ -2,17 +2,17 @@ import type { Environment } from "./environment.js";
 import { specials } from "./specials.js";
 import {
   isListNode,
-  Node,
+  type Node,
   NodeType,
   type SpecialFormHandler,
   type Value,
 } from "./types.js";
 
-export const evaluate = (
+export const evaluate = async (
   tree: Node,
   environment: Environment,
   specialForms: typeof specials = specials,
-): Value => {
+): Promise<Value> => {
   if (!isListNode(tree)) {
     return tree.type === NodeType.SYMBOL
       ? environment.get(tree.value)
@@ -35,13 +35,15 @@ export const evaluate = (
     if (typeof value === "function") {
       const lambda = value;
       const args = tree.value.slice(1);
-      const resolvedArgs = args.map((subtree) =>
-        evaluate(subtree, environment),
+      const resolvedArgs = await Promise.all(
+        args.map((subtree) => evaluate(subtree, environment)),
       );
 
       return lambda(resolvedArgs);
     }
   }
 
-  return tree.value.map((subtree) => evaluate(subtree, environment));
+  return Promise.all(
+    tree.value.map((subtree) => evaluate(subtree, environment)),
+  );
 };

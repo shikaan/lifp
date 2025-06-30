@@ -3,7 +3,7 @@ import type { Environment } from "./environment.js";
 
 // Expressions
 
-export type Lambda = (nodes: Value[]) => Value;
+export type Lambda = (nodes: Value[]) => Promise<Value>;
 export type Value = Value[] | number | boolean | null | string | Lambda;
 
 export const isNumber = (n: unknown): n is number => typeof n === "number";
@@ -68,4 +68,4 @@ export type SpecialFormType = typeof DEF | typeof FN | typeof LET | typeof IF;
 export type SpecialFormHandler = (
   nodes: Node[],
   environment: Environment,
-) => Value;
+) => Promise<Value>;

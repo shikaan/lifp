@@ -3,7 +3,7 @@ import { LPAREN, RPAREN } from "../lib/constants.js";
 import { defaultEnvironment, Environment } from "../lib/environment.js";
 import { evaluate, read } from "../lib/index.js";
 
-export const execute = (buffer: string) => {
+export const execute = async (buffer: string) => {
   const environment = new Environment(defaultEnvironment);
 
   let depth = -1;
@@ -29,13 +29,13 @@ export const execute = (buffer: string) => {
 
     if (depth === 0) {
       const line = buffer.slice(lineStart, i + 1);
-      evaluate(read(line), environment);
+      await evaluate(read(line), environment);
       depth = -1;
     }
   }
 };
 
-export function run(args: string[]): number {
+export async function run(args: string[]): Promise<number> {
   if (args.length < 1) {
     throw new Error(`'run' requires one file.`);
   }
@@ -43,6 +43,6 @@ export function run(args: string[]): number {
 
   // TODO: this could be streamed since we are not looking up the environment first...
   const buffer = fs.readFileSync(file, "utf-8");
-  execute(buffer);
+  await execute(buffer);
   return 0;
 }

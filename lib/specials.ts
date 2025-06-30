@@ -13,7 +13,7 @@ import {
 } from "./types.js";
 
 export const specials: Record<SpecialFormType, SpecialFormHandler> = {
-  [DEF]: (nodes, environment) => {
+  [DEF]: async (nodes, environment) => {
     if (nodes.length !== 3 || nodes[1].type !== NodeType.SYMBOL) {
       throw new InvalidArgumentException(
         `'${DEF}' requires a symbol and a form only. Example: (${DEF} a 123)`,
@@ -21,10 +21,10 @@ export const specials: Record<SpecialFormType, SpecialFormHandler> = {
     }
 
     const [, symbol, form] = nodes;
-    environment.set(symbol.value, evaluate(form, environment));
+    environment.set(symbol.value, await evaluate(form, environment));
     return null;
   },
-  [FN]: (nodes, environment) => {
+  [FN]: async (nodes, environment) => {
     if (nodes.length !== 3) {
       throw new InvalidArgumentException(
         `'${FN}' requires a binding list and a form. Example: (${FN} (a b) (+ a b))`,
@@ -40,13 +40,13 @@ export const specials: Record<SpecialFormType, SpecialFormHandler> = {
 
     // Array.some does not enforce types
     const values = bindings.value as NodeSymbol[];
-    return (nodes) => {
+    return async (nodes) => {
       const innerEnvironment = new Environment(environment);
       values.forEach((sym, i) => innerEnvironment.set(sym.value, nodes[i]));
       return evaluate(form, innerEnvironment);
     };
   },
-  [LET]: (list, environment) => {
+  [LET]: async (list, environment) => {
     if (list.length !== 3 || !isListNode(list[1])) {
       throw new InvalidArgumentException(
         `'${LET}' requires a list of assignments. Example: (${LET} ((:a 12) (:b 34)) (other-form))`,
@@ -63,21 +63,21 @@ export const specials: Record<SpecialFormType, SpecialFormHandler> = {
         );
       }
       const [sym, form] = pair.value;
-      innerEnvironment.set(sym.value, evaluate(form, innerEnvironment));
+      innerEnvironment.set(sym.value, await evaluate(form, innerEnvironment));
     }
 
     return evaluate(form, innerEnvironment);
   },
-  [IF]: (list, environment) => {
+  [IF]: async (list, environment) => {
     if (list.length < 3 || list.length > 4) {
       throw new InvalidArgumentException(
-        `'${IF}' requires a condition, a then branch, and on optional else branch.\nExamples: (${IF} (= 1 2) (1) (+ 1 2)) (${IF} (= 1 2) (1))`,
+        `'${IF}' requires a condition, a then branch, and on optional else branch. Examples: (${IF} (= 1 2) (1) (+ 1 2)) (${IF} (= 1 2) (1))`,
       );
     }
 
     const [, condition, thenBranch, elseBranch] = list;
 
-    const resolved = evaluate(condition, environment);
+    const resolved = await evaluate(condition, environment);
 
     if (!isBoolean(resolved)) {
       throw new InvalidArgumentException(

@@ -36,7 +36,7 @@ const printHelp = () => {
   try {
     switch (command) {
       case "run":
-        return run(args);
+        return await run(args);
       case "repl":
       case "":
         return await repl();
