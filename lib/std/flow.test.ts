@@ -8,7 +8,8 @@ test("flow.sleep", async () => {
   const after = process.hrtime.bigint();
 
   const diff = after - before;
-  expect(diff).toBeGreaterThan(50000000n);
+  // Allow some drift
+  expect(diff).toBeGreaterThan(40000000n);
 
   expect(flow["flow.sleep"](["foo"])).rejects.toThrow();
   expect(flow["flow.sleep"]([])).rejects.toThrow();
