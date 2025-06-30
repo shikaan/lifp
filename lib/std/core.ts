@@ -1,5 +1,5 @@
 import { InvalidArgumentException } from "../errors.js";
-import { isList, isNull, isNumber, type Lambda, type Value } from "../types.js";
+import { isNumber, type Lambda, type Value } from "../types.js";
 
 const addOrMultiply = (
   values: Value[],
@@ -57,16 +57,10 @@ const subtractOrDivide = (
   return result;
 };
 
-const isSameType = (a: unknown, b: unknown) => {
-  if (isNull(a) || isNull(b)) return isNull(a) && isNull(b);
-  if (isList(a) || isList(b)) return isList(a) && isList(b);
-  return typeof a === typeof b;
-};
-
-const compareFunction = (
+const compare = (
   nodes: Value[],
   name: string,
-  callback: <T>(a: T, b: T) => boolean,
+  callback: (a: unknown, b: unknown) => boolean,
 ): Value => {
   if (nodes.length !== 2) {
     throw new InvalidArgumentException(
@@ -74,100 +68,106 @@ const compareFunction = (
     );
   }
 
-  const [first, second] = nodes;
-
-  if (!isSameType(first, second)) {
-    throw new InvalidArgumentException(
-      `Cannot compare arguments of different type`,
-    );
-  }
-
-  return callback(first, second);
+  return callback(nodes[0], nodes[1]);
 };
 
-export const math: Record<string, Lambda> = {
+export const core: Record<string, Lambda> = {
   /**
    * Adds numbers together.
    * @name +
    * @example
    *   (+ 1 2 3) ; 6
    */
-  "+": (nodes) => addOrMultiply(nodes, "+", (a, b) => a + b),
+  "+": async (nodes) => addOrMultiply(nodes, "+", (a, b) => a + b),
   /**
    * Subtracts numbers from the first argument.
    * @name -
    * @example
    *   (- 5 2 1) ; 2
    */
-  "-": (nodes) => subtractOrDivide(nodes, "-", (a, b) => a - b),
+  "-": async (nodes) => subtractOrDivide(nodes, "-", (a, b) => a - b),
   /**
    * Multiplies numbers together.
    * @name *
    * @example
    *   (* 2 3 4) ; 24
    */
-  "*": (nodes) => addOrMultiply(nodes, "*", (a, b) => a * b, 1),
+  "*": async (nodes) => addOrMultiply(nodes, "*", (a, b) => a * b, 1),
   /**
    * Divides the first argument by the rest.
    * @name /
    * @example
    *   (/ 8 2 2) ; 2
    */
-  "/": (nodes) => subtractOrDivide(nodes, "/", (a, b) => a / b),
+  "/": async (nodes) => subtractOrDivide(nodes, "/", (a, b) => a / b),
+  /**
+   * Performs division with modulo.
+   * @name %
+   * @example
+   *   (% 4 2) ; 0
+   */
+  "%": async (nodes) => {
+    if (nodes.length !== 2 || !nodes.every(isNumber)) {
+      throw new InvalidArgumentException(
+        `'%' requires 2 number arguments. Example: (% 4 2)`,
+      );
+    }
+    return nodes[0] % nodes[1];
+  },
   /**
    * Checks if two values are equal.
    * @name =
    * @example
    *   (= 1 1) ; true
    */
-  "=": (nodes) => compareFunction(nodes, "=", (a, b) => a === b),
+  "=": async (nodes) => compare(nodes, "=", (a, b) => a === b),
   /**
    * Checks if the first value is less than the second.
    * @name <
    * @example
    *   (< 1 2) ; true
    */
-  "<": (nodes) => compareFunction(nodes, "<", (a, b) => a < b),
+  "<": async (nodes) => compare(nodes, "<", (a, b) => a < b),
   /**
    * Checks if the first value is greater than the second.
    * @name >
    * @example
    *   (> 2 1) ; true
    */
-  ">": (nodes) => compareFunction(nodes, ">", (a, b) => a > b),
+  ">": async (nodes) => compare(nodes, ">", (a, b) => a > b),
   /**
    * Checks if two values are not equal.
    * @name !=
    * @example
    *   (!= 1 2) ; true
    */
-  "!=": (nodes) => compareFunction(nodes, "!=", (a, b) => a !== b),
+  "!=": async (nodes) => compare(nodes, "!=", (a, b) => a !== b),
   /**
    * Checks if the first value is less than or equal to the second.
    * @name <=
    * @example
    *   (<= 1 2) ; true
    */
-  "<=": (nodes) => compareFunction(nodes, "<=", (a, b) => a <= b),
+  "<=": async (nodes) => compare(nodes, "<=", (a, b) => a <= b),
   /**
    * Checks if the first value is greater than or equal to the second.
    * @name >=
    * @example
    *   (>= 2 1) ; true
    */
-  ">=": (nodes) => compareFunction(nodes, ">=", (a, b) => a >= b),
+  ">=": async (nodes) => compare(nodes, ">=", (a, b) => a >= b),
   /**
    * Logical AND for two boolean values.
    * @name and
    * @example
    *   (and true false) ; false
    */
-  and: (nodes) => compareFunction(nodes, "and", (a, b) => !!(a && b)),
+  and: async (nodes) => compare(nodes, "and", (a, b) => !!(a && b)),
   /**
    * Logical OR for two boolean values.
    * @name or
    * @example
    *   (or true false) ; true
    */
-  or: (nodes) => compareFunction(nodes, "or", (a, b) => !!(a || b)),
+  or: async (nodes) => compare(nodes, "or", (a, b) => !!(a || b)),
 };
