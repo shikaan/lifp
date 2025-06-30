@@ -2,7 +2,6 @@ import { InvalidArgumentException } from "../errors.js";
 import { isList, isNumber, type Lambda } from "../types.js";
 
 export const math: Record<string, Lambda> = {
-  // ...existing code...
   /**
    * Returns the floor of a number.
    * @name math.floor
@@ -68,5 +67,17 @@ export const math: Record<string, Lambda> = {
       );
     }
     return Math.min(...nodes[0]);
+  },
+  /**
+   * Returns a random number between 0 (inclusive) and 1 (exclusive).
+   * @name math.random
+   * @example
+   *   (math.random) ; 0.123456
+   */
+  "math.random": async (nodes) => {
+    if (nodes.length !== 0) {
+      throw new InvalidArgumentException("'math.random' takes no arguments.");
+    }
+    return Math.random();
   },
 };
