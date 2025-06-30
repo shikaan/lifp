@@ -1,19 +1,15 @@
-(def! BOARD_WIDTH 9)
-(def! BOARD_HEIGHT 8)
-(def! ALIVE "X")
-(def! DEAD ".")
+(def! BOARD_WIDTH 35)
+(def! BOARD_HEIGHT 35)
+(def! BOARD_SIZE (* BOARD_WIDTH BOARD_HEIGHT))
+(def! ALIVE "@")
+(def! DEAD " ")
 
 (def! init-board
   ; Initializes the board
   (fn* ()
-    (list.from 1 1 1 1 0 1 0 1 1
-               1 1 1 1 1 1 0 1 0
-               0 1 0 1 0 0 0 1 0
-               0 1 1 0 1 0 0 1 0
-               0 1 1 0 1 0 0 1 0
-               0 1 1 0 1 0 0 1 0
-               0 1 1 0 1 0 0 1 0
-               1 0 0 1 0 0 0 1 0)))
+    (list.map 
+      (fn* () (if (> (math.random) 0.5) 1 0))
+      (list.times (fn* () nil) BOARD_SIZE))))
 
 (def! alive?
   ; Returns true if the current cell is alive
@@ -83,7 +79,7 @@
   (fn* (board)
     (let* ((_ (io.clear))
            (_ (print-board board))
-           (_ (io.readline "\nPress [ENTER] to continue, Ctrl+C to exit")))
+           (_ (flow.sleep 33)))
       (game-loop (process-board board)))))
 
 ; Main
