@@ -5,7 +5,7 @@ lifp - v0.5.1 (5646b17)
 
 Returns the floor of a number.
 
-```common lisp
+```lisp
 (math.floor 1.9) ; 1
 ```
 
@@ -15,7 +15,7 @@ Returns the floor of a number.
 
 Returns the ceiling of a number.
 
-```common lisp
+```lisp
 (math.ceil 1.1) ; 2
 ```
 
@@ -25,7 +25,7 @@ Returns the ceiling of a number.
 
 Returns the maximum value in a list of numbers.
 
-```common lisp
+```lisp
 (math.max (1 2 3)) ; 3
 ```
 
@@ -35,7 +35,7 @@ Returns the maximum value in a list of numbers.
 
 Returns the minimum value in a list of numbers.
 
-```common lisp
+```lisp
 (math.min (1 2 3)) ; 1
 ```
 
@@ -45,7 +45,7 @@ Returns the minimum value in a list of numbers.
 
 Returns a random number between 0 (inclusive) and 1 (exclusive).
 
-```common lisp
+```lisp
 (math.random) ; 0.123456
 ```
 
@@ -55,7 +55,7 @@ Returns a random number between 0 (inclusive) and 1 (exclusive).
 
 Returns the length of a string.
 
-```common lisp
+```lisp
 (string.length "hello") ; 5
 ```
 
@@ -65,7 +65,7 @@ Returns the length of a string.
 
 Joins a list of strings with a separator.
 
-```common lisp
+```lisp
 (string.join "," ("foo" "bar")) ; "foo,bar"
 ```
 
@@ -75,7 +75,7 @@ Joins a list of strings with a separator.
 
 Returns a substring from start to end indices.
 
-```common lisp
+```lisp
 (string.slice "hello" 1 4) ; "ell"
 ```
 
@@ -85,7 +85,7 @@ Returns a substring from start to end indices.
 
 Checks if a string contains a substring.
 
-```common lisp
+```lisp
 (string.includes "hello" "ell") ; true
 ```
 
@@ -95,7 +95,7 @@ Checks if a string contains a substring.
 
 Trims whitespace from both ends of a string.
 
-```common lisp
+```lisp
 (string.trim "  hello  ") ; "hello"
 ```
 
@@ -105,7 +105,7 @@ Trims whitespace from both ends of a string.
 
 Sleeps for the given number of milliseconds.
 
-```common lisp
+```lisp
 (flow.sleep 1000) ; sleeps for ~1 second
 ```
 
@@ -115,7 +115,7 @@ Sleeps for the given number of milliseconds.
 
 Counts elements in a list.
 
-```common lisp
+```lisp
 (list.count (1 2)) ; 2
 ```
 
@@ -125,7 +125,7 @@ Counts elements in a list.
 
 Maps a lambda over a list.
 
-```common lisp
+```lisp
 (list.map (fn* (item idx) (+ item idx)) (1 2 3)) ; (1 3 5)
 ```
 
@@ -135,7 +135,7 @@ Maps a lambda over a list.
 
 Applies a lambda to each element in a list (for side effects).
 
-```common lisp
+```lisp
 (list.each (fn* (item idx) (print item)) (1 2 3)) ; nil
 ```
 
@@ -145,7 +145,7 @@ Applies a lambda to each element in a list (for side effects).
 
 Creates a list from the given arguments.
 
-```common lisp
+```lisp
 (list.from 1 2 3) ; (1 2 3)
 ```
 
@@ -155,7 +155,7 @@ Creates a list from the given arguments.
 
 Returns the nth element of a list, or nil if out of bounds.
 
-```common lisp
+```lisp
 (list.nth 1 (10 20 30)) ; 20
 ```
 
@@ -165,7 +165,7 @@ Returns the nth element of a list, or nil if out of bounds.
 
 Filters a list using a lambda predicate.
 
-```common lisp
+```lisp
 (list.filter (fn* (item idx) (> item 0)) (-1 0 1 2)) ; (1 2)
 ```
 
@@ -175,7 +175,7 @@ Filters a list using a lambda predicate.
 
 Adds numbers together.
 
-```common lisp
+```lisp
 (+ 1 2 3) ; 6
 ```
 
@@ -185,7 +185,7 @@ Adds numbers together.
 
 Subtracts numbers from the first argument.
 
-```common lisp
+```lisp
 (- 5 2 1) ; 2
 ```
 
@@ -195,7 +195,7 @@ Subtracts numbers from the first argument.
 
 Multiplies numbers together.
 
-```common lisp
+```lisp
 (* 2 3 4) ; 24
 ```
 
@@ -205,7 +205,7 @@ Multiplies numbers together.
 
 Divides the first argument by the rest.
 
-```common lisp
+```lisp
 (/ 8 2 2) ; 2
 ```
 
@@ -215,7 +215,7 @@ Divides the first argument by the rest.
 
 Performs division with modulo.
 
-```common lisp
+```lisp
 (% 4 2) ; 0
 ```
 
@@ -225,7 +225,7 @@ Performs division with modulo.
 
 Checks if two values are equal.
 
-```common lisp
+```lisp
 (= 1 1) ; true
 ```
 
@@ -235,7 +235,7 @@ Checks if two values are equal.
 
 Checks if the first value is less than the second.
 
-```common lisp
+```lisp
 (< 1 2) ; true
 ```
 
@@ -245,7 +245,7 @@ Checks if the first value is less than the second.
 
 Checks if the first value is greater than the second.
 
-```common lisp
+```lisp
 (> 2 1) ; true
 ```
 
@@ -255,7 +255,7 @@ Checks if the first value is greater than the second.
 
 Checks if two values are not equal.
 
-```common lisp
+```lisp
 (!= 1 2) ; true
 ```
 
@@ -265,7 +265,7 @@ Checks if two values are not equal.
 
 Checks if the first value is less than or equal to the second.
 
-```common lisp
+```lisp
 (<= 1 2) ; true
 ```
 
@@ -275,7 +275,7 @@ Checks if the first value is less than or equal to the second.
 
 Checks if the first value is greater than or equal to the second.
 
-```common lisp
+```lisp
 (>= 2 1) ; true
 ```
 
@@ -285,7 +285,7 @@ Checks if the first value is greater than or equal to the second.
 
 Logical AND for two boolean values.
 
-```common lisp
+```lisp
 (and true false) ; false
 ```
 
@@ -295,7 +295,7 @@ Logical AND for two boolean values.
 
 Logical OR for two boolean values.
 
-```common lisp
+```lisp
 (or true false) ; true
 ```
 
@@ -305,7 +305,7 @@ Logical OR for two boolean values.
 
 Stringifies an atom and writes it to stdout. Use `io.print` to format output.
 
-```common lisp
+```lisp
 (io.stdout "hello")
 ```
 
@@ -315,7 +315,7 @@ Stringifies an atom and writes it to stdout. Use `io.print` to format output.
 
 Stringifies an atom and writes it to stderr.
 
-```common lisp
+```lisp
 (io.stderr "error")
 ```
 
@@ -329,7 +329,7 @@ Writes a formatted string to stdout. Specifiers:
  - `%i` casts a string to an integer
  - `%f` casts a string to a float
 
-```common lisp
+```lisp
 (io.printf "hello %s %d" ("world" 42))
 ```
 
@@ -340,7 +340,7 @@ Writes a formatted string to stdout. Specifiers:
 Writes the question on stdout and waits for user input.
 
 
-```common lisp
+```lisp
 (io.readline "What is your favorite food? ") ; "USER_TYPED_CONTENT"
 ```
 
@@ -351,7 +351,7 @@ Writes the question on stdout and waits for user input.
 Clear the console output.
 
 
-```common lisp
+```lisp
 (io.clear)
 ```
 
