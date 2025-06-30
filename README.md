@@ -43,6 +43,8 @@ or execute a file `script.lisp`
 lifp run ./script.lisp
 ```
 
+Checkout the [examples](./examples) folder to see more. 
+
 ## Development
 
 To build the project from source, you need [Bun](https://bun.sh/) installed.
