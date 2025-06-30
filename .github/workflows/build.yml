@@ -35,7 +35,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/docs.json docs/docs.md
+          git add docs/docs.json docs/index.md
           git commit -m "chore(docs): update generated documentation for ${{ needs.build.outputs.VERSION_STRING }}"
           git push origin HEAD:main
       

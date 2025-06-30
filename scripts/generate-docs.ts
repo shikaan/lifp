@@ -58,13 +58,13 @@ fs.writeFileSync(
 console.groupEnd();
 console.log(`Generating docs.json - done`);
 
-console.group(`Generating docs.md...`);
+console.group(`Generating web documentation...`);
 // @ts-expect-error comes from runner
 let buffer = `lifp - ${__VERSION__}\n---\n\n`;
 for (const method of Object.values(result)) {
   buffer += `## ${method.name}\n\n${method.description}\n\n\`\`\`common lisp\n${method.example}\n\`\`\`\n\n\n\n`;
 }
 
-fs.writeFileSync(path.join(__dirname, "..", "docs", "docs.md"), buffer);
+fs.writeFileSync(path.join(__dirname, "..", "docs", "index.md"), buffer);
 console.groupEnd();
 console.log(`Generating docs.json - done`);
