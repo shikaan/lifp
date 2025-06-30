@@ -1,6 +1,11 @@
 import * as fs from "node:fs";
 import { LPAREN, RPAREN } from "../lib/constants.js";
 import { defaultEnvironment, Environment } from "../lib/environment.js";
+import {
+  getPointer,
+  incrementLine,
+  updatePointer,
+} from "../lib/evaluation-context.js";
 import { evaluate, read } from "../lib/index.js";
 
 export const execute = async (buffer: string) => {
@@ -17,6 +22,7 @@ export const execute = async (buffer: string) => {
     }
 
     if (char === "\n") {
+      incrementLine();
       skip = false;
     }
 
@@ -28,8 +34,8 @@ export const execute = async (buffer: string) => {
     } else if (char === RPAREN) depth--;
 
     if (depth === 0) {
-      const line = buffer.slice(lineStart, i + 1);
-      await evaluate(read(line), environment);
+      const expression = buffer.slice(lineStart, i + 1);
+      await evaluate(read(expression, getPointer()), environment);
       depth = -1;
     }
   }
@@ -40,8 +46,7 @@ export async function run(args: string[]): Promise<number> {
     throw new Error(`'run' requires one file.`);
   }
   const file = args.at(-1);
-
-  // TODO: this could be streamed since we are not looking up the environment first...
+  updatePointer([file, 1]);
   const buffer = fs.readFileSync(file, "utf-8");
   await execute(buffer);
   return 0;

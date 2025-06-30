@@ -1,20 +1,27 @@
-export class SyntaxException extends Error {
-  constructor(message?: string) {
+import { getFile, getLine } from "./evaluation-context.js";
+
+class Exception extends Error {
+  constructor(name: string, message: string) {
     super(message);
-    this.name = "SyntaxException";
+    this.name = name;
+    this.message = `\n${this.name}: ${this.message}\n    at ${getFile()}:${getLine()}\n`;
   }
 }
 
-export class SymbolNotFoundException extends Error {
-  constructor(message?: string) {
-    super(message);
-    this.name = "SymbolNotFoundException";
+export class SyntaxException extends Exception {
+  constructor(message: string) {
+    super("SyntaxException", message);
   }
 }
 
-export class InvalidArgumentException extends Error {
+export class SymbolNotFoundException extends Exception {
+  constructor(message: string) {
+    super("SymbolNotFoundException", message);
+  }
+}
+
+export class InvalidArgumentException extends Exception {
   constructor(message?: string) {
-    super(message);
-    this.name = "InvalidArgumentException";
+    super("InvalidArgumentException", message);
   }
 }

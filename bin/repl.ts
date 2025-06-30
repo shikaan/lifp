@@ -72,7 +72,9 @@ export async function repl(): Promise<number> {
         continue;
       }
 
-      const output = print(await evaluate(read(line), environment));
+      const output = print(
+        await evaluate(read(line, ["repl", 1]), environment),
+      );
       stdout.write(format.output(output));
     } catch (e) {
       stderr.write(format.error(e));

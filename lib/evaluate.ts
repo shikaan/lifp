@@ -1,4 +1,5 @@
 import type { Environment } from "./environment.js";
+import { updatePointer } from "./evaluation-context.js";
 import { specials } from "./specials.js";
 import {
   isListNode,
@@ -13,6 +14,8 @@ export const evaluate = async (
   environment: Environment,
   specialForms: typeof specials = specials,
 ): Promise<Value> => {
+  updatePointer(tree.ptr);
+
   if (!isListNode(tree)) {
     return tree.type === NodeType.SYMBOL
       ? environment.get(tree.value)

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { t } from "../tests/utils.js";
+import { mockPtr, t } from "../tests/utils.js";
 import { tokenize } from "./lexer.js";
 import { type Token, TokenType } from "./types.js";
 
@@ -10,7 +10,7 @@ test("whitespace", () => {
   const tests = ["  (1)", "\n(1)", "\t(1)", "\r(1)", "(\n1\n)"];
 
   for (const test of tests) {
-    expect(tokenize(test), JSON.stringify(test)).toEqual([
+    expect(tokenize(test, mockPtr), JSON.stringify(test)).toEqual([
       LPAREN,
       t(TokenType.NUMBER, 1),
       RPAREN,
@@ -28,7 +28,7 @@ test("numbers", () => {
   ];
 
   for (const [input, expected] of tests) {
-    expect(tokenize(input)).toEqual(expected);
+    expect(tokenize(input, mockPtr)).toEqual(expected);
   }
 });
 
@@ -45,7 +45,7 @@ test("symbols", () => {
   ];
 
   for (const [input, expected] of tests) {
-    expect(tokenize(input), JSON.stringify(input)).toEqual(expected);
+    expect(tokenize(input, mockPtr), JSON.stringify(input)).toEqual(expected);
   }
 });
 
@@ -62,7 +62,7 @@ test("strings", () => {
   ];
 
   for (const [input, expected] of tests) {
-    expect(tokenize(input), input).toEqual(expected);
+    expect(tokenize(input, mockPtr), input).toEqual(expected);
   }
 });
 
@@ -82,7 +82,7 @@ test("sub expressions", () => {
   ];
 
   for (const [input, expected] of tests) {
-    expect(tokenize(input)).toEqual(expected);
+    expect(tokenize(input, mockPtr)).toEqual(expected);
   }
 });
 
@@ -128,7 +128,7 @@ test("complex expressions", () => {
   ];
 
   for (const [input, expected] of tests) {
-    expect(tokenize(input)).toEqual(expected);
+    expect(tokenize(input, mockPtr)).toEqual(expected);
   }
 });
 
@@ -140,7 +140,7 @@ test("atoms", () => {
   ];
 
   for (const [input, expected] of tests) {
-    expect(tokenize(input)).toEqual(expected);
+    expect(tokenize(input, mockPtr)).toEqual(expected);
   }
 });
 
@@ -155,7 +155,7 @@ test("comments", () => {
   ];
 
   for (const [input, expected] of tests) {
-    expect(tokenize(input)).toEqual(expected);
+    expect(tokenize(input, mockPtr)).toEqual(expected);
   }
 });
 
@@ -168,6 +168,8 @@ test("syntax exception", () => {
   ];
 
   for (const [input, expected] of tests) {
-    expect(() => tokenize(input), JSON.stringify(input)).toThrow(expected);
+    expect(() => tokenize(input, mockPtr), JSON.stringify(input)).toThrow(
+      expected,
+    );
   }
 });

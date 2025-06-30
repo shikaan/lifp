@@ -1,14 +1,14 @@
 import { LPAREN, RPAREN, STRING_DELIMITER } from "./constants.js";
 import { SyntaxException } from "./errors.js";
-import { type Token, TokenType } from "./types.js";
+import { type FilePointer, type Token, TokenType } from "./types.js";
 
 const isStringLiteral = (s: string) =>
   s.startsWith(STRING_DELIMITER) && s.endsWith(STRING_DELIMITER);
 
-export const tokenize = (line: string): Token[] => {
+export const tokenize = (line: string, ptr: FilePointer): Token[] => {
   line = line.trim();
   const rex =
-    /((?<paren>[()])|(?<token>"(?:[^\\"]|\\.)*"|:?[a-zA-Z0-9$%^&*+<>=./\-_!?]+)|(?<com>;\s*.*))\s*/g;
+    /((?<paren>[()])|(?<token>"(?:[^\\"]|\\.)*"|:?[a-zA-Z0-9$%^&*+<>=./\-_!?]+)|(?<comment>;\s*.*))\s*/g;
 
   const result: Token[] = [];
 
@@ -26,22 +26,23 @@ export const tokenize = (line: string): Token[] => {
     }
 
     const { groups } = execArray;
-    const { token, paren, com } = groups;
-    if (com) {
+    const { token, paren, comment } = groups;
+    if (comment) {
       lastIndex = rex.lastIndex;
       execArray = rex.exec(line);
       continue;
     }
 
     if (paren === LPAREN) {
-      result.push({ type: TokenType.LPAREN, literal: LPAREN });
+      result.push({ type: TokenType.LPAREN, literal: LPAREN, ptr });
     } else if (paren === RPAREN) {
-      result.push({ type: TokenType.RPAREN, literal: RPAREN });
+      result.push({ type: TokenType.RPAREN, literal: RPAREN, ptr });
     } else if (isStringLiteral(token)) {
       const unescaped = JSON.parse(`${token}`);
       result.push({
         type: TokenType.STRING,
         literal: unescaped,
+        ptr,
       });
     } else {
       const isNumber = /^-?\d+(\.\d+)?$/.test(token);
@@ -50,9 +51,9 @@ export const tokenize = (line: string): Token[] => {
         const maybeNumber = Number.parseFloat(token);
         if (Number.isNaN(maybeNumber))
           throw new SyntaxException(`"${token}" is not a valid number`);
-        result.push({ type: TokenType.NUMBER, literal: maybeNumber });
+        result.push({ type: TokenType.NUMBER, literal: maybeNumber, ptr });
       } else {
-        result.push({ type: TokenType.SYMBOL, literal: token });
+        result.push({ type: TokenType.SYMBOL, literal: token, ptr });
       }
     }
 

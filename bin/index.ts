@@ -46,8 +46,7 @@ const printHelp = () => {
         throw new Error(`'${command}' command not found.`);
     }
   } catch (e) {
-    console.error(`${e}`);
-    printHelp();
+    console.error(`${e.message}`);
   }
 })()
   .then((status = 0) => process.exit(status))

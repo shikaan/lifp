@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { l, n } from "../tests/utils.js";
+import { l, mockPtr, n } from "../tests/utils.js";
 import { read } from "./read.js";
 import { type Node, NodeType } from "./types.js";
 
@@ -14,7 +14,7 @@ test("reads atoms", () => {
   ];
 
   for (const [input, expected] of tests) {
-    expect(read(input), input).toEqual(expected);
+    expect(read(input, mockPtr), input).toEqual(expected);
   }
 });
 
@@ -27,12 +27,12 @@ test("reads unary lists", () => {
   ];
 
   for (const [input, expected] of tests) {
-    expect(read(input), input).toEqual(expected);
+    expect(read(input, mockPtr), input).toEqual(expected);
   }
 });
 
 test("reads empty list", () => {
-  expect(read("()")).toEqual(n(NodeType.LIST, []));
+  expect(read("()", mockPtr)).toEqual(n(NodeType.LIST, []));
 });
 
 test("reads complex lists", () => {
@@ -81,6 +81,6 @@ test("reads complex lists", () => {
   ];
 
   for (const [input, expected] of tests) {
-    expect(read(input), input).toEqual(expected);
+    expect(read(input, ["", 0]), input).toEqual(expected);
   }
 });
