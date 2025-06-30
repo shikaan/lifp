@@ -1,0 +1,91 @@
+(def! BOARD_WIDTH 9)
+(def! BOARD_HEIGHT 8)
+(def! ALIVE "X")
+(def! DEAD ".")
+
+(def! init-board
+  ; Initializes the board
+  (fn* ()
+    (list.from 1 1 1 1 0 1 0 1 1
+               1 1 1 1 1 1 0 1 0
+               0 1 0 1 0 0 0 1 0
+               0 1 1 0 1 0 0 1 0
+               0 1 1 0 1 0 0 1 0
+               0 1 1 0 1 0 0 1 0
+               0 1 1 0 1 0 0 1 0
+               1 0 0 1 0 0 0 1 0)))
+
+(def! alive?
+  ; Returns true if the current cell is alive
+  (fn* (x) (= 1 x)))
+
+(def! pos?
+  ; Returns true if the input is positive
+  (fn* (x) (> x 0)))
+
+(def! print-cell
+  ; Prints ALIVE for alive cell, and DEAD for a dead cell
+  (fn* (cell idx)
+    (io.printf "%s %s"
+      ((if (alive? cell) ALIVE DEAD)
+      (if (= (% (+ idx 1) BOARD_WIDTH) 0) "\n" "")))))
+
+(def! print-board
+  ; Prints the board
+  (fn* (board)
+    (list.each print-cell board)))
+
+(def! up?    (fn* (idx) (>= idx BOARD_WIDTH)))
+(def! down?  (fn* (idx) (< idx (* BOARD_WIDTH (- BOARD_HEIGHT 1)))))
+(def! left?  (fn* (idx) (!= (% idx BOARD_WIDTH) 0)))
+(def! right? (fn* (idx) (!= (% idx BOARD_WIDTH) (- BOARD_WIDTH 1))))
+
+(def! get-neighbors
+  ; Returns neighbors index of a cell at a given row-major index
+  (fn* (index)
+    (let* ((candidates (list.from
+      (if (and (up? index) (left? index)) (- index BOARD_WIDTH 1) -1)
+      (if (up? index) (- index BOARD_WIDTH) -1)
+      (if (and (up? index) (right? index)) (- index BOARD_WIDTH -1) -1)
+      (if (left? index) (- index 1) -1)
+      (if (right? index) (+ index 1) -1)
+      (if (and (down? index) (left? index)) (+ index BOARD_WIDTH -1) -1)
+      (if (down? index) (+ index BOARD_WIDTH) -1)
+      (if (and (down? index) (right? index)) (+ index BOARD_WIDTH 1) -1)
+    )))
+    (list.filter pos? candidates))))
+
+(def! count-alive-neighbors
+  ; Returns the count of alive neighbors at a given index
+  (fn* (board index)
+    (let* ((alive? (fn* (x) (= 1 (list.nth x board)))))
+      (list.count
+        (list.filter alive?
+          (get-neighbors index))))))
+
+(def! process-cell
+  ; Determines if a cell is a dead or alive given its surroundings
+  (fn* (value index board)
+    (let* ((alive-ns (count-alive-neighbors board index)))
+      (if (alive? value)
+        (if (or (= 2 alive-ns) (= 3 alive-ns)) 1 0)
+        (if (= 3 alive-ns) 1 0)))))
+
+(def! process-board
+  ; Determines the status of the board one cell at a time
+  (fn* (board)
+    (list.map
+      (fn* (cell idx) (process-cell cell idx board))
+      board)))
+
+(def! game-loop
+  ; Asks for user input to continue with the game
+  (fn* (board)
+    (let* ((_ (io.clear))
+           (_ (print-board board))
+           (_ (io.readline "\nPress [ENTER] to continue, Ctrl+C to exit")))
+      (game-loop (process-board board)))))
+
+; Main
+(def! board (init-board))
+(game-loop board)
