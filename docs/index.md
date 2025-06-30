@@ -1,4 +1,4 @@
-lifp - v0.5.3 (ef2956e)
+lifp - v0.6.0 (e0415ec)
 ---
 
 ## math.floor
@@ -147,6 +147,17 @@ Creates a list from the given arguments.
 
 ```lisp
 (list.from 1 2 3) ; (1 2 3)
+```
+
+
+
+## list.times
+
+Creates a list by repeatedly calling a lambda.
+
+
+```lisp
+(list.times (fn* (idx) idx) 3) ; (0 1 2)
 ```
 
 

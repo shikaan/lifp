@@ -1,5 +1,5 @@
 {
-  "version": "v0.5.3 (ef2956e)",
+  "version": "v0.6.0 (e0415ec)",
   "functions": {
     "math.floor": {
       "description": "Returns the floor of a number.",
@@ -75,6 +75,11 @@
       "description": "Creates a list from the given arguments.",
       "example": "(list.from 1 2 3) ; (1 2 3)",
       "name": "list.from"
+    },
+    "list.times": {
+      "description": "Creates a list by repeatedly calling a lambda.\n",
+      "example": "(list.times (fn* (idx) idx) 3) ; (0 1 2)",
+      "name": "list.times"
     },
     "list.nth": {
       "description": "Returns the nth element of a list, or nil if out of bounds.",
