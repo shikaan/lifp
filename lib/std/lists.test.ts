@@ -45,3 +45,12 @@ test("list.filter", async () => {
   expect(result[1]).toBe(3);
   expect(lists["list.filter"]([fn, 1])).rejects.toThrow();
 });
+
+test("list.times", async () => {
+  const fn = async ([i]: number[]) => i;
+  const result = await lists["list.times"]([fn, 3]);
+  expect(result).toEqual([0, 1, 2]);
+  expect(lists["list.filter"]([1])).rejects.toThrow();
+  expect(lists["list.filter"]([fn])).rejects.toThrow();
+  expect(lists["list.filter"]([true, "lol"])).rejects.toThrow();
+});

@@ -81,6 +81,6 @@ test("reads complex lists", () => {
   ];
 
   for (const [input, expected] of tests) {
-    expect(read(input, ["", 0]), input).toEqual(expected);
+    expect(read(input, mockPtr), input).toEqual(expected);
   }
 });

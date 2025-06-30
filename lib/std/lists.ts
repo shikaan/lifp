@@ -59,6 +59,29 @@ export const lists: Record<string, Lambda> = {
    */
   "list.from": async (nodes: Value[]) => nodes,
   /**
+   * Creates a list by repeatedly calling a lambda.
+   *
+   * @name list.times
+   * @example
+   *   (list.times (fn* (idx) idx) 3) ; (0 1 2)
+   */
+  "list.times": async (nodes: Value[]) => {
+    if (nodes.length !== 2 || !isNumber(nodes[1]) || !isLambda(nodes[0])) {
+      throw new InvalidArgumentException(
+        "'list.times' takes a number and a list as arguments.",
+      );
+    }
+
+    const [lambda, count] = nodes;
+
+    const result = [];
+    for (let i = 0; i < count; i++) {
+      result.push(await lambda([i]));
+    }
+
+    return result;
+  },
+  /**
    * Returns the nth element of a list, or nil if out of bounds.
    * @name list.nth
    * @example
@@ -67,7 +90,7 @@ export const lists: Record<string, Lambda> = {
   "list.nth": async (nodes) => {
     if (nodes.length !== 2 || !isNumber(nodes[0]) || !isList(nodes[1])) {
       throw new InvalidArgumentException(
-        "'list.nth' takes a number and a list as argument.",
+        "'list.nth' takes a number and a list as arguments.",
       );
     }
 

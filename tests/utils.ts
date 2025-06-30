@@ -7,7 +7,7 @@ import {
   type TokenType,
 } from "../lib/types.js";
 
-export const mockPtr: FilePointer = ["", 0];
+export const mockPtr: FilePointer = ["tests", 1];
 
 // Creates a Node. Short notation for tests
 export const n = (type: NodeType, value: unknown): Node =>
