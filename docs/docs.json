@@ -1,5 +1,5 @@
 {
-  "version": "v0.5.1 (5646b17)",
+  "version": "v0.5.2 (549e9c2)",
   "functions": {
     "math.floor": {
       "description": "Returns the floor of a number.",

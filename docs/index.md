@@ -1,4 +1,4 @@
-lifp - v0.5.1 (5646b17)
+lifp - v0.5.2 (549e9c2)
 ---
 
 ## math.floor
