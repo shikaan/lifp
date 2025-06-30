@@ -38,6 +38,13 @@ jobs:
           git add docs/docs.json docs/docs.md
           git commit -m "chore(docs): update generated documentation for ${{ needs.build.outputs.VERSION_STRING }}"
           git push origin HEAD:main
+      
+      - name: Move release tag to docs commit
+        run: |
+          git fetch --tags
+          git tag -f "${GITHUB_REF#refs/tags/}"
+          git push --force origin "refs/tags/${GITHUB_REF#refs/tags/}"
+
   build:
     runs-on: ubuntu-latest
     outputs:
