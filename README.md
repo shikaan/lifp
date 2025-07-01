@@ -32,18 +32,38 @@ Head to the [releases](https://github.com/shikaan/lifp/releases) page and downlo
 
 ### Usage
 
-Launch the executable to start the REPL 
+Launch the executable to start the REPL
 ```shell
 lifp
 ```
 
-or execute a file `script.lisp`
+Type `help` for more details.
+
+Once you are ready, you can run your code (e.g.,  `script.lifp`) like this
 
 ```shell
-lifp run ./script.lisp
+lifp run ./script.lifp
 ```
 
 Checkout the [examples](./examples) folder to see more. 
+
+### API Docs
+
+[API Docs](https://shikaan.github.io/lifp/)
+
+### Syntax Highlighting
+
+`.lifp` files can be edited with tools supporting lisps. Common Lisp's syntax highlighters seem to work particularly well.
+
+Some examples:
+
+ - in Vim you can just add the following modline at the end of your file
+
+```
+; vim: ft=lisp
+```
+
+ - in Visual Studio Code use the [Common Lisp VSCode](https://marketplace.visualstudio.com/items?itemName=ailisp.commonlisp-vscode) extension
 
 ## Development
 
