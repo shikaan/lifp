@@ -68,7 +68,7 @@ void danglingArenas(void) {
 int main(void) {
   tryAssertAssign(arenaCreate((size_t)(1024 * 1024)), test_ast_arena);
   tryAssertAssign(arenaCreate((size_t)(1024 * 1024)), test_temp_arena);
-  tryAssertAssign(environmentCreate(nullptr), global);
+  tryAssertAssign(vmInit(), global);
 
   profileInit();
 
@@ -77,6 +77,8 @@ int main(void) {
   return report();
 }
 #else
+#include <stdio.h>
+
 int main(void) {
   printf("Error: This test can only with PROFILE=1\n"
          "  Run again with:\n"

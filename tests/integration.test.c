@@ -19,7 +19,7 @@ result_value_ref_t execute(const char *input) {
   result_value_ref_t last_result;
 
   environment_t *env = nullptr;
-  tryAssertAssign(environmentCreate(nullptr), env);
+  tryAssertAssign(vmInit(), env);
 
   while (line != NULL) {
     token_list_t *tokens = nullptr;

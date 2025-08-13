@@ -409,7 +409,7 @@ void condSpecialForm() {
 
 int main(void) {
   tryAssertAssign(arenaCreate((size_t)(1024 * 1024)), test_arena);
-  tryAssertAssign(environmentCreate(nullptr), environment);
+  tryAssertAssign(vmInit(), environment);
 
   suite(atoms);
   suite(listOfElements);
