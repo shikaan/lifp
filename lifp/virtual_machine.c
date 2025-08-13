@@ -2,7 +2,6 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include "virtual_machine.h"
-#include "../lib/debug.h"
 
 // NOLINTBEGIN
 #include "std/core.c"
