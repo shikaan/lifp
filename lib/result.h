@@ -51,19 +51,37 @@ typedef Result(int) test_t;
   }                                                                            \
   __VA_OPT__(__VA_ARGS__ = (_result(ResultType).value));
 
-#define tryWithCleanup(ResultType, Action, Cleanup, ...)                       \
+#define tryCatch(ResultType, Action, Catch, ...)                               \
   auto _result(ResultType) = Action;                                           \
   if (_result(ResultType).code != RESULT_OK) {                                 \
-    Cleanup;                                                                   \
+    Catch;                                                                     \
     throw(ResultType, _result(ResultType).code, _result(ResultType).meta,      \
           "%s", _result(ResultType).message);                                  \
   }                                                                            \
   __VA_OPT__(__VA_ARGS__ = (_result(ResultType).value));
 
-#define tryWithCleanupMeta(ResultType, Action, Cleanup, Meta, ...)             \
+#define tryCatchWithMeta(ResultType, Action, Catch, Meta, ...)                 \
   auto _result(ResultType) = Action;                                           \
   if (_result(ResultType).code != RESULT_OK) {                                 \
-    Cleanup;                                                                   \
+    Catch;                                                                     \
+    throw(ResultType, _result(ResultType).code, Meta, "%s",                    \
+          _result(ResultType).message);                                        \
+  }                                                                            \
+  __VA_OPT__(__VA_ARGS__ = (_result(ResultType).value));
+
+#define tryFinally(ResultType, Action, Finally, ...)                           \
+  auto _result(ResultType) = Action;                                           \
+  Finally;                                                                     \
+  if (_result(ResultType).code != RESULT_OK) {                                 \
+    throw(ResultType, _result(ResultType).code, _result(ResultType).meta,      \
+          "%s", _result(ResultType).message);                                  \
+  }                                                                            \
+  __VA_OPT__(__VA_ARGS__ = (_result(ResultType).value));
+
+#define tryFinallyWithMeta(ResultType, Action, Finally, Meta, ...)             \
+  auto _result(ResultType) = Action;                                           \
+  Finally;                                                                     \
+  if (_result(ResultType).code != RESULT_OK) {                                 \
     throw(ResultType, _result(ResultType).code, Meta, "%s",                    \
           _result(ResultType).message);                                        \
   }                                                                            \
