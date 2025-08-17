@@ -21,6 +21,8 @@ constexpr size_t AST_MEMORY = (size_t)(1024 * 64);
 // Memory allocated for storing transient values across environments
 constexpr size_t TEMP_MEMORY = (size_t)(1024 * 64);
 
+const char REPL_COMMAND_CLEAR[] = "clear";
+
 #define printError(Result, InputBuffer, Size, OutputBuffer)                    \
   int _concat(offset_, __LINE__) = 0;                                          \
   formatErrorMessage((Result)->message, (Result)->meta, "repl", InputBuffer,   \
@@ -71,6 +73,11 @@ int main(void) {
 
     if (strlen(input) == 0)
       continue;
+
+    if (strcmp(input, REPL_COMMAND_CLEAR) == 0) {
+      printf("\e[1;1H\e[2J");
+      continue;
+    }
 
     token_list_t *tokens = nullptr;
     tryREPL(tokenize(ast_arena, input), tokens);
