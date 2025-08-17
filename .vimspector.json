@@ -1,5 +1,15 @@
 {
   "configurations": {
+    "run": {
+      "adapter": "CodeLLDB",
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/bin/run",
+        "args": ["examples/fibonacci.lifp"],
+        "cwd": "${workspaceRoot}",
+        "stopAtEntry": true
+      }
+    },
     "repl": {
       "adapter": "CodeLLDB",
       "configuration": {
