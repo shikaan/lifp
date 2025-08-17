@@ -30,10 +30,12 @@ result_value_ref_t define(arena_t *arena, environment_t *env,
           "%s requires a symbol and a form. %s", DEFINE, DEFINE_EXAMPLE);
   }
 
-  // Perform reduction in the AST memory
+  // Perform reduction in the temporary memory
+  frame_handle_t frame = arenaAllocationFrameStart(arena);
   value_t *result = nullptr;
   node_t value = listGet(node_t, nodes, 2);
-  try(result_value_ref_t, evaluate(arena, &value, env), result);
+  tryFinally(result_value_ref_t, evaluate(arena, &value, env),
+             arenaAllocationFrameEnd(arena, frame), result);
 
   // If reduction is successful, we can move the closure to VM memory
   value_t *copy = nullptr;
@@ -140,22 +142,22 @@ result_value_ref_t let(arena_t *arena, environment_t *env,
     }
 
     node_t body = listGet(node_t, &couple.value.list, 1);
+    frame_handle_t bindings_frame = arenaAllocationFrameStart(arena);
     value_t *evaluated = nullptr;
-    tryWithCleanup(result_value_ref_t, evaluate(arena, &body, local_env),
-                   environmentDestroy(&local_env), evaluated);
-    tryWithCleanupMeta(
-        result_value_ref_t,
-        mapSet(local_env->values, symbol.value.symbol, evaluated),
-        environmentDestroy(&local_env), evaluated->position);
+    tryCatch(result_value_ref_t, evaluate(arena, &body, local_env),
+             environmentDestroy(&local_env), evaluated);
+    tryCatchWithMeta(result_value_ref_t,
+                     mapSet(local_env->values, symbol.value.symbol, evaluated),
+                     environmentDestroy(&local_env), evaluated->position);
+    arenaAllocationFrameEnd(arena, bindings_frame);
   }
 
   node_t form = listGet(node_t, nodes, 2);
 
   value_t *result = nullptr;
-  tryWithCleanup(result_value_ref_t, evaluate(arena, &form, local_env),
-                 environmentDestroy(&local_env), result);
+  tryFinally(result_value_ref_t, evaluate(arena, &form, local_env),
+             environmentDestroy(&local_env), result);
 
-  environmentDestroy(&local_env);
   return ok(result_value_ref_t, result);
 }
 
@@ -166,8 +168,8 @@ result_value_ref_t cond(arena_t *arena, environment_t *env,
   assert(nodes->count > 0);
   value_t *result = nullptr;
 
-  size_t offset = arena->offset;
   for (size_t i = 1; i < nodes->count - 1; i++) {
+    frame_handle_t frame = arenaAllocationFrameStart(arena);
     node_t node = listGet(node_t, nodes, i);
     if (node.type != NODE_TYPE_LIST || node.value.list.count != 2) {
       throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, node.position,
@@ -188,7 +190,7 @@ result_value_ref_t cond(arena_t *arena, environment_t *env,
       try(result_value_ref_t, evaluate(arena, &form, env), result);
       return ok(result_value_ref_t, result);
     }
-    arena->offset = offset;
+    arenaAllocationFrameEnd(arena, frame);
   }
 
   node_t fallback = listGet(node_t, nodes, nodes->count - 1);

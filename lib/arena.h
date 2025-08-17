@@ -41,6 +41,7 @@
 
 typedef unsigned char byte_t;
 typedef char message_t[128];
+typedef size_t frame_handle_t;
 
 typedef enum {
   ARENA_ERROR_MALLOC_ERROR = 1,
@@ -103,6 +104,10 @@ result_ref_t arenaCreate(size_t size);
  *   }
  */
 result_ref_t arenaAllocate(arena_t *self, size_t size);
+
+frame_handle_t arenaAllocationFrameStart(arena_t *self);
+
+void arenaAllocationFrameEnd(arena_t *self, frame_handle_t frame_handle);
 
 /**
  * Destroy the arena and free all its memory.

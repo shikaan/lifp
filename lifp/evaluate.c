@@ -26,7 +26,6 @@ static bool isSpecialFormNode(const node_t FIRST_NODE) {
 
 static result_value_ref_t invokeBuiltin(value_t *result, value_t builtin_value,
                                         arena_t *arena) {
-  profileArena(arena);
   assert(builtin_value.type == VALUE_TYPE_BUILTIN);
   builtin_t builtin = builtin_value.value.builtin;
 
@@ -49,7 +48,6 @@ static result_value_ref_t invokeBuiltin(value_t *result, value_t builtin_value,
 static result_value_ref_t invokeClosure(value_t *result, value_t closure_value,
                                         arena_t *arena,
                                         environment_t *parent_environment) {
-  profileArena(arena);
   assert(closure_value.type == VALUE_TYPE_CLOSURE);
   closure_t closure = closure_value.value.closure;
 
@@ -60,25 +58,25 @@ static result_value_ref_t invokeClosure(value_t *result, value_t closure_value,
           result->value.list.count - 1, closure.arguments.count);
   }
 
-  environment_t *environment = nullptr;
+  environment_t *local_environment = nullptr;
   tryWithMeta(result_value_ref_t, environmentCreate(parent_environment),
-              closure_value.position, environment);
+              closure_value.position, local_environment);
 
   // Populate the closure with the values, skipping the closure symbol
   for (size_t i = 1; i < result->value.list.count; i++) {
     auto argument = listGet(node_t, &closure.arguments, i - 1);
     auto value = listGet(value_t, &result->value.list, i);
-    tryWithCleanupMeta(
+    tryCatchWithMeta(
         result_value_ref_t,
-        mapSet(environment->values, argument.value.symbol, &value),
-        environmentDestroy(&environment), value.position);
+        mapSet(local_environment->values, argument.value.symbol, &value),
+        environmentDestroy(&local_environment), value.position);
   }
 
   value_t *reduced = nullptr;
-  tryWithCleanupMeta(
-      result_value_ref_t, evaluate(arena, &closure.form, environment),
-      environmentDestroy(&environment), closure_value.position, reduced);
-  environmentDestroy(&environment);
+  tryFinally(result_value_ref_t,
+             evaluate(arena, &closure.form, local_environment),
+             environmentDestroy(&local_environment), reduced);
+
   return ok(result_value_ref_t, reduced);
 }
 
@@ -101,7 +99,6 @@ static result_value_ref_t invokeSpecialForm(arena_t *arena, value_t *result,
 
 result_value_ref_t evaluateList(arena_t *arena, node_t *syntax_tree,
                                 environment_t *environment) {
-  profileArena(arena);
   const auto list = syntax_tree->value.list;
 
   value_t *result = nullptr;
@@ -120,12 +117,14 @@ result_value_ref_t evaluateList(arena_t *arena, node_t *syntax_tree,
   }
 
   for (size_t i = 0; i < list.count; i++) {
+    frame_handle_t frame = arenaAllocationFrameStart(arena);
     auto node = listGet(node_t, &list, i);
     value_t *reduced = nullptr;
     try(result_value_ref_t, evaluate(arena, &node, environment), reduced);
     tryWithMeta(result_value_ref_t,
                 listAppend(value_t, &result->value.list, reduced),
                 syntax_tree->position);
+    arenaAllocationFrameEnd(arena, frame);
   }
 
   value_t first_value = listGet(value_t, &result->value.list, 0);
