@@ -3,6 +3,8 @@ BUGS
   * [ ] `listGet` allows you to go out of bound
   * [ ] When `def!` reallocates the same symbol, it leaks memory (old symbol is not evicted)
   * [ ] `def!` does not return nil when compiled in release mode
+  * [ ] special forms are not recognised (type `def!` alone in repl and get error)
+  * [ ] defining `fact` from example returns false instead of null
 
 FEATURES
 ---
@@ -32,6 +34,7 @@ REFACTORING
        (worse case scenario) to shield the consumer from the allocation concerns.
   * [ ] Use [`libuv`](https://libuv.org) for non-blocking io
   * [ ] Std should be instantiated only once and pointed around instead of being cloned
+  * [ ] Some structs are huge: mostly because we try to colocate most things. Do we need all of that?
 
 OPEN STUFF
 ---
