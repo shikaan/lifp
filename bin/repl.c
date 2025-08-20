@@ -29,13 +29,13 @@ const char REPL_COMMAND_CLEAR[] = "clear";
                      Size, OutputBuffer, &_concat(offset_, __LINE__));         \
   fprintf(stdout, "%s\n", OutputBuffer);
 
-#define tryREPL(Action, Destination)                                           \
+#define tryREPL(Action, ...)                                                   \
   auto _concat(result, __LINE__) = Action;                                     \
   if (_concat(result, __LINE__).code != RESULT_OK) {                           \
     printError(&_concat(result, __LINE__), input, BUFFER_SIZE, buffer);        \
     continue;                                                                  \
   }                                                                            \
-  (Destination) = _concat(result, __LINE__).value;
+  __VA_OPT__(__VA_ARGS__ = _concat(result, __LINE__).value;)
 
 #define tryCLI(Action, Destination, ErrorMessage)                              \
   auto _concat(result, __LINE__) = Action;                                     \
@@ -90,11 +90,11 @@ int main(void) {
     node_t *syntax_tree = nullptr;
     tryREPL(parse(ast_arena, tokens, &offset, &depth), syntax_tree);
 
-    value_t *reduced = nullptr;
-    tryREPL(evaluate(temp_arena, syntax_tree, global_environment), reduced);
+    value_t reduced;
+    tryREPL(evaluate(&reduced, temp_arena, syntax_tree, global_environment));
 
     int buffer_offset = 0;
-    formatValue(reduced, BUFFER_SIZE, buffer, &buffer_offset);
+    formatValue(&reduced, BUFFER_SIZE, buffer, &buffer_offset);
     printf("~> %s\n", buffer);
 
     memset(buffer, 0, BUFFER_SIZE);
