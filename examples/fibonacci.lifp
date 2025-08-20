@@ -9,11 +9,8 @@
       ((< a 1) 0)
       ((= a 1) 1)
       ((= a 2) 2)
-      (let (
-        (last (fibonacci (- a 1)))
-        (current (fibonacci (- a 2))))
-        (+ last current)))))
+      (+ (fibonacci (- a 1)) (fibonacci (- a 2))))))
 
-(io.print! (fibonacci 18))
+(io.print! (fibonacci 30))
 
 ; vim syntax=lisp

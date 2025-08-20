@@ -1,36 +1,58 @@
 #include "value.h"
+#include "node.h"
 
-result_ref_t valueCreate(arena_t *arena, value_type_t type) {
+result_ref_t valueCreateInit(arena_t *arena, value_type_t type,
+                             node_type_t form_type) {
   value_t *value = nullptr;
   try(result_ref_t, arenaAllocate(arena, sizeof(value_t)), value);
-  value->type = type;
-
-  if (value->type == VALUE_TYPE_LIST) {
-    value_list_t *list = nullptr;
-    try(result_ref_t, listCreate(value_t, arena, VALUE_LIST_INITIAL_SIZE),
-        list);
-    bytewiseCopy(&value->value.list, list, sizeof(value_list_t));
-  }
-
-  if (value->type == VALUE_TYPE_CLOSURE) {
-    value_list_t *list = nullptr;
-    try(result_ref_t, listCreate(node_t, arena, VALUE_LIST_INITIAL_SIZE), list);
-    bytewiseCopy(&value->value.closure.arguments, list, sizeof(value_list_t));
-
-    // TODO: this is pessimistic, forms can be also non-lists and therefore
-    // require less memory. Can we clean this up?
-    node_t *form = nullptr;
-    try(result_ref_t, nodeCreate(arena, NODE_TYPE_LIST), form);
-    bytewiseCopy(&value->value.closure.form, form, sizeof(node_t));
-  }
-
+  try(result_ref_t, valueInit(value, arena, type, form_type));
   return ok(result_ref_t, value);
 }
 
-result_value_ref_t valueClone(arena_t *arena, const value_t *source) {
-  value_t *destination = nullptr;
-  tryWithMeta(result_value_ref_t, valueCreate(arena, source->type),
-              source->position, destination);
+result_ref_t valueCreate(arena_t *arena) {
+  value_t *value = nullptr;
+  try(result_ref_t, arenaAllocate(arena, sizeof(value_t)), value);
+  return ok(result_ref_t, value);
+}
+
+result_void_t valueInit(value_t *value, arena_t *arena, value_type_t type,
+                        node_type_t form_type) {
+  value->type = type;
+
+  if (value->type == VALUE_TYPE_LIST) {
+    frame_handle_t frame = arenaAllocationFrameStart(arena);
+    value_list_t *list = nullptr;
+    try(result_void_t, listCreate(value_t, arena, VALUE_LIST_INITIAL_SIZE),
+        list);
+    bytewiseCopy(&value->value.list, list, sizeof(value_list_t));
+    arenaAllocationFrameEnd(arena, frame);
+  }
+
+  if (value->type == VALUE_TYPE_CLOSURE) {
+    frame_handle_t frame = arenaAllocationFrameStart(arena);
+    value_list_t *list = nullptr;
+    try(result_void_t, listCreate(node_t, arena, VALUE_LIST_INITIAL_SIZE),
+        list);
+    bytewiseCopy(&value->value.closure.arguments, list, sizeof(value_list_t));
+
+    node_t *form = nullptr;
+    try(result_void_t, nodeCreate(arena, form_type), form);
+    bytewiseCopy(&value->value.closure.form, form, sizeof(node_t));
+    arenaAllocationFrameEnd(arena, frame);
+  }
+
+  return ok(result_void_t);
+}
+
+result_void_t valueCopy(value_t *source, value_t *destination,
+                        arena_t *destination_arena) {
+  node_type_t form_type = 0;
+  if (source->type == VALUE_TYPE_CLOSURE) {
+    form_type = source->value.closure.form.type;
+  }
+
+  try(result_void_t,
+      valueInit(destination, destination_arena, source->type, form_type));
   destination->position.line = source->position.line;
   destination->position.column = source->position.column;
 
@@ -49,21 +71,16 @@ result_value_ref_t valueClone(arena_t *arena, const value_t *source) {
     break;
   case VALUE_TYPE_CLOSURE:
     nodeCopy(&source->value.closure.form, &destination->value.closure.form);
-
-    tryWithMeta(result_value_ref_t,
-                listCopy(value_t, &source->value.closure.arguments,
-                         &destination->value.closure.arguments),
-                source->position);
+    try(result_void_t, listCopy(value_t, &source->value.closure.arguments,
+                                &destination->value.closure.arguments));
     break;
   case VALUE_TYPE_LIST:
-    tryWithMeta(
-        result_value_ref_t,
-        listCopy(value_t, &source->value.list, &destination->value.list),
-        source->position);
+    try(result_void_t,
+        listCopy(value_t, &source->value.list, &destination->value.list));
     break;
   default:
     unreachable();
   }
 
-  return ok(result_value_ref_t, destination);
+  return ok(result_void_t);
 }
