@@ -10,7 +10,7 @@ result_void_position_t sum(value_t *result, value_list_t *values) {
     value_t current = listGet(value_t, values, i);
     if (current.type != VALUE_TYPE_INTEGER) {
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, current.position,
-            "%s requires a list numbers. Got type %u", SUM, current.type);
+            "%s requires a list of numbers. Got type %u", SUM, current.type);
     }
 
     sum += current.value.integer;
