@@ -24,6 +24,7 @@ FEATURES
   * [ ] Tail call optimization
   * [ ] Lexer should know about comments (and discard them)
   * [ ] Auto-generated documentation for standard library
+  * [ ] Enum to text for error messages
 
 REFACTORING
 ---
@@ -35,6 +36,8 @@ REFACTORING
   * [ ] Use [`libuv`](https://libuv.org) for non-blocking io
   * [ ] Std should be instantiated only once and pointed around instead of being cloned
   * [ ] Some structs are huge: mostly because we try to colocate most things. Do we need all of that?
+        - The only place where we need flexible lists is the tokenizer and parser.
+          From that point on all the lists have defined length and should be arrays.
 
 OPEN STUFF
 ---
