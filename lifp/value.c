@@ -1,5 +1,6 @@
 #include "value.h"
 #include "node.h"
+#include <string.h>
 
 result_ref_t valueCreateInit(arena_t *arena, value_type_t type,
                              node_type_t form_type) {
@@ -24,7 +25,7 @@ result_void_t valueInit(value_t *value, arena_t *arena, value_type_t type,
     value_list_t *list = nullptr;
     try(result_void_t, listCreate(value_t, arena, VALUE_LIST_INITIAL_SIZE),
         list);
-    bytewiseCopy(&value->value.list, list, sizeof(value_list_t));
+    memcpy(&value->value.list, list, sizeof(value_list_t));
     arenaAllocationFrameEnd(arena, frame);
   }
 
@@ -33,11 +34,11 @@ result_void_t valueInit(value_t *value, arena_t *arena, value_type_t type,
     value_list_t *list = nullptr;
     try(result_void_t, listCreate(node_t, arena, VALUE_LIST_INITIAL_SIZE),
         list);
-    bytewiseCopy(&value->value.closure.arguments, list, sizeof(value_list_t));
+    memcpy(&value->value.closure.arguments, list, sizeof(value_list_t));
 
     node_t *form = nullptr;
     try(result_void_t, nodeCreate(arena, form_type), form);
-    bytewiseCopy(&value->value.closure.form, form, sizeof(node_t));
+    memcpy(&value->value.closure.form, form, sizeof(node_t));
     arenaAllocationFrameEnd(arena, frame);
   }
 
