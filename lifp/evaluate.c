@@ -90,7 +90,7 @@ static result_void_position_t invokeSpecialForm(arena_t *arena, value_t *result,
 result_void_position_t evaluate(value_t *result, arena_t *temp_arena,
                                 node_t *ast, environment_t *env) {
   profileSafeAlloc();
-  profileArena(arena);
+  profileArena(temp_arena);
 
   result->position.column = ast->position.column;
   result->position.line = ast->position.line;
@@ -165,7 +165,6 @@ result_void_position_t evaluate(value_t *result, arena_t *temp_arena,
                  arenaAllocationFrameEnd(temp_arena, frame));
       return ok(result_void_position_t);
     case VALUE_TYPE_CLOSURE:
-      // this this needs the evaluated list
       tryFinally(result_void_position_t,
                  invokeClosure(result, evaluated, first_value, temp_arena, env),
                  arenaAllocationFrameEnd(temp_arena, frame));
