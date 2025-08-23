@@ -90,6 +90,43 @@ int main() {
   expectEqlUint(let.type, VALUE_TYPE_INTEGER, "returns correct type");
   expectEqlInt(let.value.integer, 2, "returns correct value");
 
+  case("conditional - cond special form");
+  value_t cond_test;
+  execute(&cond_test, "(cond ((< 5 3) 1) ((> 5 3) 2) (3))");
+  expectEqlInt(cond_test.value.integer, 2, "evaluates correct branch");
+
+  case("boolean operations");
+  value_t bool_test;
+  execute(&bool_test, "(and (= 1 1) (> 5 3))");
+  expectEqlUint(bool_test.type, VALUE_TYPE_BOOLEAN, "returns boolean type");
+  expectTrue(bool_test.value.boolean, "logical and works");
+
+  case("recursive function calls");
+  value_t factorial;
+  execute(&factorial, "(def! fact (fn (n) (cond ((< n 1) 1) (* n (fact (- n 1))))))\n(fact 5)");
+  expectEqlInt(factorial.value.integer, 120, "recursive factorial works");
+
+  case("empty list and nil handling");
+  value_t empty_list;
+  execute(&empty_list, "()");
+  expectEqlUint(empty_list.type, VALUE_TYPE_LIST, "empty list has correct type");
+  expectEqlUint((unsigned int)empty_list.value.list.count, 0, "empty list has zero elements");
+
+  case("variable shadowing in nested let");
+  value_t shadow_test;
+  execute(&shadow_test, "(let ((x 1)) (let ((x 2)) x))");
+  expectEqlInt(shadow_test.value.integer, 2, "inner binding shadows outer");
+
+  case("multiple expressions with side effects");
+  value_t multi_expr;
+  execute(&multi_expr, "(def! x 1)\n(def! x (+ x 1))\nx");
+  expectEqlInt(multi_expr.value.integer, 2, "sequential definitions work");
+
+  case("function parameter shadowing");
+  value_t shadow_param;
+  execute(&shadow_param, "(def! x 10)\n(def! test (fn (x) (+ x 1)))\n(test 5)");
+  expectEqlInt(shadow_param.value.integer, 6, "function parameter shadows global variable");
+
   arenaDestroy(&ast_arena);
   arenaDestroy(&temp_arena);
   return report();
