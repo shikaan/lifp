@@ -4,6 +4,7 @@
 #include "error.h"
 #include "evaluate.h"
 #include "node.h"
+#include "position.h"
 #include "value.h"
 #include "virtual_machine.h"
 #include <assert.h>
@@ -13,6 +14,18 @@
 typedef result_void_position_t (*special_form_t)(value_t *, arena_t *,
                                                  environment_t *,
                                                  const node_list_t *);
+
+static result_void_position_t addToEnvironment(const char *key, value_t *value,
+                                               environment_t *environment,
+                                               position_t position) {
+  // If reduction is successful, we can move the closure to VM memory
+  value_t copied;
+  tryWithMeta(result_void_position_t,
+              valueCopy(value, &copied, environment->arena), position);
+  tryWithMeta(result_void_position_t, mapSet(environment->values, key, &copied),
+              position);
+  return ok(result_void_position_t);
+}
 
 const char *DEFINE_EXAMPLE = "(def! x (+ 1 2))";
 const char *DEFINE = "def!";
@@ -31,22 +44,17 @@ result_void_position_t define(value_t *result, arena_t *temp_arena,
           "%s requires a symbol and a form. %s", DEFINE, DEFINE_EXAMPLE);
   }
 
-  // Perform reduction in the temporary memory
   frame_handle_t frame = arenaAllocationFrameStart(temp_arena);
-  value_t *reduced;
-  tryWithMeta(result_void_position_t, valueCreate(temp_arena), result->position,
-              reduced);
+
+  // Perform reduction in the temporary memory
+  value_t reduced;
   node_t value = listGet(node_t, nodes, 2);
-  try(result_void_position_t, evaluate(reduced, temp_arena, &value, env));
+  try(result_void_position_t, evaluate(&reduced, temp_arena, &value, env));
 
   // If reduction is successful, we can move the closure to VM memory
-  value_t *copied = nullptr;
-  tryWithMeta(result_void_position_t, valueCreate(env->arena), result->position,
-              copied);
-  tryWithMeta(result_void_position_t, valueCopy(reduced, copied, env->arena),
-              result->position);
-  tryWithMeta(result_void_position_t,
-              mapSet(env->values, key.value.symbol, copied), value.position);
+  try(result_void_position_t,
+      addToEnvironment(key.value.symbol, &reduced, env, value.position));
+
   arenaAllocationFrameEnd(temp_arena, frame);
 
   result->type = VALUE_TYPE_NIL;
@@ -140,15 +148,13 @@ result_void_position_t let(value_t *result, arena_t *temp_arena,
 
     node_t body = listGet(node_t, &couple.value.list, 1);
     frame_handle_t bindings_frame = arenaAllocationFrameStart(temp_arena);
-    value_t *evaluated = nullptr;
-    tryWithMeta(result_void_position_t, valueCreate(temp_arena), body.position,
-                evaluated);
+    value_t evaluated;
     tryCatch(result_void_position_t,
-             evaluate(evaluated, temp_arena, &body, local_env),
+             evaluate(&evaluated, temp_arena, &body, local_env),
              environmentDestroy(&local_env));
-    tryCatchWithMeta(result_void_position_t,
-                     mapSet(local_env->values, symbol.value.symbol, evaluated),
-                     environmentDestroy(&local_env), evaluated->position);
+    try(result_void_position_t,
+        addToEnvironment(symbol.value.symbol, &evaluated, local_env,
+                         evaluated.position));
     arenaAllocationFrameEnd(temp_arena, bindings_frame);
   }
 
