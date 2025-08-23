@@ -1,7 +1,6 @@
 #ifdef MEMORY_PROFILE
 #include "../lib/arena.h"
 #include "../lib/profile.h"
-#include "../lib/result.h"
 #include "../lifp/evaluate.h"
 #include "../lifp/parse.h"
 #include "../lifp/tokenize.h"
@@ -16,33 +15,28 @@ static arena_t *test_ast_arena;
 static arena_t *test_temp_arena;
 static environment_t *global;
 
-result_value_ref_t execute(const char *input) {
+void execute(const char *input) {
   char input_copy[1024];
   strcpy(input_copy, input);
 
   char *line = strtok(input_copy, "\n");
-  result_value_ref_t last_result;
 
   while (line != NULL) {
+    arenaReset(test_ast_arena);
+    arenaReset(test_temp_arena);
     token_list_t *tokens = nullptr;
     tryAssertAssign(tokenize(test_ast_arena, line), tokens);
 
     size_t offset = 0;
     size_t depth = 0;
-    node_t *syntax_tree = nullptr;
-    tryAssertAssign(parse(test_ast_arena, tokens, &offset, &depth),
-                    syntax_tree);
+    node_t *ast = nullptr;
+    tryAssertAssign(parse(test_ast_arena, tokens, &offset, &depth), ast);
 
-    result_value_ref_t reduction =
-        evaluate(test_temp_arena, syntax_tree, global);
-    last_result = reduction;
+    value_t result;
+    evaluate(&result, test_temp_arena, ast, global);
 
     line = strtok(nullptr, "\n");
-    arenaReset(test_ast_arena);
   }
-
-  arenaReset(test_temp_arena);
-  return last_result;
 }
 
 size_t getUsedArenas(void) {

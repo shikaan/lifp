@@ -40,7 +40,7 @@ void values() {
   offset = 0;
   arenaReset(test_arena);
   value_t *list = nullptr;
-  tryAssertAssign(valueCreate(test_arena, VALUE_TYPE_LIST), list);
+  tryAssertAssign(valueCreateInit(test_arena, VALUE_TYPE_LIST, 0), list);
 
   tryAssert(listAppend(value_t, &list->value.list, &integer));
   tryAssert(listAppend(value_t, &list->value.list, &nil));
@@ -51,7 +51,8 @@ void values() {
   offset = 0;
   arenaReset(test_arena);
   value_t *closure = nullptr;
-  tryAssertAssign(valueCreate(test_arena, VALUE_TYPE_CLOSURE), closure);
+  tryAssertAssign(
+      valueCreateInit(test_arena, VALUE_TYPE_CLOSURE, NODE_TYPE_LIST), closure);
 
   node_t *symbol = nullptr;
   tryAssertAssign(nodeCreate(test_arena, NODE_TYPE_SYMBOL), symbol);
