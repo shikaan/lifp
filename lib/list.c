@@ -33,14 +33,14 @@ result_void_t genericListAppend(generic_list_t *self, const void *item) {
     try(result_void_t,
         arenaAllocate(self->arena, self->item_size * new_capacity), new_data);
 
-    memcpy(new_data, self->data, self->item_size * self->count);
+    memmove(new_data, self->data, self->item_size * self->count);
 
     self->data = new_data;
     self->capacity = new_capacity;
   }
 
   void *destination = (byte_t *)self->data + (self->item_size * self->count);
-  memcpy(destination, item, self->item_size);
+  memmove(destination, item, self->item_size);
   self->count++;
 
   return ok(result_void_t);
