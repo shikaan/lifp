@@ -38,6 +38,8 @@ REFACTORING
   * [ ] Some structs are huge: mostly because we try to colocate most things. Do we need all of that?
         - The only place where we need flexible lists is the tokenizer and parser.
           From that point on all the lists have defined length and should be arrays.
+        - Having colocation though helps with copying, listAppend and mapSet, since we don't have
+          to follow pointers.
 
 OPEN STUFF
 ---
