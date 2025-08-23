@@ -87,14 +87,14 @@ int main(void) {
 
     size_t offset = 0;
     size_t depth = 0;
-    node_t *syntax_tree = nullptr;
-    tryREPL(parse(ast_arena, tokens, &offset, &depth), syntax_tree);
+    node_t *ast = nullptr;
+    tryREPL(parse(ast_arena, tokens, &offset, &depth), ast);
 
-    value_t reduced;
-    tryREPL(evaluate(&reduced, temp_arena, syntax_tree, global_environment));
+    value_t result;
+    tryREPL(evaluate(&result, temp_arena, ast, global_environment));
 
     int buffer_offset = 0;
-    formatValue(&reduced, BUFFER_SIZE, buffer, &buffer_offset);
+    formatValue(&result, BUFFER_SIZE, buffer, &buffer_offset);
     printf("~> %s\n", buffer);
 
     memset(buffer, 0, BUFFER_SIZE);
