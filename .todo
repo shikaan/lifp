@@ -32,8 +32,6 @@ REFACTORING
   * [ ] Special forms should live in the environment like values and closures
   * [ ] Make list methods (and hashmap methods) typesafe (now you can (append
        `node_t` to a `value_list_t` without errors)
-  * [ ] Value and Node allocations are pessimistic: we always assume it's a list
-       (worse case scenario) to shield the consumer from the allocation concerns.
   * [ ] Use [`libuv`](https://libuv.org) for non-blocking io
   * [ ] Std should be instantiated only once and pointed around instead of being cloned
   * [ ] Some structs are huge: mostly because we try to colocate most things. Do we need all of that?
