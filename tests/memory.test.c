@@ -213,7 +213,7 @@ int main(void) {
 #include <stdio.h>
 
 int main(void) {
-  printf("Error: This test can only with PROFILE=1\n"
+  printf("Error: This test can only run with PROFILE=1\n"
          "  Run again with:\n"
          "    make PROFILE=1 clean tests/memory.test && tests/memory.test\n");
 
