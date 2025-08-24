@@ -153,7 +153,8 @@ result_void_position_t evaluate(value_t *result, arena_t *temp_arena,
       auto node = listGet(node_t, &list, i);
       value_t reduced;
       try(result_void_position_t, evaluate(&reduced, temp_arena, &node, env));
-      listAppend(value_t, evaluated, &reduced);
+      tryWithMeta(result_void_position_t,
+                  listAppend(value_t, evaluated, &reduced), node.position);
     }
 
     value_t first_value = listGet(value_t, evaluated, 0);
@@ -175,7 +176,8 @@ result_void_position_t evaluate(value_t *result, arena_t *temp_arena,
     case VALUE_TYPE_BOOLEAN:
     default:
       result->type = VALUE_TYPE_LIST;
-      result->value.list = *evaluated;
+      memcpy(&result->value.list, evaluated, sizeof(result->value.list));
+      arenaAllocationFrameEnd(temp_arena, frame);
       return ok(result_void_position_t);
     }
   }
