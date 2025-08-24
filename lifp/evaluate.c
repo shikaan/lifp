@@ -152,7 +152,9 @@ result_void_position_t evaluate(value_t *result, arena_t *temp_arena,
     for (size_t i = 0; i < list.count; i++) {
       auto node = listGet(node_t, &list, i);
       value_t reduced;
-      try(result_void_position_t, evaluate(&reduced, temp_arena, &node, env));
+      tryCatch(result_void_position_t,
+               evaluate(&reduced, temp_arena, &node, env),
+               arenaAllocationFrameEnd(temp_arena, frame));
       tryWithMeta(result_void_position_t,
                   listAppend(value_t, evaluated, &reduced), node.position);
     }

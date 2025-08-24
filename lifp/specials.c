@@ -85,6 +85,7 @@ result_void_position_t function(value_t *result, arena_t *temp_arena,
 
   node_t form = listGet(node_t, nodes, 2);
 
+  frame_handle_t frame = arenaAllocationFrameStart(temp_arena);
   tryWithMeta(result_void_position_t,
               valueInit(result, temp_arena, VALUE_TYPE_CLOSURE, form.type),
               result->position);
@@ -92,11 +93,15 @@ result_void_position_t function(value_t *result, arena_t *temp_arena,
   for (size_t i = 0; i < arguments.value.list.count; i++) {
     node_t argument = listGet(node_t, &arguments.value.list, i);
     if (argument.type != NODE_TYPE_SYMBOL) {
+      arenaAllocationFrameEnd(temp_arena, frame);
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, argument.position,
             "%s requires a binding list of symbols. %s", FUNCTION,
             FUNCTION_EXAMPLE);
     }
-    listAppend(node_t, &result->value.closure.arguments, &argument);
+    tryCatchWithMeta(
+        result_void_position_t,
+        listAppend(node_t, &result->value.closure.arguments, &argument),
+        arenaAllocationFrameEnd(temp_arena, frame), argument.position);
   }
 
   tryWithMeta(result_void_position_t,

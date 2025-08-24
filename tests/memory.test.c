@@ -168,6 +168,12 @@ void errorHandlingMemory(void) {
   expectEqlSize(getTotalAllocatedBytes(), initial_safe_alloc,
                 "no memory leaks from undefined symbol error");
 
+  execute("((fn (1) a) 1)");
+  expectEqlSize(getArenaMemoryUsage(test_temp_arena), initial_temp_usage,
+                "cleans arena after invalid closure invocation");
+  expectEqlSize(getTotalAllocatedBytes(), initial_safe_alloc,
+                "no memory leaks from invalid closure");
+
   execute("(let ((x undefined_var)) x)");
   expectEqlSize(getArenaMemoryUsage(test_temp_arena), initial_temp_usage,
                 "cleans arena after let binding error");
