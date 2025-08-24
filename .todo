@@ -25,6 +25,7 @@ FEATURES
   * [ ] Lexer should know about comments (and discard them)
   * [ ] Auto-generated documentation for standard library
   * [ ] Enum to text for error messages
+  * [ ] Currying: `(def! make-adder (fn (x) (fn (y) (+ x y))))\n(make-adder 5)` currently loses context on `x` because of immediate invocation
 
 REFACTORING
 ---
