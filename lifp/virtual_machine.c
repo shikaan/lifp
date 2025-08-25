@@ -1,7 +1,7 @@
 // This is for the CI compiler
 #define _POSIX_C_SOURCE 200809L
 
-#include "environment.h"
+#include "virtual_machine.h"
 
 // NOLINTBEGIN
 #include "std/core.c"
@@ -14,24 +14,21 @@
 #include "value.h"
 #include <assert.h>
 
+static Map(value_t) * builtins;
+
 constexpr size_t ENVIRONMENT_MAX_SIZE = (long)32 * 1024;
 
-result_ref_t environmentCreate(environment_t *parent) {
-  arena_t *arena = nullptr;
-  try(result_ref_t, arenaCreate(ENVIRONMENT_MAX_SIZE), arena);
+result_ref_t vmInit() {
+  environment_t *global_environment = nullptr;
+  try(result_ref_t, environmentCreate(nullptr), global_environment);
 
-  environment_t *environment = nullptr;
-  try(result_ref_t, arenaAllocate(arena, sizeof(environment_t)), environment);
-
-  environment->arena = arena;
-  environment->parent = parent;
-
-  try(result_ref_t, mapCreate(value_t, arena, 32), environment->values);
+  try(result_ref_t, mapCreate(value_t, global_environment->arena, 32),
+      builtins);
 
 #define setBuiltin(Label, Builtin)                                             \
   builtin.type = VALUE_TYPE_BUILTIN;                                           \
   builtin.value.builtin = (Builtin);                                           \
-  try(result_ref_t, mapSet(environment->values, (Label), &builtin));
+  try(result_ref_t, mapSet(builtins, (Label), &builtin));
 
   value_t builtin;
   setBuiltin(SUM, sum);
@@ -57,6 +54,21 @@ result_ref_t environmentCreate(environment_t *parent) {
   setBuiltin(IO_PRINT, ioPrint);
 #undef setBuiltin
 
+  return ok(result_ref_t, global_environment);
+}
+
+result_ref_t environmentCreate(environment_t *parent) {
+  arena_t *arena = nullptr;
+  try(result_ref_t, arenaCreate(ENVIRONMENT_MAX_SIZE), arena);
+
+  environment_t *environment = nullptr;
+  try(result_ref_t, arenaAllocate(arena, sizeof(environment_t)), environment);
+
+  environment->arena = arena;
+  environment->parent = parent;
+
+  try(result_ref_t, mapCreate(value_t, arena, 32), environment->values);
+
   return ok(result_ref_t, environment);
 }
 
@@ -71,11 +83,19 @@ void environmentDestroy(environment_t **self) {
   *(self) = nullptr;
 }
 
-value_t *environmentResolveSymbol(environment_t *self, const char *symbol) {
+const value_t *environmentResolveSymbol(environment_t *self,
+                                        const char *symbol) {
   assert(self);
-  const auto result = mapGet(value_t, self->values, symbol);
+
+  const value_t *builtin = mapGet(value_t, builtins, symbol);
+  if (builtin) {
+    return builtin;
+  }
+
+  const value_t *result = mapGet(value_t, self->values, symbol);
   if (!result && self->parent) {
     return environmentResolveSymbol(self->parent, symbol);
   }
+
   return result;
 }

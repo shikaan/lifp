@@ -88,7 +88,7 @@ result_void_position_t mathMin(value_t *result, value_list_t *values) {
 }
 
 // Math random function - returns a random integer between 0 and RAND_MAX
-const char *MATH_RANDOM = "math.random";
+const char *MATH_RANDOM = "math.random!";
 result_void_position_t mathRandom(value_t *result, value_list_t *values) {
   if (values->count != 0) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,

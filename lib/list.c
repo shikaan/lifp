@@ -2,6 +2,7 @@
 #include "arena.h"
 #include "result.h"
 #include <assert.h>
+#include <string.h>
 
 result_ref_t genericListCreate(arena_t *arena, size_t capacity,
                                size_t list_size, size_t item_size) {
@@ -32,14 +33,14 @@ result_void_t genericListAppend(generic_list_t *self, const void *item) {
     try(result_void_t,
         arenaAllocate(self->arena, self->item_size * new_capacity), new_data);
 
-    bytewiseCopy(new_data, self->data, self->item_size * self->count);
+    memmove(new_data, self->data, self->item_size * self->count);
 
     self->data = new_data;
     self->capacity = new_capacity;
   }
 
   void *destination = (byte_t *)self->data + (self->item_size * self->count);
-  bytewiseCopy(destination, item, self->item_size);
+  memmove(destination, item, self->item_size);
   self->count++;
 
   return ok(result_void_t);
@@ -71,5 +72,20 @@ result_void_t genericListCopy(const generic_list_t *source,
   }
 
   destination->count = source->count;
+  return ok(result_void_t);
+}
+
+result_void_t genericListUnshift(generic_list_t *self) {
+  assert(self);
+
+  if (self->count <= 0) {
+    throw(result_void_t, LIST_ERROR_EMPTY_LIST, nullptr,
+          "Cannot unshift empty list");
+  }
+
+  memmove(self->data, (char *)self->data + self->item_size,
+          self->item_size * (self->count - 1));
+  self->count--;
+
   return ok(result_void_t);
 }

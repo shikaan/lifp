@@ -40,6 +40,7 @@
 typedef enum {
   LIST_ERROR_ALLOCATION = ARENA_ERROR_OUT_OF_SPACE,
   LIST_ERROR_INCOMPATIBLE_LISTS,
+  LIST_ERROR_EMPTY_LIST,
 } list_error_t;
 
 /**
@@ -133,6 +134,20 @@ typedef List(void) generic_list_t;
   genericListCopy((const generic_list_t *)(Source),                            \
                   (generic_list_t *)(Destination))
 
+/**
+ * Remove the first element from the list (unshift operation).
+ * @name listUnshift
+ * @param {Type} ItemType - The type of values stored in the list
+ * @param {List(Type)*} List - Pointer to the list
+ * @returns {result_void_t} Success or error if the list is empty
+ * @example
+ *   result_void_t result = listUnshift(int, list);
+ *   if (!result.ok) {
+ *       // Handle error (e.g., empty list)
+ *   }
+ */
+#define listUnshift(ItemType, List) genericListUnshift((generic_list_t *)(List))
+
 result_ref_t genericListCreate(arena_t *arena, size_t capacity,
                                size_t list_size, size_t item_size);
 result_void_t genericListAppend(generic_list_t *self, const void *item);
@@ -141,3 +156,4 @@ void *genericListGet(const generic_list_t *self, size_t index);
 
 result_void_t genericListCopy(const generic_list_t *source,
                               generic_list_t *destination);
+result_void_t genericListUnshift(generic_list_t *self);

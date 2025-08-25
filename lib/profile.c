@@ -176,16 +176,16 @@ void printArenas(void) {
     if (arena_metrics.freed[i]) {
       freed++;
     } else {
-      printf("    arena[%lu]: %lu/%lu bytes (%0.2f%%)\n", i, arena->offset,
+      printf("  arena[%lu]: %lu/%lu bytes (%0.2f%%)\n", i, arena->offset,
              arena->size,
              (double)(arena->offset * 100) / (double)(arena->size));
     }
   }
 
   printf("\n"
-         "    Stats:\n"
-         "      tracked:   %lu arenas\n"
-         "      destroyed: %lu arenas\n",
+         "  Stats:\n"
+         "    tracked:   %lu arenas\n"
+         "    destroyed: %lu arenas\n",
          arena_metrics.arenas_count, freed);
 }
 

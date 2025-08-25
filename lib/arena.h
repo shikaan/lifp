@@ -40,7 +40,8 @@
 #include "alloc.h"
 
 typedef unsigned char byte_t;
-typedef char message_t[64];
+typedef char message_t[128];
+typedef size_t frame_handle_t;
 
 typedef enum {
   ARENA_ERROR_MALLOC_ERROR = 1,
@@ -52,6 +53,9 @@ typedef enum {
  * @name arena_t
  */
 typedef struct {
+#ifdef DEBUG
+  int id;
+#endif
   size_t size;     // Total size of the arena memory buffer
   size_t offset;   // Current allocation offset within the buffer
   byte_t memory[]; // Flexible array member containing the actual memory buffer
@@ -100,6 +104,40 @@ result_ref_t arenaCreate(size_t size);
  *   }
  */
 result_ref_t arenaAllocate(arena_t *self, size_t size);
+
+/**
+ * Marks the start of an allocation frame in the given arena.
+ * An allocation frame is a region in an arena which needs recycling before the
+ * arena's end of life.
+ *
+ * Frames can be nested, but ending a frame within another frame will leads to
+ * errors.
+ *
+ * @param {arena_t*} self - Pointer to the arena instance.
+ * @returns {frame_handle_t} A handle pointing to the frame, which can be used
+ * to restore the arena to this state later.
+ * @example
+ *    frame_handle_t frame = arenaAllocationFrameStart(arena);
+ *    // .. do the thing
+ *    arenaAllocationFrameEnd(frame);
+ */
+frame_handle_t arenaAllocationFrameStart(arena_t *self);
+
+/**
+ * Ends the allocation frame for the specified arena.
+ * All allocations made since the corresponding frame start may be released
+ * or invalidated. See `arenaAllocationFrameStart` for details.
+ *
+ * @param {arena_t*} self - Pointer to the arena instance.
+ * @param {frame_handle_t} frame_handle - A handle to the frame to end.
+ * @returns {frame_handle_t} A handle pointing to the frame, which can be used
+ * to restore the arena to this state later.
+ * @example
+ *    frame_handle_t frame = arenaAllocationFrameStart(arena);
+ *    // .. do the thing
+ *    arenaAllocationFrameEnd(frame);
+ */
+void arenaAllocationFrameEnd(arena_t *self, frame_handle_t frame_handle);
 
 /**
  * Destroy the arena and free all its memory.

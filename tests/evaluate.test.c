@@ -1,9 +1,9 @@
 #include "../lifp/evaluate.h"
 #include "../lib/arena.h"
 #include "../lib/list.h"
-#include "../lifp/environment.h"
 #include "../lifp/error.h"
 #include "../lifp/node.h"
+#include "../lifp/virtual_machine.h"
 #include "test.h"
 #include "utils.h"
 #include <assert.h>
@@ -21,36 +21,36 @@ void expectEqlValueType(value_type_t actual, value_type_t expected,
 }
 
 void atoms() {
-  value_t *result = nullptr;
+  value_t result;
 
   case("integer");
   node_t integer_node = nInt(42);
-  tryAssertAssign(evaluate(test_arena, &integer_node, environment), result);
-  expectEqlValueType(result->type, VALUE_TYPE_INTEGER,
+  tryAssert(evaluate(&result, test_arena, &integer_node, environment));
+  expectEqlValueType(result.type, VALUE_TYPE_INTEGER,
                      "has correct type");
-  expectEqlInt(result->value.integer, 42, "has correct value");
+  expectEqlInt(result.value.integer, 42, "has correct value");
 
   case("boolean");
   node_t bool_node = nBool(true);
-  tryAssertAssign(evaluate(test_arena, &bool_node, environment), result);
-  expectEqlValueType(result->type, VALUE_TYPE_BOOLEAN,
+  tryAssert(evaluate(&result, test_arena, &bool_node, environment));
+  expectEqlValueType(result.type, VALUE_TYPE_BOOLEAN,
                      "has correct type");
-  expectTrue(result->value.boolean, "has correct value");
+  expectTrue(result.value.boolean, "has correct value");
 
   case("nil");
   node_t nil_node = nNil();
-  tryAssertAssign(evaluate(test_arena, &nil_node, environment), result);
-  expectEqlValueType(result->type, VALUE_TYPE_NIL,
+  tryAssert(evaluate(&result, test_arena, &nil_node, environment));
+  expectEqlValueType(result.type, VALUE_TYPE_NIL,
                      "has correct type");
 
   case("symbol");
-  value_t *symbol = nullptr;
-  tryAssertAssign(valueCreate(test_arena, VALUE_TYPE_INTEGER), symbol);
-  mapSet(environment->values, "value", symbol);
+  value_t symbol;
+  tryAssert(valueInit(&symbol, test_arena, VALUE_TYPE_INTEGER, 0));
+  mapSet(environment->values, "value", &symbol);
 
   node_t symbol_node = nSym("value");
-  tryAssertAssign(evaluate(test_arena, &symbol_node, environment), result);
-  expectEqlValueType(result->type, VALUE_TYPE_INTEGER,
+  tryAssert(evaluate(&result, test_arena, &symbol_node, environment));
+  expectEqlValueType(result.type, VALUE_TYPE_INTEGER,
                      "has correct type");
 }
 
@@ -65,11 +65,11 @@ void listOfElements() {
 
   node_t list_node = nList(2, expected->data);
 
-  value_t *result = nullptr;
-  tryAssertAssign(evaluate(test_arena, &list_node, environment), result);
-  expectEqlValueType(result->type, VALUE_TYPE_LIST,
+  value_t result;
+  tryAssert(evaluate(&result, test_arena, &list_node, environment));
+  expectEqlValueType(result.type, VALUE_TYPE_LIST,
                      "has correct type");
-  value_list_t reduced_list = result->value.list;
+  value_list_t reduced_list = result.value.list;
   expectEqlSize(reduced_list.count, 2, "has correct count");
   for (size_t i = 0; i < reduced_list.count; i++) {
     value_t node = listGet(value_t, &reduced_list, i);
@@ -96,10 +96,9 @@ void functionCall() {
   node_t form_node = nList(4, list->data);
   form_node.value.list.capacity = list->capacity;
 
-  value_t *result = nullptr;
-  tryAssertAssign(evaluate(test_arena, &form_node, environment), result);
-  expectNotNull(result, "reduced result is not null");
-  expectEqlInt(result->value.integer, 6, "has correct result");
+  value_t result;
+  tryAssert(evaluate(&result, test_arena, &form_node, environment));
+  expectEqlInt(result.value.integer, 6, "has correct result");
   
   value_t val = { .type = VALUE_TYPE_INTEGER, .value.integer = 1};
   mapSet(environment->values, "lol", &val);
@@ -110,8 +109,8 @@ void functionCall() {
   tryAssert(listAppend(node_t, list, &num1))
   node_t list_node = nList(4, list->data);
   form_node.value.list.capacity = list->capacity;
-  tryAssertAssign(evaluate(test_arena, &list_node, environment), result);
-  expectEqlUint(result->type, VALUE_TYPE_LIST, "does't invoke if symbol is not lambda");
+  tryAssert(evaluate(&result, test_arena, &list_node, environment));
+  expectEqlUint(result.type, VALUE_TYPE_LIST, "does't invoke if symbol is not lambda");
 }
 
 void nested() {
@@ -137,13 +136,13 @@ void nested() {
   node_t outer_list_node = nList(2, outer_list->data);
   outer_list_node.value.list.capacity = outer_list->capacity;
 
-  value_t *result = nullptr;
-  tryAssertAssign(evaluate(test_arena, &outer_list_node, environment), result);
-  expectEqlValueType(result->type, VALUE_TYPE_LIST,
+  value_t result;
+  tryAssert(evaluate(&result, test_arena, &outer_list_node, environment));
+  expectEqlValueType(result.type, VALUE_TYPE_LIST,
                      "has correct type");
-  expectEqlSize(result->value.list.count, 2, "has correct count");
-  value_t first = listGet(value_t, &result->value.list, 0);
-  value_t second = listGet(value_t, &result->value.list, 1);
+  expectEqlSize(result.value.list.count, 2, "has correct count");
+  value_t first = listGet(value_t, &result.value.list, 0);
+  value_t second = listGet(value_t, &result.value.list, 1);
   expectEqlValueType(first.type, VALUE_TYPE_INTEGER, "has correct type");
   expectEqlValueType(second.type, VALUE_TYPE_LIST, "has correct type");
 }
@@ -155,21 +154,21 @@ void emptyList() {
   node_t empty_list_node = nList(0, empty_list->data);
   empty_list_node.value.list.capacity = empty_list->capacity;
 
-  value_t *result = nullptr;
-  tryAssertAssign(evaluate(test_arena, &empty_list_node, environment), result);
-  expectEqlValueType(result->type, VALUE_TYPE_LIST, "has correct type");
-  expectEqlSize(result->value.list.count, 0, "has correct count");
+  value_t result;
+  tryAssert(evaluate(&result, test_arena, &empty_list_node, environment));
+  expectEqlValueType(result.type, VALUE_TYPE_LIST, "has correct type");
+  expectEqlSize(result.value.list.count, 0, "has correct count");
 }
 
 void allocations() {
   arena_t *small_arena = nullptr;
   tryAssertAssign(arenaCreate(32), small_arena);
 
-  arenaAllocate(small_arena, 31); // Use up most space
+  arenaAllocate(small_arena, 32); // Use up all space
   node_t large_node = nInt(123);
-  result_value_ref_t reduction = evaluate(small_arena, &large_node, environment);
-  expectEqlInt(reduction.code, ERROR_CODE_ALLOCATION,
-                "returns allocation error");
+  value_t result;
+  auto reduction = evaluate(&result, small_arena, &large_node, environment);
+  expectEqlInt(reduction.code, RESULT_OK, "does not allocate memory on temp arena");
 
   arenaDestroy(&small_arena);
 }
@@ -182,7 +181,8 @@ void errors() {
   node_t sym = nSym("not-existent");
   tryAssert(listAppend(node_t, list, &sym));
 
-  result_value_ref_t reduction = evaluate(test_arena, &sym, environment);
+  value_t result;
+  auto reduction = evaluate(&result, test_arena, &sym, environment);
   expectEqlInt(reduction.code, ERROR_CODE_REFERENCE_SYMBOL_NOT_FOUND, "with correct symbol");
 }
 
@@ -201,7 +201,8 @@ void defSpecialForm() {
   node_t list_node = nList(3, list->data);
   list_node.value.list.arena = test_arena;
 
-  tryAssert(evaluate(test_arena, &list_node, environment));
+  value_t result;
+  tryAssert(evaluate(&result, test_arena, &list_node, environment));
   value_t* val = mapGet(value_t, environment->values, "foo");
 
   expectNotNull(val, "environment is updated");
@@ -245,11 +246,11 @@ void fnSpecialForm() {
   node_t fn_node = nList(3, fn_list->data);
   fn_node.value.list.arena = test_arena;
 
-  value_t *closure;
-  tryAssertAssign(evaluate(test_arena, &fn_node, environment), closure);
-  expectEqlUint(closure->type, VALUE_TYPE_CLOSURE, "creates closure");
-  expectEqlSize(closure->value.closure.arguments.count, 2, "with correct argument count");
-  expectEqlUint(closure->value.closure.form.type, NODE_TYPE_LIST, "with correct form type");
+  value_t closure;
+  tryAssert(evaluate(&closure, test_arena, &fn_node, environment));
+  expectEqlUint(closure.type, VALUE_TYPE_CLOSURE, "creates closure");
+  expectEqlSize(closure.value.closure.arguments.count, 2, "with correct argument count");
+  expectEqlUint(closure.value.closure.form.type, NODE_TYPE_LIST, "with correct form type");
  
   case("not using symbols for arguments");
   node_list_t *fn_no_symbol = nullptr;
@@ -268,7 +269,8 @@ void fnSpecialForm() {
   tryAssert(listAppend(node_t, fn_no_symbol, &body_x));
 
   fn_node.value.list.data = fn_no_symbol->data;
-  result_value_ref_t evaluation = evaluate(test_arena, &fn_node, environment);
+  value_t result;
+  auto evaluation = evaluate(&result, test_arena, &fn_node, environment);
   expectEqlInt(evaluation.code, ERROR_CODE_RUNTIME_ERROR, "throws a syntax error"); 
   
   case("not using lists for arguments");
@@ -281,7 +283,7 @@ void fnSpecialForm() {
   tryAssert(listAppend(node_t, fn_bad_bindings, &body_x));
 
   fn_node.value.list.data = fn_bad_bindings->data;
-  evaluation = evaluate(test_arena, &fn_node, environment);
+  evaluation = evaluate(&result, test_arena, &fn_node, environment);
   expectEqlInt(evaluation.code, ERROR_CODE_RUNTIME_ERROR, "throws a syntax error"); 
 }
 
@@ -342,10 +344,10 @@ void letSpecialForm() {
   node_t let_node = nList(3, let_list->data);
   let_node.value.list.arena = test_arena;
 
-  value_t* let;
-  tryAssertAssign(evaluate(test_arena, &let_node, environment), let);
-  expectEqlUint(let->type, VALUE_TYPE_INTEGER, "evaluates to integer");
-  expectEqlInt(let->value.integer, 15, "with correct result (5 + 10)");
+  value_t let;
+  tryAssert(evaluate(&let, test_arena, &let_node, environment));
+  expectEqlUint(let.type, VALUE_TYPE_INTEGER, "evaluates to integer");
+  expectEqlInt(let.value.integer, 15, "with correct result (5 + 10)");
 
   // Verify that let bindings don't leak to outer environment
   value_t* leaked_a = mapGet(value_t, environment->values, "a");
@@ -374,10 +376,10 @@ void condSpecialForm() {
   tryAssert(listAppend(node_t, &cond->value.list, true_clause));
   tryAssert(listAppend(node_t, &cond->value.list, &fallback_value));
 
-  value_t *result = nullptr;
-  tryAssertAssign(evaluate(test_arena, cond, environment), result);
-  expectEqlUint(result->type, VALUE_TYPE_INTEGER, "returns integer");
-  expectEqlInt(result->value.integer, true_value.value.integer, "evaluates true clause");
+  value_t result;
+  tryAssert(evaluate(&result, test_arena, cond, environment));
+  expectEqlUint(result.type, VALUE_TYPE_INTEGER, "returns integer");
+  expectEqlInt(result.value.integer, true_value.value.integer, "evaluates true clause");
 
   tryAssertAssign(nodeCreate(test_arena, NODE_TYPE_LIST), cond);
   
@@ -390,9 +392,9 @@ void condSpecialForm() {
   tryAssert(listAppend(node_t, &cond->value.list, false_clause));
   tryAssert(listAppend(node_t, &cond->value.list, &fallback_value));
 
-  tryAssertAssign(evaluate(test_arena, cond, environment), result);
-  expectEqlUint(result->type, VALUE_TYPE_INTEGER, "returns integer");
-  expectEqlInt(result->value.integer, fallback_value.value.integer, "evaluates fallback clause");
+  tryAssert(evaluate(&result, test_arena, cond, environment));
+  expectEqlUint(result.type, VALUE_TYPE_INTEGER, "returns integer");
+  expectEqlInt(result.value.integer, fallback_value.value.integer, "evaluates fallback clause");
 
   // (cond (false 42) (true 42) 99)
   tryAssertAssign(nodeCreate(test_arena, NODE_TYPE_LIST), cond);
@@ -402,14 +404,14 @@ void condSpecialForm() {
   tryAssert(listAppend(node_t, &cond->value.list, true_clause));
   tryAssert(listAppend(node_t, &cond->value.list, &fallback_value));
 
-  tryAssertAssign(evaluate(test_arena, cond, environment), result);
-  expectEqlUint(result->type, VALUE_TYPE_INTEGER, "returns integer");
-  expectEqlInt(result->value.integer, 42, "evaluates the first true clause");
+  tryAssert(evaluate(&result, test_arena, cond, environment));
+  expectEqlUint(result.type, VALUE_TYPE_INTEGER, "returns integer");
+  expectEqlInt(result.value.integer, 42, "evaluates the first true clause");
 }
 
 int main(void) {
   tryAssertAssign(arenaCreate((size_t)(1024 * 1024)), test_arena);
-  tryAssertAssign(environmentCreate(nullptr), environment);
+  tryAssertAssign(vmInit(), environment);
 
   suite(atoms);
   suite(listOfElements);

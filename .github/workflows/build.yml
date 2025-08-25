@@ -71,6 +71,12 @@ jobs:
         make CC="${{ matrix.cc }}" clean test
       env:
         UNAME_S: ${{ matrix.platform == 'linux' && 'Linux' || 'Darwin' }}
+    
+    - name: Run tests (release)
+      run: |
+        make CC="${{ matrix.cc }}" BUILD_TYPE=release clean test
+      env:
+        UNAME_S: ${{ matrix.platform == 'linux' && 'Linux' || 'Darwin' }}
 
     - name: Build binary
       run: |

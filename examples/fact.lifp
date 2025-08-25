@@ -1,0 +1,5 @@
+(def! fact (fn (n) (cond ((< n 1) 1) (* n (fact (- n 1))))))
+
+(io.print! (fact 50))
+
+; vim syntax=lisp

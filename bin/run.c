@@ -1,7 +1,7 @@
-#include "../lifp/environment.h"
 #include "../lifp/evaluate.h"
 #include "../lifp/parse.h"
 #include "../lifp/tokenize.h"
+#include "../lifp/virtual_machine.h"
 
 #include "../lib/profile.h"
 
@@ -28,14 +28,14 @@ constexpr size_t TEMP_MEMORY = (size_t)(1024 * 64);
     fprintf(stderr, "\n");                                                     \
   }
 
-#define tryRun(Action, Destination)                                            \
+#define tryRun(Action, ...)                                                    \
   auto _concat(result, __LINE__) = Action;                                     \
   if (_concat(result, __LINE__).code != RESULT_OK) {                           \
     error("%s", _concat(result, __LINE__).message);                            \
     profileReport();                                                           \
     return 1;                                                                  \
   }                                                                            \
-  (Destination) = _concat(result, __LINE__).value;
+  __VA_OPT__(__VA_ARGS__ = _concat(result, __LINE__).value;)
 
 #define tryCLI(Action, Destination, ErrorMessage)                              \
   auto _concat(result, __LINE__) = Action;                                     \
@@ -127,11 +127,12 @@ int main(int argc, char **argv) {
          "unable to allocate transient memory");
 
   environment_t *global_environment = nullptr;
-  tryCLI(environmentCreate(nullptr), global_environment,
-         "unable to allocate virtual machine memory");
+  tryCLI(vmInit(), global_environment, "unable to initialize virtual machine");
 
   do {
     memset(line_buffer, 0, (size_t)len);
+    arenaReset(ast_arena);
+    arenaReset(temp_arena);
     readLine(len, line_buffer, file_buffer, &file_offset);
 
     if (strlen(line_buffer) == 0)
@@ -145,8 +146,8 @@ int main(int argc, char **argv) {
     node_t *syntax_tree = nullptr;
     tryRun(parse(ast_arena, tokens, &line_offset, &depth), syntax_tree);
 
-    value_t *reduced = nullptr;
-    tryRun(evaluate(temp_arena, syntax_tree, global_environment), reduced);
+    value_t reduced;
+    tryRun(evaluate(&reduced, temp_arena, syntax_tree, global_environment));
   } while (strlen(line_buffer) > 0);
 
   profileReport();

@@ -18,8 +18,8 @@ lifp/tokenize.o: lib/list.o lib/arena.o
 lifp/parse.o: lifp/tokenize.o lib/list.o lib/arena.o lifp/node.o
 lifp/node.o: lib/arena.o
 lifp/value.o: lib/arena.o lifp/node.o
-lifp/environment.o: lib/arena.o lib/map.o lifp/value.o
-lifp/evaluate.o: lib/arena.o lifp/environment.o lib/map.o lifp/value.o
+lifp/virtual_machine.o: lib/arena.o lib/map.o lifp/value.o
+lifp/evaluate.o: lib/arena.o lifp/virtual_machine.o lib/map.o lifp/value.o
 
 tests/tokenize.test: lifp/tokenize.o lib/list.o lib/arena.o
 tests/parser.test: \
@@ -27,27 +27,29 @@ tests/parser.test: \
 tests/list.test: lib/list.o lib/arena.o
 tests/arena.test: lib/arena.o
 tests/evaluate.test: \
-	lifp/evaluate.o lifp/node.o lib/list.o lib/arena.o lifp/environment.o \
+	lifp/evaluate.o lifp/node.o lib/list.o lib/arena.o lifp/virtual_machine.o \
 	lib/map.o lifp/value.o lifp/fmt.o
 tests/map.test: lib/arena.o lib/map.o
 tests/fmt.test: lifp/fmt.o lifp/node.o lib/arena.o lib/list.o lifp/value.o
 
 tests/integration.test: \
 	lifp/tokenize.o lifp/parse.o lib/arena.o lifp/evaluate.o lib/list.o \
-	lib/map.o lifp/node.o lifp/environment.o lifp/value.o lifp/fmt.o
+	lib/map.o lifp/node.o lifp/virtual_machine.o lifp/value.o lifp/fmt.o
 
 tests/memory.test: \
 	lifp/tokenize.o lifp/parse.o lib/arena.o lifp/evaluate.o lib/list.o \
-	lib/map.o lifp/node.o lifp/environment.o lifp/value.o lifp/fmt.o lib/profile.o
+	lib/map.o lifp/node.o lifp/virtual_machine.o lifp/value.o lifp/fmt.o \
+	lib/profile.o
 
 bin/repl: \
 	lifp/tokenize.o lifp/parse.o lib/list.o lifp/evaluate.o lifp/node.o \
-	lib/arena.o lifp/environment.o lib/map.o lib/profile.o lifp/fmt.o \
+	lib/arena.o lifp/virtual_machine.o lib/map.o lib/profile.o lifp/fmt.o \
 	lifp/value.o linenoise.o
 
 bin/run: \
 	lifp/tokenize.o lifp/parse.o lib/list.o lifp/evaluate.o lifp/node.o \
-	lib/arena.o lifp/environment.o lib/map.o lifp/fmt.o lifp/value.o lib/profile.o
+	lib/arena.o lifp/virtual_machine.o lib/map.o lifp/fmt.o lifp/value.o \
+	lib/profile.o
 
 
 .PHONY: clean

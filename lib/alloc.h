@@ -58,25 +58,6 @@ typedef enum {
 typedef Result(void *) result_ref_t;
 
 /**
- * Copy bytes from source to destination memory locations.
- * @name bytewiseCopy
- * @param {void*} dest - Pointer to the destination memory location
- * @param {const void*} src - Pointer to the source memory location to copy from
- * @param {size_t} size - Number of bytes to copy
- * @example
- *   char source[] = "Hello";
- *   char dest[6];
- *   bytewiseCopy(dest, source, 6);  // dest now contains "Hello"
- */
-static inline void bytewiseCopy(void *dest, const void *src, size_t size) {
-  const auto dest_bytes = (unsigned char *)dest;
-  const auto src_bytes = (const unsigned char *)src;
-  for (size_t i = 0; i < size; i++) {
-    dest_bytes[i] = src_bytes[i];
-  }
-}
-
-/**
  * Safely allocate memory with error handling.
  * @name allocSafe
  * @param {size_t} size - Number of bytes to allocate

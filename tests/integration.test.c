@@ -8,75 +8,126 @@
 #include <assert.h>
 #include <stddef.h>
 
-static arena_t *test_ast_arena;
-static arena_t *test_temp_arena;
+static arena_t *ast_arena;
+static arena_t *temp_arena;
 
-result_value_ref_t execute(const char *input) {
+void execute(value_t *result, const char *input) {
   char input_copy[1024];
   strcpy(input_copy, input);
 
   char *line = strtok(input_copy, "\n");
-  result_value_ref_t last_result;
 
-  environment_t *env = nullptr;
-  tryAssertAssign(environmentCreate(nullptr), env);
+  environment_t *global_environment = nullptr;
+  tryAssertAssign(vmInit(), global_environment);
 
   while (line != NULL) {
+    arenaReset(ast_arena);
+    arenaReset(temp_arena);
     token_list_t *tokens = nullptr;
-    tryAssertAssign(tokenize(test_ast_arena, line), tokens);
+    tryAssertAssign(tokenize(ast_arena, line), tokens);
 
     size_t offset = 0;
     size_t depth = 0;
-    node_t *syntax_tree = nullptr;
-    tryAssertAssign(parse(test_ast_arena, tokens, &offset, &depth),
-                    syntax_tree);
+    node_t *ast = nullptr;
+    tryAssertAssign(parse(ast_arena, tokens, &offset, &depth), ast);
 
-    result_value_ref_t reduction = evaluate(test_temp_arena, syntax_tree, env);
-    assert(reduction.code == RESULT_OK);
-    last_result = reduction;
+    value_t res;
+    auto reduction = evaluate(&res, temp_arena, ast, global_environment);
+    if (reduction.code != RESULT_OK) {
+      printf("Reduction error: %s\n", reduction.message);
+      assert(reduction.code == RESULT_OK);
+    }
 
     line = strtok(nullptr, "\n");
-    arenaReset(test_ast_arena);
+    *result = res;
   }
 
-  environmentDestroy(&env);
-  arenaReset(test_temp_arena);
-  return last_result;
+  environmentDestroy(&global_environment);
 }
 
 int main() {
-  tryAssertAssign(arenaCreate((size_t)(1024 * 1024)), test_ast_arena);
-  tryAssertAssign(arenaCreate((size_t)(1024 * 1024)), test_temp_arena);
+  tryAssertAssign(arenaCreate((size_t)(1024 * 1024)), ast_arena);
+  tryAssertAssign(arenaCreate((size_t)(1024 * 1024)), temp_arena);
 
   case("number");
-  result_value_ref_t reduction = execute("1");
-  expectEqlInt(reduction.value->value.integer, 1, "returns correct value");
-
+  value_t number;
+  execute(&number, "1");
+  expectEqlInt(number.value.integer, 1, "returns correct value");
+  
   case("symbol");
-  reduction = execute("+");
-  expectNotNull(reduction.value->value.builtin, "returns correct value");
-
+  value_t symbol;
+  execute(&symbol, "+");
+  expectNotNull(symbol.value.builtin, "returns correct value");
+  
   case("list");
-  reduction = execute("(1 2)");
-  expectEqlUint((unsigned int)reduction.value->value.list.count, 2, "returns a list"); 
-  value_t first = listGet(value_t, &reduction.value->value.list,  0); 
+  value_t list;
+  execute(&list, "(1 2)");
+  expectEqlUint((unsigned int)list.value.list.count, 2, "returns a list"); 
+  value_t first = listGet(value_t, &list.value.list,  0); 
   expectEqlInt(first.value.integer, 1, "correct first item"); 
-  value_t second = listGet(value_t, &reduction.value->value.list, 1);
+  value_t second = listGet(value_t, &list.value.list, 1);
   expectEqlInt(second.value.integer, 2, "correct second item");
-
+  
   case("simple form");
-  reduction = execute("(+ 1 2)");
-  expectEqlInt(reduction.value->value.integer, 3, "returns correct value");
-
+  value_t simple;
+  execute(&simple, "(+ 1 2)");
+  expectEqlInt(simple.value.integer, 3, "returns correct value");
+  
   case("nested form");
-  reduction = execute("(+ 1 (+ 2 4))");
-  expectEqlInt(reduction.value->value.integer, 7, "returns correct value");
-
+  value_t nested;
+  execute(&nested, "(+ 1 (+ 2 4))");
+  expectEqlInt(nested.value.integer, 7, "returns correct value");
+  
   case("declare function");
-  reduction = execute("(def! sum (fn (a b) (+ a b)))\n(sum 1 2)");
-  expectEqlInt(reduction.value->value.integer, 3, "returns correct value");
+  value_t fun;
+  execute(&fun, "(def! sum (fn (a b) (+ a b)))\n(sum 1 2)");
+  expectEqlUint(fun.type, VALUE_TYPE_INTEGER, "returns correct type");
+  expectEqlInt(fun.value.integer, 3, "returns correct value");
+  
+  case("let");
+  value_t let;
+  execute(&let, "(let ((plus (fn (x y) (+ x y))) (a 1)) (plus a 1))");
+  expectEqlUint(let.type, VALUE_TYPE_INTEGER, "returns correct type");
+  expectEqlInt(let.value.integer, 2, "returns correct value");
 
-  arenaDestroy(&test_ast_arena);
-  arenaDestroy(&test_temp_arena);
+  case("conditional - cond special form");
+  value_t cond_test;
+  execute(&cond_test, "(cond ((< 5 3) 1) ((> 5 3) 2) (3))");
+  expectEqlInt(cond_test.value.integer, 2, "evaluates correct branch");
+
+  case("boolean operations");
+  value_t bool_test;
+  execute(&bool_test, "(and (= 1 1) (> 5 3))");
+  expectEqlUint(bool_test.type, VALUE_TYPE_BOOLEAN, "returns boolean type");
+  expectTrue(bool_test.value.boolean, "logical and works");
+
+  case("recursive function calls");
+  value_t factorial;
+  execute(&factorial, "(def! fact (fn (n) (cond ((< n 1) 1) (* n (fact (- n 1))))))\n(fact 5)");
+  expectEqlInt(factorial.value.integer, 120, "recursive factorial works");
+
+  case("empty list and nil handling");
+  value_t empty_list;
+  execute(&empty_list, "()");
+  expectEqlUint(empty_list.type, VALUE_TYPE_LIST, "empty list has correct type");
+  expectEqlUint((unsigned int)empty_list.value.list.count, 0, "empty list has zero elements");
+
+  case("variable shadowing in nested let");
+  value_t shadow_test;
+  execute(&shadow_test, "(let ((x 1)) (let ((x 2)) x))");
+  expectEqlInt(shadow_test.value.integer, 2, "inner binding shadows outer");
+
+  case("multiple expressions with side effects");
+  value_t multi_expr;
+  execute(&multi_expr, "(def! x 1)\n(def! x (+ x 1))\nx");
+  expectEqlInt(multi_expr.value.integer, 2, "sequential definitions work");
+
+  case("function parameter shadowing");
+  value_t shadow_param;
+  execute(&shadow_param, "(def! x 10)\n(def! test (fn (x) (+ x 1)))\n(test 5)");
+  expectEqlInt(shadow_param.value.integer, 6, "function parameter shadows global variable");
+
+  arenaDestroy(&ast_arena);
+  arenaDestroy(&temp_arena);
   return report();
 }

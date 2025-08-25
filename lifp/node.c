@@ -1,4 +1,5 @@
 #include "node.h"
+#include <string.h>
 
 static constexpr size_t INITIAL_SIZE = 8;
 
@@ -9,7 +10,7 @@ result_ref_t nodeCreate(arena_t *arena, node_type_t type) {
   if (type == NODE_TYPE_LIST) {
     node_list_t *list = nullptr;
     try(result_ref_t, listCreate(node_t, arena, INITIAL_SIZE), list);
-    bytewiseCopy(&node->value.list, list, sizeof(node_list_t));
+    memcpy(&node->value.list, list, sizeof(node_list_t));
   }
 
   node->type = type;
