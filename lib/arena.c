@@ -14,9 +14,9 @@ arena_metrics_t arena_metrics = {};
   arena_metrics.arenas_count++;
 
 #define arenaProfileEnd(Arena)                                                 \
-  for (size_t i = 0; i < arena_metrics.arenas_count; i++) {                    \
-    if (arena_metrics.arenas[i] == Arena) {                                    \
-      arena_metrics.freed[i] = true;                                           \
+  for (size_t i = arena_metrics.arenas_count; i > 0; i--) {                    \
+    if (arena_metrics.arenas[i - 1] == Arena && !arena_metrics.freed[i - 1]) { \
+      arena_metrics.freed[i - 1] = true;                                       \
       break;                                                                   \
     }                                                                          \
   }
