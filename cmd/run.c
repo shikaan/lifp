@@ -5,6 +5,8 @@
 
 #include "../lib/profile.h"
 
+#include "utils.h"
+
 #include <fcntl.h> // open
 #include <stddef.h>
 #include <stdio.h> // sprint
@@ -12,21 +14,14 @@
 #include <string.h>
 #include <unistd.h>
 
-// Size of the output buffer
-constexpr size_t FILE_BUFFER_SIZE = (size_t)1024 * 1024;
+const char RUN[] = "run";
 
-// Memory allocated for AST parsing
-constexpr size_t AST_MEMORY = (size_t)(1024 * 64);
-
-// Memory allocated for storing transient values across environments
-constexpr size_t TEMP_MEMORY = (size_t)(1024 * 64);
-
-#define error(Fmt, ...)                                                        \
-  {                                                                            \
-    fprintf(stderr, "lifp: ");                                                 \
-    fprintf(stderr, Fmt __VA_OPT__(, ) __VA_ARGS__);                           \
-    fprintf(stderr, "\n");                                                     \
-  }
+typedef struct {
+  size_t ast_memory;
+  size_t temp_memory;
+  size_t file_size;
+  const char *filename;
+} run_opts_t;
 
 #define tryRun(Action, ...)                                                    \
   auto _concat(result, __LINE__) = Action;                                     \
@@ -37,16 +32,8 @@ constexpr size_t TEMP_MEMORY = (size_t)(1024 * 64);
   }                                                                            \
   __VA_OPT__(__VA_ARGS__ = _concat(result, __LINE__).value;)
 
-#define tryCLI(Action, Destination, ErrorMessage)                              \
-  auto _concat(result, __LINE__) = Action;                                     \
-  if (_concat(result, __LINE__).code != RESULT_OK) {                           \
-    error("%s", ErrorMessage);                                                 \
-    return 1;                                                                  \
-  }                                                                            \
-  (Destination) = _concat(result, __LINE__).value;
-
-void readLine(ssize_t size, char line_buffer[static size],
-              const char input_buffer[static size], ssize_t *offset) {
+static void readLine(ssize_t size, char line_buffer[static size],
+                     const char input_buffer[static size], ssize_t *offset) {
   size_t line_buffer_offset = 0;
   bool skip_current_line = false;
   int depth = 0;
@@ -84,34 +71,26 @@ void readLine(ssize_t size, char line_buffer[static size],
   }
 }
 
-allocMetricsInit();
-
-int main(int argc, char **argv) {
-  if (argc != 2) {
-    error("'run' takes one argument");
-    return 1;
-  }
-
-  const char *file_name = argv[1];
-  int file_descriptor = open(file_name, O_RDONLY, 0644);
+int run(const run_opts_t OPTIONS) {
+  int file_descriptor = open(OPTIONS.filename, O_RDONLY, 0644);
   if (file_descriptor < 0) {
-    error("cannot open '%s'", file_name);
+    error("cannot open '%s'", OPTIONS.filename);
     return 1;
   }
 
-  char *file_buffer = malloc(sizeof(char) * FILE_BUFFER_SIZE);
+  char *file_buffer = malloc(sizeof(char) * OPTIONS.file_size);
   if (!file_buffer) {
     error("cannot allocate file buffer");
     return 1;
   }
-  ssize_t len = read(file_descriptor, file_buffer, FILE_BUFFER_SIZE);
+  ssize_t len = read(file_descriptor, file_buffer, OPTIONS.file_size);
   if (len == 0) {
     error("provided file is empty");
     return 1;
   }
 
   ssize_t file_offset = 0;
-  char *line_buffer = malloc(sizeof(char) * FILE_BUFFER_SIZE);
+  char *line_buffer = malloc(sizeof(char) * OPTIONS.file_size);
   if (!line_buffer) {
     error("cannot allocate file buffer");
     return 1;
@@ -119,11 +98,11 @@ int main(int argc, char **argv) {
 
   profileInit();
   arena_t *ast_arena = nullptr;
-  tryCLI(arenaCreate(AST_MEMORY), ast_arena,
+  tryCLI(arenaCreate(OPTIONS.ast_memory), ast_arena,
          "unable to allocate interpreter memory");
 
   arena_t *temp_arena = nullptr;
-  tryCLI(arenaCreate(TEMP_MEMORY), temp_arena,
+  tryCLI(arenaCreate(OPTIONS.temp_memory), temp_arena,
          "unable to allocate transient memory");
 
   environment_t *global_environment = nullptr;
@@ -160,4 +139,3 @@ int main(int argc, char **argv) {
 
 #undef tryCLI
 #undef tryREPL
-#undef printError

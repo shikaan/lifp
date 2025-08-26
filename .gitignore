@@ -10,7 +10,5 @@ compile_commands.json
 .cache
 
 # binaries
-main
 tests/*.test
-bin/repl
-bin/run
+bin/lifp
