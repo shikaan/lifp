@@ -63,8 +63,8 @@ jobs:
       run: |
         VERSION="${GITHUB_REF#refs/tags/}"
         [[ "$GITHUB_REF" != refs/tags/* ]] && VERSION="dev"
-        VERSION_STRING="${VERSION} (${GITHUB_SHA:0:7})"
-        echo "VERSION_STRING=$VERSION_STRING" >> $GITHUB_OUTPUT
+        echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+        echo "SHA=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
 
     - name: Run tests
       run: |
@@ -81,8 +81,8 @@ jobs:
     - name: Build binary
       run: |
         mkdir -p artifacts
-        make CC="${{ matrix.cc }}" BUILD_TYPE=release clean all
-        cp bin/repl artifacts/lifp-${{ matrix.platform }}-${{ matrix.arch }}
+        make CC="${{ matrix.cc }}" BUILD_TYPE=release VERSION="${{ steps.version.outputs.VERSION }}" SHA="${{ steps.version.outputs.SHA }}" clean all
+        cp bin/lifp artifacts/lifp-${{ matrix.platform }}-${{ matrix.arch }}
       env:
         UNAME_S: ${{ matrix.platform == 'linux' && 'Linux' || 'Darwin' }}
 
