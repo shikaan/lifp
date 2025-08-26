@@ -5,7 +5,7 @@ ifeq ($(PROFILE),1)
 endif
 
 .PHONY: all
-all: clean bin/repl
+all: clean bin/lifp
 
 linenoise.o: CFLAGS = -Wall -W -Os
 linenoise.o: vendor/linenoise/linenoise.c
