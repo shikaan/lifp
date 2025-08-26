@@ -27,19 +27,19 @@ void help(void) {
          "in parentheses.\n"
          "Here's your first program:\n"
          "\n"
-         "    (io.print (+ 1 2)) ; prints 3\n"
+         "    (io.print! (+ 1 2)) ; prints 3\n"
          "\n"
          "To learn about the functions and the variables available in this "
          "environment, use '?':\n"
          "\n"
-         "    ?          ; lists functions in this environment\n"
-         "    ? io.print ; show documentation and examples for io.print\n"
+         "    ?           ; lists functions in this environment\n"
+         "    ? io.print! ; show documentation and examples for io.print!\n"
          "\n"
          "For more information, feedback, or bug reports "
          "https://github.com/shikaan/lifp\n");
 }
 static constexpr char REPL_COMMAND_MORE[] = "?";
-void more(void) { printf("Error: not implemented yet!"); }
+void more(void) { printf("Error: not implemented yet!\n"); }
 
 #define printError(Result, InputBuffer, Size, OutputBuffer)                    \
   int _concat(offset_, __LINE__) = 0;                                          \
