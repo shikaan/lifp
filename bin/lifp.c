@@ -85,7 +85,7 @@ int replCallback(char *name, ArgParser *parser) {
   repl_opts_t opts;
   opts.ast_memory = (size_t)ap_get_int_value(parser, "ast-memory") * KILOBYTE;
   opts.temp_memory = (size_t)ap_get_int_value(parser, "temp-memory") * KILOBYTE;
-  opts.ouput_size = (size_t)ap_get_int_value(parser, "output-size");
+  opts.output_size = (size_t)ap_get_int_value(parser, "output-size");
 
   return repl(opts);
 }

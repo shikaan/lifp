@@ -16,7 +16,7 @@ const char REPL[] = "repl";
 typedef struct {
   size_t ast_memory;
   size_t temp_memory;
-  size_t ouput_size;
+  size_t output_size;
 } repl_opts_t;
 
 static constexpr char REPL_COMMAND_CLEAR[] = "clear";
@@ -50,14 +50,14 @@ void more(void) { printf("Error: not implemented yet!\n"); }
 #define tryREPL(Action, ...)                                                   \
   auto _concat(result, __LINE__) = Action;                                     \
   if (_concat(result, __LINE__).code != RESULT_OK) {                           \
-    printError(&_concat(result, __LINE__), input, (int)OPTIONS.ouput_size,     \
+    printError(&_concat(result, __LINE__), input, (int)OPTIONS.output_size,    \
                buffer);                                                        \
     continue;                                                                  \
   }                                                                            \
   __VA_OPT__(__VA_ARGS__ = _concat(result, __LINE__).value;)
 
 int repl(const repl_opts_t OPTIONS) {
-  char buffer[OPTIONS.ouput_size];
+  char buffer[OPTIONS.output_size];
 
   arena_t *ast_arena = nullptr;
   tryCLI(arenaCreate(OPTIONS.ast_memory), ast_arena,
@@ -120,10 +120,10 @@ int repl(const repl_opts_t OPTIONS) {
     tryREPL(evaluate(&result, temp_arena, ast, global_environment));
 
     int buffer_offset = 0;
-    formatValue(&result, (int)OPTIONS.ouput_size, buffer, &buffer_offset);
+    formatValue(&result, (int)OPTIONS.output_size, buffer, &buffer_offset);
     printf("~> %s\n", buffer);
 
-    memset(buffer, 0, OPTIONS.ouput_size);
+    memset(buffer, 0, OPTIONS.output_size);
   }
   profileEnd();
   environmentDestroy(&global_environment);
