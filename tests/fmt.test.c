@@ -13,9 +13,9 @@ void values() {
   char buffer[size];
   int offset = 0;
 
-  const value_t integer = {.type = VALUE_TYPE_INTEGER, .value.integer = 123};
-  formatValue(&integer, size, buffer, &offset);
-  expectEqlString(buffer, "123", 3, "formats integers");
+  const value_t number = {.type = VALUE_TYPE_NUMBER, .value.number = 123};
+  formatValue(&number, size, buffer, &offset);
+  expectEqlString(buffer, "123", 3, "formats numbers");
 
   offset = 0;
   const value_t nil = {.type = VALUE_TYPE_NIL};
@@ -42,7 +42,7 @@ void values() {
   value_t *list = nullptr;
   tryAssertAssign(valueCreateInit(test_arena, VALUE_TYPE_LIST, 0), list);
 
-  tryAssert(listAppend(value_t, &list->value.list, &integer));
+  tryAssert(listAppend(value_t, &list->value.list, &number));
   tryAssert(listAppend(value_t, &list->value.list, &nil));
 
   formatValue(list, size, buffer, &offset);

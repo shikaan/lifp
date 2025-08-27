@@ -16,7 +16,7 @@ typedef result_void_position_t (*builtin_t)(value_t *result,
 
 typedef enum {
   VALUE_TYPE_BOOLEAN,
-  VALUE_TYPE_INTEGER,
+  VALUE_TYPE_NUMBER,
   VALUE_TYPE_BUILTIN,
   VALUE_TYPE_CLOSURE,
   VALUE_TYPE_NIL,
@@ -33,7 +33,7 @@ typedef struct value_t {
   position_t position;
   union {
     bool boolean;
-    int32_t integer;
+    number_t number;
     closure_t closure;
     builtin_t builtin;
     nullptr_t nil;

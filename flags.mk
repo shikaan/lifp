@@ -24,7 +24,6 @@ COMMON_CFLAGS := -std=c23 \
 	-fdiagnostics-color=always \
 	-fno-common \
 	-Winit-self \
-	-Wfloat-equal \
 	-Wundef \
 	-Wshadow \
 	-Wpointer-arith \
@@ -40,6 +39,8 @@ COMMON_CFLAGS := -std=c23 \
 	-Wconversion \
 	-Wno-ignored-qualifiers \
 	-Wno-aggregate-return
+
+LDFLAGS = -lm
 
 # Platform-specific flags
 ifeq ($(UNAME_S),Darwin)

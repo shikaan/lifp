@@ -9,7 +9,6 @@ BUGS
 FEATURES
 ---
   * [ ] Compile AST to bytecode
-  * [ ] Implement double/float methods in stdlib (math.floor, math.ceil)
   * [ ] Implement string methods in stdlib (string.length, string.join, string.slice, string.includes, string.trim)
   * [ ] Decouple validation from execution
   * [ ] Enforce naming conventions for functions
@@ -23,6 +22,7 @@ FEATURES
   * [ ] Enum to text for error messages
   * [ ] Currying: `(def! make-adder (fn (x) (fn (y) (+ x y))))\n(make-adder 5)` currently loses context on `x` because of immediate invocation
   * [ ] Implement `?` in REPL
+  * [ ] imports `(import! my-module "./my-module.lifp")
 
 REFACTORING
 ---
@@ -30,7 +30,6 @@ REFACTORING
   * [ ] Make list methods (and hashmap methods) typesafe (now you can (append
        `node_t` to a `value_list_t` without errors)
   * [ ] Use [`libuv`](https://libuv.org) for non-blocking io
-  * [ ] Std should be instantiated only once and pointed around instead of being cloned
   * [ ] Some structs are huge: mostly because we try to colocate most things. Do we need all of that?
         - The only place where we need flexible lists is the tokenizer and parser.
           From that point on all the lists have defined length and should be arrays.

@@ -1,23 +1,24 @@
 #include "../../lib/result.h"
 #include "../error.h"
 #include "../value.h"
+#include <math.h>
 #include <stdint.h>
 
 const char *SUM = "+";
 result_void_position_t sum(value_t *result, value_list_t *values) {
-  int32_t sum = 0;
+  number_t sum = 0;
   for (size_t i = 0; i < values->count; i++) {
     value_t current = listGet(value_t, values, i);
-    if (current.type != VALUE_TYPE_INTEGER) {
+    if (current.type != VALUE_TYPE_NUMBER) {
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, current.position,
             "%s requires a list of numbers. Got type %u", SUM, current.type);
     }
 
-    sum += current.value.integer;
+    sum += current.value.number;
   }
 
-  result->type = VALUE_TYPE_INTEGER;
-  result->value.integer = sum;
+  result->type = VALUE_TYPE_NUMBER;
+  result->value.number = sum;
 
   return ok(result_void_position_t);
 }
@@ -30,44 +31,44 @@ result_void_position_t subtract(value_t *result, value_list_t *values) {
   }
 
   value_t first = listGet(value_t, values, 0);
-  if (first.type != VALUE_TYPE_INTEGER) {
+  if (first.type != VALUE_TYPE_NUMBER) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, first.position,
           "%s requires a list numbers. Got type %u", SUB, first.type);
   }
 
-  int32_t result_value = first.value.integer;
+  number_t result_value = first.value.number;
 
   for (size_t i = 1; i < values->count; i++) {
     value_t current = listGet(value_t, values, i);
-    if (current.type != VALUE_TYPE_INTEGER) {
+    if (current.type != VALUE_TYPE_NUMBER) {
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, first.position,
             "%s requires a list numbers. Got type %u", SUB, current.type);
     }
 
-    result_value -= current.value.integer;
+    result_value -= current.value.number;
   }
 
-  result->type = VALUE_TYPE_INTEGER;
-  result->value.integer = result_value;
+  result->type = VALUE_TYPE_NUMBER;
+  result->value.number = result_value;
 
   return ok(result_void_position_t);
 }
 
 const char *MUL = "*";
 result_void_position_t multiply(value_t *result, value_list_t *values) {
-  int32_t product = 1;
+  number_t product = 1;
   for (size_t i = 0; i < values->count; i++) {
     value_t current = listGet(value_t, values, i);
-    if (current.type != VALUE_TYPE_INTEGER) {
+    if (current.type != VALUE_TYPE_NUMBER) {
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, current.position,
             "%s requires a list numbers. Got type %u", MUL, current.type);
     }
 
-    product *= current.value.integer;
+    product *= current.value.number;
   }
 
-  result->type = VALUE_TYPE_INTEGER;
-  result->value.integer = product;
+  result->type = VALUE_TYPE_NUMBER;
+  result->value.number = product;
 
   return ok(result_void_position_t);
 }
@@ -80,30 +81,30 @@ result_void_position_t divide(value_t *result, value_list_t *values) {
   }
 
   value_t first = listGet(value_t, values, 0);
-  if (first.type != VALUE_TYPE_INTEGER) {
+  if (first.type != VALUE_TYPE_NUMBER) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, first.position,
           "%s requires a list numbers. Got type %u", DIV, first.type);
   }
 
-  int32_t result_value = first.value.integer;
+  number_t result_value = first.value.number;
 
   for (size_t i = 1; i < values->count; i++) {
     value_t current = listGet(value_t, values, i);
-    if (current.type != VALUE_TYPE_INTEGER) {
+    if (current.type != VALUE_TYPE_NUMBER) {
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, current.position,
             "%s requires a list numbers. Got type %u", DIV, current.type);
     }
 
-    if (current.value.integer == 0) {
+    if (current.value.number == 0) {
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, current.position,
             "%s division by zero", DIV);
     }
 
-    result_value /= current.value.integer;
+    result_value /= current.value.number;
   }
 
-  result->type = VALUE_TYPE_INTEGER;
-  result->value.integer = result_value;
+  result->type = VALUE_TYPE_NUMBER;
+  result->value.number = result_value;
 
   return ok(result_void_position_t);
 }
@@ -118,23 +119,23 @@ result_void_position_t modulo(value_t *result, value_list_t *values) {
   value_t first = listGet(value_t, values, 0);
   value_t second = listGet(value_t, values, 1);
 
-  if (first.type != VALUE_TYPE_INTEGER) {
+  if (first.type != VALUE_TYPE_NUMBER) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, first.position,
           "%s requires a list numbers. Got type %u", MOD, first.type);
   }
 
-  if (second.type != VALUE_TYPE_INTEGER) {
+  if (second.type != VALUE_TYPE_NUMBER) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, second.position,
           "%s requires a list numbers. Got type %u", MOD, second.type);
   }
 
-  if (second.value.integer == 0) {
+  if (second.value.number == 0) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, second.position,
           "%s modulo by zero", MOD);
   }
 
-  result->type = VALUE_TYPE_INTEGER;
-  result->value.integer = first.value.integer % second.value.integer;
+  result->type = VALUE_TYPE_NUMBER;
+  result->value.number = fmod(first.value.number, second.value.number);
 
   return ok(result_void_position_t);
 }
@@ -152,8 +153,8 @@ result_void_position_t equal(value_t *result, value_list_t *values) {
   bool are_equal = false;
   if (first.type == second.type) {
     switch (first.type) {
-    case VALUE_TYPE_INTEGER:
-      are_equal = first.value.integer == second.value.integer;
+    case VALUE_TYPE_NUMBER:
+      are_equal = first.value.number == second.value.number;
       break;
     case VALUE_TYPE_BOOLEAN:
       are_equal = first.value.boolean == second.value.boolean;
@@ -186,17 +187,17 @@ result_void_position_t lessThan(value_t *result, value_list_t *values) {
   value_t first = listGet(value_t, values, 0);
   value_t second = listGet(value_t, values, 1);
 
-  if (first.type != VALUE_TYPE_INTEGER || second.type != VALUE_TYPE_INTEGER) {
+  if (first.type != VALUE_TYPE_NUMBER || second.type != VALUE_TYPE_NUMBER) {
     position_t error_pos =
-        first.type != VALUE_TYPE_INTEGER ? first.position : second.position;
+        first.type != VALUE_TYPE_NUMBER ? first.position : second.position;
     value_type_t error_type =
-        first.type != VALUE_TYPE_INTEGER ? first.type : second.type;
+        first.type != VALUE_TYPE_NUMBER ? first.type : second.type;
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, error_pos,
           "%s requires a list numbers. Got type %u", LESS_THAN, error_type);
   }
 
   result->type = VALUE_TYPE_BOOLEAN;
-  result->value.boolean = first.value.integer < second.value.integer;
+  result->value.boolean = first.value.number < second.value.number;
 
   return ok(result_void_position_t);
 }
@@ -212,17 +213,17 @@ result_void_position_t greaterThan(value_t *result, value_list_t *values) {
   value_t first = listGet(value_t, values, 0);
   value_t second = listGet(value_t, values, 1);
 
-  if (first.type != VALUE_TYPE_INTEGER || second.type != VALUE_TYPE_INTEGER) {
+  if (first.type != VALUE_TYPE_NUMBER || second.type != VALUE_TYPE_NUMBER) {
     position_t error_pos =
-        first.type != VALUE_TYPE_INTEGER ? first.position : second.position;
+        first.type != VALUE_TYPE_NUMBER ? first.position : second.position;
     value_type_t error_type =
-        first.type != VALUE_TYPE_INTEGER ? first.type : second.type;
+        first.type != VALUE_TYPE_NUMBER ? first.type : second.type;
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, error_pos,
           "%s requires a list numbers. Got type %u", GREATER_THAN, error_type);
   }
 
   result->type = VALUE_TYPE_BOOLEAN;
-  result->value.boolean = first.value.integer > second.value.integer;
+  result->value.boolean = first.value.number > second.value.number;
 
   return ok(result_void_position_t);
 }
@@ -240,8 +241,8 @@ result_void_position_t notEqual(value_t *result, value_list_t *values) {
   bool are_equal = false;
   if (first.type == second.type) {
     switch (first.type) {
-    case VALUE_TYPE_INTEGER:
-      are_equal = first.value.integer == second.value.integer;
+    case VALUE_TYPE_NUMBER:
+      are_equal = first.value.number == second.value.number;
       break;
     case VALUE_TYPE_BOOLEAN:
       are_equal = first.value.boolean == second.value.boolean;
@@ -275,17 +276,17 @@ result_void_position_t lessEqual(value_t *result, value_list_t *values) {
   value_t first = listGet(value_t, values, 0);
   value_t second = listGet(value_t, values, 1);
 
-  if (first.type != VALUE_TYPE_INTEGER || second.type != VALUE_TYPE_INTEGER) {
+  if (first.type != VALUE_TYPE_NUMBER || second.type != VALUE_TYPE_NUMBER) {
     position_t error_pos =
-        first.type != VALUE_TYPE_INTEGER ? first.position : second.position;
+        first.type != VALUE_TYPE_NUMBER ? first.position : second.position;
     value_type_t error_type =
-        first.type != VALUE_TYPE_INTEGER ? first.type : second.type;
+        first.type != VALUE_TYPE_NUMBER ? first.type : second.type;
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, error_pos,
           "%s requires a list numbers. Got type %u", LEQ, error_type);
   }
 
   result->type = VALUE_TYPE_BOOLEAN;
-  result->value.boolean = first.value.integer <= second.value.integer;
+  result->value.boolean = first.value.number <= second.value.number;
 
   return ok(result_void_position_t);
 }
@@ -300,17 +301,17 @@ result_void_position_t greaterEqual(value_t *result, value_list_t *values) {
   value_t first = listGet(value_t, values, 0);
   value_t second = listGet(value_t, values, 1);
 
-  if (first.type != VALUE_TYPE_INTEGER || second.type != VALUE_TYPE_INTEGER) {
+  if (first.type != VALUE_TYPE_NUMBER || second.type != VALUE_TYPE_NUMBER) {
     position_t error_pos =
-        first.type != VALUE_TYPE_INTEGER ? first.position : second.position;
+        first.type != VALUE_TYPE_NUMBER ? first.position : second.position;
     value_type_t error_type =
-        first.type != VALUE_TYPE_INTEGER ? first.type : second.type;
+        first.type != VALUE_TYPE_NUMBER ? first.type : second.type;
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, error_pos,
           "%s requires a list numbers. Got type %u", GEQ, error_type);
   }
 
   result->type = VALUE_TYPE_BOOLEAN;
-  result->value.boolean = first.value.integer >= second.value.integer;
+  result->value.boolean = first.value.number >= second.value.number;
 
   return ok(result_void_position_t);
 }

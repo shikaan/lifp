@@ -61,8 +61,8 @@ result_void_t valueCopy(value_t *source, value_t *destination,
   case VALUE_TYPE_BOOLEAN:
     destination->value.boolean = source->value.boolean;
     break;
-  case VALUE_TYPE_INTEGER:
-    destination->value.integer = source->value.integer;
+  case VALUE_TYPE_NUMBER:
+    destination->value.number = source->value.number;
     break;
   case VALUE_TYPE_BUILTIN:
     destination->value.builtin = source->value.builtin;

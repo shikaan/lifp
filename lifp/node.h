@@ -13,7 +13,7 @@ typedef List(node_t) node_list_t;
 
 typedef enum {
   NODE_TYPE_LIST,
-  NODE_TYPE_INTEGER,
+  NODE_TYPE_NUMBER,
   NODE_TYPE_SYMBOL,
   NODE_TYPE_BOOLEAN,
   NODE_TYPE_NIL,
@@ -21,7 +21,7 @@ typedef enum {
 
 typedef union node_value_t {
   node_list_t list;
-  int32_t integer;
+  number_t number;
   char symbol[SYMBOL_SIZE];
   bool boolean;
   nullptr_t nil;
