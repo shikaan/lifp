@@ -6,6 +6,7 @@ A raw list of coding guidelines for things I didn't automate yet.
 ## Structure
 
 * `bin`: code that results in the binaries we ship
+* `cmd`: code for commands exposed by the binary
 * `lib`: potentially reusable code, not project-dependent
 * `lifp`: project-specific code
 * `test`: test files, harness, and utils for both lib and lifp
@@ -18,7 +19,7 @@ workers, and entities.
 
 **Controllers** are very shallow: they typically import _many_ modules and pipe
 them one to another to accomplish a specific task. Currently, they all live
-in the `bin` folder.
+in the `cmd` folder.
 
 Modules are named after the command they map to (e.g., run, repl,...)
 
@@ -52,7 +53,9 @@ enriched with metadata in the call site. For example:
 // ... code
 
  tryWithMeta(result_type_t, listCreate(...)) // enriches the error with meta
-
 ```
+
+`tryCatch` will execute the associated cleanup function only in case of errors.
+`tryFinally` will execute the cleanup function regardless of the outcome.
 
 ; vim: tw=80 cc=+1
