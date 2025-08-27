@@ -1,6 +1,7 @@
 #include "../../lib/result.h"
 #include "../error.h"
 #include "../value.h"
+#include <math.h>
 #include <stdint.h>
 
 const char *SUM = "+";
@@ -134,8 +135,7 @@ result_void_position_t modulo(value_t *result, value_list_t *values) {
   }
 
   result->type = VALUE_TYPE_NUMBER;
-  result->value.number =
-      (number_t)((int)first.value.number % (int)second.value.number);
+  result->value.number = fmod(first.value.number, second.value.number);
 
   return ok(result_void_position_t);
 }

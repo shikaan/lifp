@@ -38,7 +38,7 @@ COMMON_CFLAGS := -std=c23 \
 	-Wassign-enum \
 	-Wconversion \
 	-Wno-ignored-qualifiers \
-	-Wno-aggregate-return \
+	-Wno-aggregate-return
 
 LDFLAGS = -lm
 

@@ -75,8 +75,8 @@ result_void_position_t listNth(value_t *result, value_list_t *values) {
   number_t index = index_value.value.number;
   value_list_t *list = &list_value.value.list;
 
-  // Check bounds
-  if (index < 0 || (size_t)index >= list->count) {
+  if (index < 0 || (size_t)index >= list->count ||
+      index != (number_t)(size_t)index) {
     result->type = VALUE_TYPE_NIL;
     result->value.nil = nullptr;
   } else {
