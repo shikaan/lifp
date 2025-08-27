@@ -41,14 +41,14 @@ int main(void) {
 
   case("copy");
   int_list_t *another = nullptr;
-  tryAssertAssign(listCreate(int, test_arena, 1), another);
+  tryAssert(listCreate(int, test_arena, 1), another);
   tryAssert(listAppend(int, another, &item));
   result_void_t result = listCopy(int, list, another);
   expectEqlInt(result.code, RESULT_OK, "copies the list");
   expectEqlSize(list->count, 6, "updates count");
  
   List(char) *different = nullptr;
-  tryAssertAssign(listCreate(char, test_arena, 1), different); 
+  tryAssert(listCreate(char, test_arena, 1), different); 
   result = listCopy(int, list, different);
   expectEqlInt(result.code, LIST_ERROR_INCOMPATIBLE_LISTS, "throws error");
 

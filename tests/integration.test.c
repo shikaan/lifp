@@ -18,18 +18,18 @@ void execute(value_t *result, const char *input) {
   char *line = strtok(input_copy, "\n");
 
   environment_t *global_environment = nullptr;
-  tryAssertAssign(vmInit(), global_environment);
+  tryAssert(vmInit(), global_environment);
 
   while (line != NULL) {
     arenaReset(ast_arena);
     arenaReset(temp_arena);
     token_list_t *tokens = nullptr;
-    tryAssertAssign(tokenize(ast_arena, line), tokens);
+    tryAssert(tokenize(ast_arena, line), tokens);
 
     size_t offset = 0;
     size_t depth = 0;
     node_t *ast = nullptr;
-    tryAssertAssign(parse(ast_arena, tokens, &offset, &depth), ast);
+    tryAssert(parse(ast_arena, tokens, &offset, &depth), ast);
 
     value_t res;
     auto reduction = evaluate(&res, temp_arena, ast, global_environment);
@@ -46,8 +46,8 @@ void execute(value_t *result, const char *input) {
 }
 
 int main() {
-  tryAssertAssign(arenaCreate((size_t)(1024 * 1024)), ast_arena);
-  tryAssertAssign(arenaCreate((size_t)(1024 * 1024)), temp_arena);
+  tryAssert(arenaCreate((size_t)(1024 * 1024)), ast_arena);
+  tryAssert(arenaCreate((size_t)(1024 * 1024)), temp_arena);
 
   case("number");
   value_t number;
@@ -111,21 +111,6 @@ int main() {
   execute(&empty_list, "()");
   expectEqlUint(empty_list.type, VALUE_TYPE_LIST, "empty list has correct type");
   expectEqlUint((unsigned int)empty_list.value.list.count, 0, "empty list has zero elements");
-
-  case("variable shadowing in nested let");
-  value_t shadow_test;
-  execute(&shadow_test, "(let ((x 1)) (let ((x 2)) x))");
-  expectEqlDouble(shadow_test.value.number, 2, "inner binding shadows outer");
-
-  case("multiple expressions with side effects");
-  value_t multi_expr;
-  execute(&multi_expr, "(def! x 1)\n(def! x (+ x 1))\nx");
-  expectEqlDouble(multi_expr.value.number, 2, "sequential definitions work");
-
-  case("function parameter shadowing");
-  value_t shadow_param;
-  execute(&shadow_param, "(def! x 10)\n(def! test (fn (x) (+ x 1)))\n(test 5)");
-  expectEqlDouble(shadow_param.value.number, 6, "function parameter shadows global variable");
 
   arenaDestroy(&ast_arena);
   arenaDestroy(&temp_arena);

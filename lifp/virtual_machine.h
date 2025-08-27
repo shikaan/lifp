@@ -14,6 +14,6 @@ result_ref_t vmInit();
 
 result_ref_t environmentCreate(environment_t *parent);
 void environmentDestroy(environment_t **self_ref);
-
 const value_t *environmentResolveSymbol(environment_t *self,
                                         const char *symbol);
+void environmentReset(environment_t *self);

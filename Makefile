@@ -33,6 +33,9 @@ tests/arena.test: lib/arena.o
 tests/evaluate.test: \
 	lifp/evaluate.o lifp/node.o lib/list.o lib/arena.o lifp/virtual_machine.o \
 	lib/map.o lifp/value.o lifp/fmt.o
+tests/specials.test: \
+	lifp/evaluate.o lifp/node.o lib/list.o lib/arena.o lifp/virtual_machine.o \
+	lib/map.o lifp/value.o lifp/fmt.o lifp/tokenize.o lifp/parse.o
 tests/map.test: lib/arena.o lib/map.o
 tests/fmt.test: lifp/fmt.o lifp/node.o lib/arena.o lib/list.o lifp/value.o
 

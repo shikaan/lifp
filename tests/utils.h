@@ -11,24 +11,30 @@
 #define _concat_detail(x, y) x##y
 #define _concat(x, y) _concat_detail(x, y)
 
-#define tryAssertAssign(Action, Destination)                                   \
-  auto _concat(result, __LINE__) = (Action);                                   \
-  assert(_concat(result, __LINE__).code == RESULT_OK);                         \
-  (Destination) = (_concat(result, __LINE__).value);
-
 // Prevent unused value warnings when built in RELEASE mode
 #ifdef NODEBUG
-#define tryAssert(Action)                                                      \
+#define tryAssert(Action, ...)                                                 \
   auto _concat(result, __LINE__) = (Action);                                   \
-  assert(_concat(result, __LINE__).code == RESULT_OK);
+  assert(_concat(result, __LINE__).code == RESULT_OK);                         \
+  __VA_OPT__(__VA_ARGS__ = _concat(result, __LINE__).value);
 #else
-#define tryAssert(Action) (void)(Action);
+#define tryAssert(Action, ...)                                                 \
+  __VA_OPT__(__VA_ARGS__ =)(Action) __VA_OPT__(.value);
+#endif
+
+#ifdef NODEBUG
+#define tryFail(Action, ...)                                                   \
+  auto _concat(result, __LINE__) = (Action);                                   \
+  assert(_concat(result, __LINE__).code != RESULT_OK);                         \
+  __VA_OPT__(__VA_ARGS__ = _concat(result, __LINE__))
+#else
+#define tryFail(Action, ...) __VA_OPT__(__VA_ARGS__ =)(Action);
 #endif
 
 static inline token_list_t *
 makeTokenList(arena_t *arena, const token_t *elements, size_t capacity) {
   token_list_t *list = nullptr;
-  tryAssertAssign(listCreate(token_t, arena, capacity), list);
+  tryAssert(listCreate(token_t, arena, capacity), list);
 
   for (size_t i = 0; i < capacity; i++) {
     tryAssert(listAppend(token_t, list, &elements[i]));

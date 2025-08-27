@@ -144,6 +144,12 @@ void expectNeqString(const char *a, const char *b, size_t max_size,
   expect(strncmp(a, b, max_size) != 0, name, msg);
 }
 
+void expectIncludeString(const char *a, const char *b, const char *name) {
+  char msg[256];
+  snprintf(msg, 256, "Expected '%s' to include '%s'", a, b);
+  expect(strstr(a, b) != NULL, name, msg);
+}
+
 int report(void) {
 #ifndef FAILED_ONLY
   printf("\n%d assertions, %d failed\n", total, failed);

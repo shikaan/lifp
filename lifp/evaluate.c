@@ -54,10 +54,10 @@ invokeClosure(value_t *result, value_list_t *evaluated, value_t closure_value,
   for (size_t i = 1; i < evaluated->count; i++) {
     auto argument = listGet(node_t, &closure.arguments, i - 1);
     auto value = listGet(value_t, evaluated, i);
-    tryCatchWithMeta(
-        result_void_position_t,
-        mapSet(local_environment->values, argument.value.symbol, &value),
-        environmentDestroy(&local_environment), value.position);
+    tryCatchWithMeta(result_void_position_t,
+                     mapSet(value_t, local_environment->values,
+                            argument.value.symbol, &value),
+                     environmentDestroy(&local_environment), value.position);
   }
 
   // TODO: even better here would be to bubble up where in the form the error

@@ -28,7 +28,7 @@ result_ref_t vmInit() {
 #define setBuiltin(Label, Builtin)                                             \
   builtin.type = VALUE_TYPE_BUILTIN;                                           \
   builtin.value.builtin = (Builtin);                                           \
-  try(result_ref_t, mapSet(builtins, (Label), &builtin));
+  try(result_ref_t, mapSet(value_t, builtins, (Label), &builtin));
 
   value_t builtin;
   setBuiltin(SUM, sum);
@@ -100,4 +100,9 @@ const value_t *environmentResolveSymbol(environment_t *self,
   }
 
   return result;
+}
+
+void environmentReset(environment_t *self) {
+  assert(self);
+  arenaReset(self->arena);
 }
