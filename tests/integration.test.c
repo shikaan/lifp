@@ -18,18 +18,18 @@ void execute(value_t *result, const char *input) {
   char *line = strtok(input_copy, "\n");
 
   environment_t *global_environment = nullptr;
-  tryAssertAssign(vmInit(), global_environment);
+  tryAssert(vmInit(), global_environment);
 
   while (line != NULL) {
     arenaReset(ast_arena);
     arenaReset(temp_arena);
     token_list_t *tokens = nullptr;
-    tryAssertAssign(tokenize(ast_arena, line), tokens);
+    tryAssert(tokenize(ast_arena, line), tokens);
 
     size_t offset = 0;
     size_t depth = 0;
     node_t *ast = nullptr;
-    tryAssertAssign(parse(ast_arena, tokens, &offset, &depth), ast);
+    tryAssert(parse(ast_arena, tokens, &offset, &depth), ast);
 
     value_t res;
     auto reduction = evaluate(&res, temp_arena, ast, global_environment);
@@ -46,8 +46,8 @@ void execute(value_t *result, const char *input) {
 }
 
 int main() {
-  tryAssertAssign(arenaCreate((size_t)(1024 * 1024)), ast_arena);
-  tryAssertAssign(arenaCreate((size_t)(1024 * 1024)), temp_arena);
+  tryAssert(arenaCreate((size_t)(1024 * 1024)), ast_arena);
+  tryAssert(arenaCreate((size_t)(1024 * 1024)), temp_arena);
 
   case("number");
   value_t number;

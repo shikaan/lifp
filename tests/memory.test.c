@@ -28,12 +28,12 @@ void execute(const char *input) {
     arenaReset(test_ast_arena);
     arenaReset(test_temp_arena);
     token_list_t *tokens = nullptr;
-    tryAssertAssign(tokenize(test_ast_arena, line), tokens);
+    tryAssert(tokenize(test_ast_arena, line), tokens);
 
     size_t offset = 0;
     size_t depth = 0;
     node_t *ast = nullptr;
-    tryAssertAssign(parse(test_ast_arena, tokens, &offset, &depth), ast);
+    tryAssert(parse(test_ast_arena, tokens, &offset, &depth), ast);
 
     value_t result;
     evaluate(&result, test_temp_arena, ast, global);
@@ -193,9 +193,9 @@ void danglingArenas(void) {
 }
 
 int main(void) {
-  tryAssertAssign(arenaCreate((size_t)(1024 * 1024)), test_ast_arena);
-  tryAssertAssign(arenaCreate((size_t)(1024 * 1024)), test_temp_arena);
-  tryAssertAssign(vmInit(), global);
+  tryAssert(arenaCreate((size_t)(1024 * 1024)), test_ast_arena);
+  tryAssert(arenaCreate((size_t)(1024 * 1024)), test_temp_arena);
+  tryAssert(vmInit(), global);
 
   profileInit();
 

@@ -56,7 +56,7 @@ void atoms() {
 
 void listOfElements() {
   node_list_t *expected = nullptr;
-  tryAssertAssign(listCreate(node_t, test_arena, 4), expected);
+  tryAssert(listCreate(node_t, test_arena, 4), expected);
 
   node_t first = nInt(42);
   node_t second = nInt(123);
@@ -82,7 +82,7 @@ void listOfElements() {
 
 void functionCall() {
   node_list_t *list = nullptr;
-  tryAssertAssign(listCreate(node_t, test_arena, 4), list);
+  tryAssert(listCreate(node_t, test_arena, 4), list);
 
   node_t symbol = nSym("+");
   node_t num1 = nInt(1);
@@ -104,7 +104,7 @@ void functionCall() {
   mapSet(value_t, environment->values, "lol", &val);
   node_t lol_symbol = nSym("lol");
   
-  tryAssertAssign(listCreate(node_t, test_arena, 4), list);
+  tryAssert(listCreate(node_t, test_arena, 4), list);
   tryAssert(listAppend(node_t, list, &lol_symbol))
   tryAssert(listAppend(node_t, list, &num1))
   node_t list_node = nList(4, list->data);
@@ -115,7 +115,7 @@ void functionCall() {
 
 void nested() {
   node_list_t *inner_list = nullptr;
-  tryAssertAssign(listCreate(node_t, test_arena, 4), inner_list);
+  tryAssert(listCreate(node_t, test_arena, 4), inner_list);
 
   node_t inner1 = nInt(1);
   node_t inner2 = nInt(2);
@@ -127,7 +127,7 @@ void nested() {
 
   // Create outer list: (3 (1 2))
   node_list_t *outer_list = nullptr;
-  tryAssertAssign(listCreate(node_t, test_arena, 4), outer_list);
+  tryAssert(listCreate(node_t, test_arena, 4), outer_list);
 
   node_t outer1 = nInt(3);
   tryAssert(listAppend(node_t, outer_list, &outer1));
@@ -149,7 +149,7 @@ void nested() {
 
 void emptyList() {
   node_list_t *empty_list = nullptr;
-  tryAssertAssign(listCreate(node_t, test_arena, 4), empty_list); // capacity > 0
+  tryAssert(listCreate(node_t, test_arena, 4), empty_list); // capacity > 0
 
   node_t empty_list_node = nList(0, empty_list->data);
   empty_list_node.value.list.capacity = empty_list->capacity;
@@ -162,7 +162,7 @@ void emptyList() {
 
 void allocations() {
   arena_t *small_arena = nullptr;
-  tryAssertAssign(arenaCreate(32), small_arena);
+  tryAssert(arenaCreate(32), small_arena);
 
   arenaAllocate(small_arena, 32); // Use up all space
   node_t large_node = nInt(123);
@@ -175,7 +175,7 @@ void allocations() {
 
 void errors() {
   node_list_t *list = nullptr;
-  tryAssertAssign(listCreate(node_t, test_arena, 1), list);
+  tryAssert(listCreate(node_t, test_arena, 1), list);
 
   case("non-existing symbol");
   node_t sym = nSym("not-existent");
@@ -187,8 +187,8 @@ void errors() {
 }
 
 int main(void) {
-  tryAssertAssign(arenaCreate((size_t)(1024 * 1024)), test_arena);
-  tryAssertAssign(vmInit(), environment);
+  tryAssert(arenaCreate((size_t)(1024 * 1024)), test_arena);
+  tryAssert(vmInit(), environment);
 
   suite(atoms);
   suite(listOfElements);

@@ -77,7 +77,7 @@ void atoms(void) {
     size_t depth = 0;
     size_t offset = 0;
     node_t *node = nullptr;
-    tryAssertAssign(parse(test_arena, list, &offset, &depth), node);
+    tryAssert(parse(test_arena, list, &offset, &depth), node);
     expect(eqlNode(node, &cases[i].expected), cases[i].name,
            "Expected equal nodes");
   }
@@ -125,7 +125,7 @@ void unary(void) {
     size_t depth = 0;
     size_t offset = 0;
     node_t *node = nullptr;
-    tryAssertAssign(parse(test_arena, list, &offset, &depth), node);
+    tryAssert(parse(test_arena, list, &offset, &depth), node);
     expect(eqlNode(node, &cases[i].expected), cases[i].name,
            "Expected equal nodes");
   }
@@ -164,7 +164,7 @@ void complex(void) {
     size_t depth = 0;
     size_t offset = 0;
     node_t *node = nullptr;
-    tryAssertAssign(parse(test_arena, list, &offset, &depth), node);
+    tryAssert(parse(test_arena, list, &offset, &depth), node);
     expect(eqlNode(node, &cases[i].expected), cases[i].name,
            "Expected equal nodes");
   }
@@ -203,7 +203,7 @@ void errors() {
 }
 
 int main(void) {
-  tryAssertAssign(arenaCreate((size_t)(1024 * 1024)), test_arena);
+  tryAssert(arenaCreate((size_t)(1024 * 1024)), test_arena);
 
   suite(atoms);
   suite(unary);

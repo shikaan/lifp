@@ -12,12 +12,12 @@ static environment_t *environment;
 
 result_void_t execute(value_t *result, const char *input) {
   token_list_t *tokens = nullptr;
-  tryAssertAssign(tokenize(test_arena, input), tokens);
+  tryAssert(tokenize(test_arena, input), tokens);
 
   size_t offset = 0;
   size_t depth = 0;
   node_t *ast;
-  tryAssertAssign(parse(test_arena, tokens, &offset, &depth), ast);
+  tryAssert(parse(test_arena, tokens, &offset, &depth), ast);
   tryWithMeta(result_void_t, evaluate(result, test_arena, ast, environment),
               nullptr);
   return ok(result_void_t);
@@ -142,8 +142,8 @@ void condSpecialForm() {
 }
 
 int main(void) {
-  tryAssertAssign(arenaCreate((size_t)(1024 * 1024)), test_arena);
-  tryAssertAssign(vmInit(), environment);
+  tryAssert(arenaCreate((size_t)(1024 * 1024)), test_arena);
+  tryAssert(vmInit(), environment);
 
   suite(defSpecialForm);
   suite(fnSpecialForm);

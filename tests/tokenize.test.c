@@ -66,7 +66,7 @@ void atoms() {
 
   for (size_t i = 0; i < arraySize(cases); i++) {
     token_list_t *tokens = nullptr;
-    tryAssertAssign(tokenize(test_arena, cases[i].input), tokens);
+    tryAssert(tokenize(test_arena, cases[i].input), tokens);
     expect(tokenListEql(cases[i].expected, tokens), cases[i].name,
            "Expected token lists to be equal.");
   }
@@ -101,7 +101,7 @@ void whitespaces() {
 
   for (size_t i = 0; i < arraySize(cases); i++) {
     token_list_t *tokens = nullptr;
-    tryAssertAssign(tokenize(test_arena, cases[i].input), tokens);
+    tryAssert(tokenize(test_arena, cases[i].input), tokens);
     expect(tokenListEql(cases[i].expected, tokens), cases[i].name,
            "Expected token lists to be equal.");
   }
@@ -155,14 +155,14 @@ void complex() {
        "with random whitespaces"}};
   for (size_t i = 0; i < arraySize(cases); i++) {
     token_list_t *tokens = nullptr;
-    tryAssertAssign(tokenize(test_arena, cases[i].input), tokens);
+    tryAssert(tokenize(test_arena, cases[i].input), tokens);
     expect(tokenListEql(cases[i].expected, tokens), cases[i].name,
            "Expected token lists to be equal.");
   }
 }
 
 int main(void) {
-  tryAssertAssign(arenaCreate((size_t)(1024 * 1024)), test_arena);
+  tryAssert(arenaCreate((size_t)(1024 * 1024)), test_arena);
 
   suite(atoms);
   suite(complex);
