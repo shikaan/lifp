@@ -18,7 +18,7 @@ typedef result_void_position_t (*special_form_t)(value_t *, arena_t *,
 static result_void_position_t addToEnvironment(const char *key, value_t *value,
                                                environment_t *environment,
                                                position_t position) {
-  if (mapGet(value_t, environment->values, key)) {
+  if (environmentResolveSymbol(environment, key)) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, position,
           "identifier '%s' has already been declared", key);
   }
@@ -54,13 +54,13 @@ result_void_position_t define(value_t *result, arena_t *temp_arena,
   // Perform reduction in the temporary memory
   value_t reduced;
   node_t value = listGet(node_t, nodes, 2);
-  try(result_void_position_t, evaluate(&reduced, temp_arena, &value, env));
+  tryCatch(result_void_position_t, evaluate(&reduced, temp_arena, &value, env),
+           arenaAllocationFrameEnd(temp_arena, frame));
 
   // If reduction is successful, we can move the closure to VM memory
-  try(result_void_position_t,
-      addToEnvironment(key.value.symbol, &reduced, env, value.position));
-
-  arenaAllocationFrameEnd(temp_arena, frame);
+  tryFinally(result_void_position_t,
+             addToEnvironment(key.value.symbol, &reduced, env, value.position),
+             arenaAllocationFrameEnd(temp_arena, frame));
 
   result->type = VALUE_TYPE_NIL;
   result->value.nil = nullptr;
@@ -72,7 +72,6 @@ const char *FUNCTION_EXAMPLE = "(fn (a b) (+ a b))";
 const char *FUNCTION = "fn";
 result_void_position_t function(value_t *result, arena_t *temp_arena,
                                 environment_t *env, const node_list_t *nodes) {
-  (void)env;
   assert(nodes->count > 0); // fn is always there
   node_t first = listGet(node_t, nodes, 0);
   if (nodes->count != 3) {
@@ -103,6 +102,13 @@ result_void_position_t function(value_t *result, arena_t *temp_arena,
             "%s requires a binding list of symbols. %s", FUNCTION,
             FUNCTION_EXAMPLE);
     }
+
+    if (environmentResolveSymbol(env, argument.value.symbol)) {
+      arenaAllocationFrameEnd(temp_arena, frame);
+      throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, argument.position,
+            "identifier '%s' shadows a value", argument.value.symbol);
+    }
+
     tryCatchWithMeta(
         result_void_position_t,
         listAppend(node_t, &result->value.closure.arguments, &argument),

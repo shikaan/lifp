@@ -101,3 +101,8 @@ const value_t *environmentResolveSymbol(environment_t *self,
 
   return result;
 }
+
+void environmentReset(environment_t *self) {
+  assert(self);
+  arenaReset(self->arena);
+}

@@ -112,16 +112,6 @@ int main() {
   expectEqlUint(empty_list.type, VALUE_TYPE_LIST, "empty list has correct type");
   expectEqlUint((unsigned int)empty_list.value.list.count, 0, "empty list has zero elements");
 
-  case("variable shadowing in nested let");
-  value_t shadow_test;
-  execute(&shadow_test, "(let ((x 1)) (let ((x 2)) x))");
-  expectEqlDouble(shadow_test.value.number, 2, "inner binding shadows outer");
-
-  case("function parameter shadowing");
-  value_t shadow_param;
-  execute(&shadow_param, "(def! x 10)\n(def! test (fn (x) (+ x 1)))\n(test 5)");
-  expectEqlDouble(shadow_param.value.number, 6, "function parameter shadows global variable");
-
   arenaDestroy(&ast_arena);
   arenaDestroy(&temp_arena);
   return report();

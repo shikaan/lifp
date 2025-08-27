@@ -25,6 +25,15 @@
 #define tryAssert(Action) (void)(Action);
 #endif
 
+#ifndef NODEBUG
+#define tryFail(Action, ...)                                                   \
+  auto _concat(result, __LINE__) = (Action);                                   \
+  assert(_concat(result, __LINE__).code != RESULT_OK);                         \
+  __VA_OPT__((__VA_ARGS__) = _concat(result, __LINE__))
+#else
+#define tryFail(Action) (void)(Action);
+#endif
+
 static inline token_list_t *
 makeTokenList(arena_t *arena, const token_t *elements, size_t capacity) {
   token_list_t *list = nullptr;
