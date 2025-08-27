@@ -16,18 +16,19 @@
 #define tryAssert(Action, ...)                                                 \
   auto _concat(result, __LINE__) = (Action);                                   \
   assert(_concat(result, __LINE__).code == RESULT_OK);                         \
-  __VA_OPT__((__VA_ARGS__) = _concat(result, __LINE__).value);
+  __VA_OPT__(__VA_ARGS__ = _concat(result, __LINE__).value);
 #else
-#define tryAssert(Action, ...) (void)(Action);
+#define tryAssert(Action, ...)                                                 \
+  __VA_OPT__(__VA_ARGS__ =)(Action) __VA_OPT__(.value);
 #endif
 
 #ifdef NODEBUG
 #define tryFail(Action, ...)                                                   \
   auto _concat(result, __LINE__) = (Action);                                   \
   assert(_concat(result, __LINE__).code != RESULT_OK);                         \
-  __VA_OPT__((__VA_ARGS__) = _concat(result, __LINE__))
+  __VA_OPT__(__VA_ARGS__ = _concat(result, __LINE__))
 #else
-#define tryFail(Action) (void)(Action);
+#define tryFail(Action, ...) __VA_OPT__(__VA_ARGS__ =)(Action);
 #endif
 
 static inline token_list_t *
