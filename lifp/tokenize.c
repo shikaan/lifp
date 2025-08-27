@@ -17,12 +17,12 @@ result_token_t bufferToToken(size_t buffer_len, char buffer[static buffer_len],
   // FIXME: this is silently overflowing
   int32_t number = (int32_t)strtol(buffer, &remainder, 10);
 
-  // This condition is met when all the chars of the token represent an integer
+  // This condition is met when all the chars of the token represent an number
   // This includes also leading +/-
   const bool is_number = ((!remainder) || (strlen(remainder) == 0)) != 0;
   if (is_number) {
-    const token_t tok = {.type = TOKEN_TYPE_INTEGER,
-                         .value.integer = number,
+    const token_t tok = {.type = TOKEN_TYPE_NUMBER,
+                         .value.number = number,
                          .position = position};
     return ok(result_token_t, tok);
   }

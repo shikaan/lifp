@@ -21,8 +21,8 @@ static bool eqlNode(node_t *self, node_t *other) {
     return true;
   case NODE_TYPE_BOOLEAN:
     return self->value.boolean == other->value.boolean;
-  case NODE_TYPE_INTEGER:
-    return self->value.integer == other->value.integer;
+  case NODE_TYPE_NUMBER:
+    return self->value.number == other->value.number;
   case NODE_TYPE_SYMBOL:
     return strncmp(self->value.symbol, other->value.symbol, SYMBOL_SIZE) == 0;
   case NODE_TYPE_LIST: {
@@ -51,8 +51,8 @@ void atoms(void) {
     node_t expected;
   } cases[] = {{
                    tInt(1),
-                   "integer",
-                   (node_t){.type = NODE_TYPE_INTEGER, .value.integer = 1},
+                   "number",
+                   (node_t){.type = NODE_TYPE_NUMBER, .value.number = 1},
                },
                {
                    tSym("test"),
@@ -84,7 +84,7 @@ void atoms(void) {
 }
 
 void unary(void) {
-  node_t integer = nInt(1);
+  node_t number = nInt(1);
   node_t boolean_true = nBool(true);
   node_t boolean_false = nBool(false);
   node_t nil = nNil();
@@ -113,7 +113,7 @@ void unary(void) {
     size_t length;
     token_t *input;
     node_t expected;
-  } cases[] = {{"integer", 3, int_tokens, nList(1, (node_t *){&integer})},
+  } cases[] = {{"number", 3, int_tokens, nList(1, (node_t *){&number})},
                {"symbol", 3, sym_tokens, nList(1, (node_t *){&symbol})},
                {"true", 3, true_tokens, nList(1, (node_t *){&boolean_true})},
                {"false", 3, false_tokens, nList(1, (node_t *){&boolean_false})},
@@ -143,11 +143,11 @@ void complex(void) {
   token_t nested[9] = {lparen,     add_token, int_token, lparen, add_token,
                        bool_token, int_token, rparen,    rparen};
 
-  node_t integer = nInt(1);
+  node_t number = nInt(1);
   node_t boolean = nBool(true);
   node_t add = nSym("add");
-  node_t mixed_nodes[3] = {add, boolean, integer};
-  node_t nested_nodes[3] = {add, integer, nList(3, mixed_nodes)};
+  node_t mixed_nodes[3] = {add, boolean, number};
+  node_t nested_nodes[3] = {add, number, nList(3, mixed_nodes)};
 
   struct {
     const char *name;
@@ -173,11 +173,11 @@ void complex(void) {
 void errors() {
   token_t lparen = tParen('(');
   token_t rparen = tParen(')');
-  token_t integer = tInt(1);
+  token_t number = tInt(1);
 
-  token_t unbalanced_right[4] = {lparen, lparen, integer, rparen};
-  token_t unbalanced_left[4] = {lparen, integer, rparen, rparen};
-  token_t dangling[4] = {lparen, integer, rparen, integer};
+  token_t unbalanced_right[4] = {lparen, lparen, number, rparen};
+  token_t unbalanced_left[4] = {lparen, number, rparen, rparen};
+  token_t dangling[4] = {lparen, number, rparen, number};
 
   struct {
     const char *name;

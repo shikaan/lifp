@@ -16,8 +16,8 @@ static bool tokenEql(const token_t *self, const token_t *other) {
   case TOKEN_TYPE_LPAREN:
   case TOKEN_TYPE_RPAREN:
     return true;
-  case TOKEN_TYPE_INTEGER:
-    return self->value.integer == other->value.integer;
+  case TOKEN_TYPE_NUMBER:
+    return self->value.number == other->value.number;
   case TOKEN_TYPE_SYMBOL:
     return strncmp(self->value.symbol, other->value.symbol, SYMBOL_SIZE) == 0;
   default:
@@ -42,7 +42,7 @@ static bool tokenListEql(const token_list_t *self, const token_list_t *other) {
 void atoms() {
   token_t lparen_token = tParen('(');
   token_t rparen_token = tParen(')');
-  token_t integer_token = tInt(12);
+  token_t number_token = tInt(12);
   token_t symbol_token = tSym("lol");
 
   struct {
@@ -57,8 +57,8 @@ void atoms() {
        .expected = makeTokenList(test_arena, &rparen_token, 1),
        .name = "rparen"},
       {.input = "12",
-       .expected = makeTokenList(test_arena, &integer_token, 1),
-       .name = "integer"},
+       .expected = makeTokenList(test_arena, &number_token, 1),
+       .name = "number"},
       {.input = "lol",
        .expected = makeTokenList(test_arena, &symbol_token, 1),
        .name = "symbol"},
@@ -118,7 +118,7 @@ void errors() {
       {"a\b", 2, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN,
        "unexpected character with symbol"},
       {"1\b", 2, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN,
-       "unexpected character with integer"},
+       "unexpected character with number"},
       {"symbol_way_too_long", 1, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN,
        "symbol too long"}};
 

@@ -17,8 +17,8 @@ result_void_position_t listCount(value_t *result, value_list_t *values) {
           "%s requires a list. Got type %u", LIST_COUNT, list_value.type);
   }
 
-  result->type = VALUE_TYPE_INTEGER;
-  result->value.integer = (int32_t)list_value.value.list.count;
+  result->type = VALUE_TYPE_NUMBER;
+  result->value.number = (int32_t)list_value.value.list.count;
 
   return ok(result_void_position_t);
 }
@@ -61,9 +61,9 @@ result_void_position_t listNth(value_t *result, value_list_t *values) {
   value_t index_value = listGet(value_t, values, 0);
   value_t list_value = listGet(value_t, values, 1);
 
-  if (index_value.type != VALUE_TYPE_INTEGER) {
+  if (index_value.type != VALUE_TYPE_NUMBER) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,
-          index_value.position, "%s requires an integer index. Got type %u",
+          index_value.position, "%s requires an number index. Got type %u",
           LIST_NTH, index_value.type);
   }
 
@@ -72,7 +72,7 @@ result_void_position_t listNth(value_t *result, value_list_t *values) {
           "%s requires a list. Got type %u", LIST_NTH, list_value.type);
   }
 
-  int32_t index = index_value.value.integer;
+  int32_t index = index_value.value.number;
   value_list_t *list = &list_value.value.list;
 
   // Check bounds

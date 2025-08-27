@@ -36,11 +36,11 @@ makeTokenList(arena_t *arena, const token_t *elements, size_t capacity) {
   return list;
 }
 
-static inline token_t tInt(int integer) {
+static inline token_t tInt(int number) {
   return (token_t){
       .position = {.column = 1, .line = 1},
-      .type = TOKEN_TYPE_INTEGER,
-      .value = {.integer = integer},
+      .type = TOKEN_TYPE_NUMBER,
+      .value = {.number = number},
   };
 }
 
@@ -65,18 +65,18 @@ static inline token_t tParen(char paren) {
   };
 }
 
-static inline value_t pInt(int integer) {
-  return (value_t){.type = VALUE_TYPE_INTEGER,
+static inline value_t pInt(int number) {
+  return (value_t){.type = VALUE_TYPE_NUMBER,
                    .position.column = 1,
                    .position.line = 1,
-                   .value.integer = integer};
+                   .value.number = number};
 }
 
-static inline node_t nInt(int integer) {
-  return (node_t){.type = NODE_TYPE_INTEGER,
+static inline node_t nInt(int number) {
+  return (node_t){.type = NODE_TYPE_NUMBER,
                   .position.column = 1,
                   .position.line = 1,
-                  .value.integer = integer};
+                  .value.number = number};
 }
 
 static inline node_t nBool(bool boolean) {

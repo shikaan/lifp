@@ -6,18 +6,18 @@
 #include <string.h>
 
 result_node_ref_t parseAtom(arena_t *arena, token_t token) {
-  assert(token.type == TOKEN_TYPE_INTEGER || token.type == TOKEN_TYPE_SYMBOL);
+  assert(token.type == TOKEN_TYPE_NUMBER || token.type == TOKEN_TYPE_SYMBOL);
 
   node_t *node = nullptr;
-  tryWithMeta(result_node_ref_t, nodeCreate(arena, NODE_TYPE_INTEGER),
+  tryWithMeta(result_node_ref_t, nodeCreate(arena, NODE_TYPE_NUMBER),
               token.position, node);
 
   node->position = token.position;
 
   switch (token.type) {
-  case TOKEN_TYPE_INTEGER:
-    node->type = NODE_TYPE_INTEGER;
-    node->value.integer = token.value.integer;
+  case TOKEN_TYPE_NUMBER:
+    node->type = NODE_TYPE_NUMBER;
+    node->value.number = token.value.number;
     return ok(result_node_ref_t, node);
   case TOKEN_TYPE_SYMBOL:
     if (strncmp(token.value.symbol, TRUE, 4) == 0) {

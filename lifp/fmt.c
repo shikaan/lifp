@@ -48,8 +48,8 @@ static void formatNode(const node_t *node, int size, char buffer[static size],
     append(size, buffer, offset, "nil");
     return;
   }
-  case NODE_TYPE_INTEGER: {
-    append(size, buffer, offset, "%d", node->value.integer);
+  case NODE_TYPE_NUMBER: {
+    append(size, buffer, offset, "%d", node->value.number);
     return;
   }
   case NODE_TYPE_SYMBOL: {
@@ -101,8 +101,8 @@ void formatValue(const value_t *value, int size,
     append(size, output_buffer, offset, "nil");
     return;
   }
-  case VALUE_TYPE_INTEGER: {
-    append(size, output_buffer, offset, "%d", value->value.integer);
+  case VALUE_TYPE_NUMBER: {
+    append(size, output_buffer, offset, "%d", value->value.number);
     return;
   }
   case VALUE_TYPE_BUILTIN: {

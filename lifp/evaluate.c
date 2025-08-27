@@ -106,9 +106,9 @@ result_void_position_t evaluate(value_t *result, arena_t *temp_arena,
     result->value.nil = ast->value.nil;
     return ok(result_void_position_t);
   }
-  case NODE_TYPE_INTEGER: {
-    result->type = VALUE_TYPE_INTEGER;
-    result->value.integer = ast->value.integer;
+  case NODE_TYPE_NUMBER: {
+    result->type = VALUE_TYPE_NUMBER;
+    result->value.number = ast->value.number;
     return ok(result_void_position_t);
   }
   case NODE_TYPE_SYMBOL: {
@@ -172,7 +172,7 @@ result_void_position_t evaluate(value_t *result, arena_t *temp_arena,
                  invokeClosure(result, evaluated, first_value, temp_arena, env),
                  arenaAllocationFrameEnd(temp_arena, frame));
       return ok(result_void_position_t);
-    case VALUE_TYPE_INTEGER:
+    case VALUE_TYPE_NUMBER:
     case VALUE_TYPE_LIST:
     case VALUE_TYPE_NIL:
     case VALUE_TYPE_BOOLEAN:

@@ -52,7 +52,7 @@ int main() {
   case("number");
   value_t number;
   execute(&number, "1");
-  expectEqlInt(number.value.integer, 1, "returns correct value");
+  expectEqlInt(number.value.number, 1, "returns correct value");
   
   case("symbol");
   value_t symbol;
@@ -64,36 +64,36 @@ int main() {
   execute(&list, "(1 2)");
   expectEqlUint((unsigned int)list.value.list.count, 2, "returns a list"); 
   value_t first = listGet(value_t, &list.value.list,  0); 
-  expectEqlInt(first.value.integer, 1, "correct first item"); 
+  expectEqlInt(first.value.number, 1, "correct first item"); 
   value_t second = listGet(value_t, &list.value.list, 1);
-  expectEqlInt(second.value.integer, 2, "correct second item");
+  expectEqlInt(second.value.number, 2, "correct second item");
   
   case("simple form");
   value_t simple;
   execute(&simple, "(+ 1 2)");
-  expectEqlInt(simple.value.integer, 3, "returns correct value");
+  expectEqlInt(simple.value.number, 3, "returns correct value");
   
   case("nested form");
   value_t nested;
   execute(&nested, "(+ 1 (+ 2 4))");
-  expectEqlInt(nested.value.integer, 7, "returns correct value");
+  expectEqlInt(nested.value.number, 7, "returns correct value");
   
   case("declare function");
   value_t fun;
   execute(&fun, "(def! sum (fn (a b) (+ a b)))\n(sum 1 2)");
-  expectEqlUint(fun.type, VALUE_TYPE_INTEGER, "returns correct type");
-  expectEqlInt(fun.value.integer, 3, "returns correct value");
+  expectEqlUint(fun.type, VALUE_TYPE_NUMBER, "returns correct type");
+  expectEqlInt(fun.value.number, 3, "returns correct value");
   
   case("let");
   value_t let;
   execute(&let, "(let ((plus (fn (x y) (+ x y))) (a 1)) (plus a 1))");
-  expectEqlUint(let.type, VALUE_TYPE_INTEGER, "returns correct type");
-  expectEqlInt(let.value.integer, 2, "returns correct value");
+  expectEqlUint(let.type, VALUE_TYPE_NUMBER, "returns correct type");
+  expectEqlInt(let.value.number, 2, "returns correct value");
 
   case("conditional - cond special form");
   value_t cond_test;
   execute(&cond_test, "(cond ((< 5 3) 1) ((> 5 3) 2) (3))");
-  expectEqlInt(cond_test.value.integer, 2, "evaluates correct branch");
+  expectEqlInt(cond_test.value.number, 2, "evaluates correct branch");
 
   case("boolean operations");
   value_t bool_test;
@@ -104,7 +104,7 @@ int main() {
   case("recursive function calls");
   value_t factorial;
   execute(&factorial, "(def! fact (fn (n) (cond ((< n 1) 1) (* n (fact (- n 1))))))\n(fact 5)");
-  expectEqlInt(factorial.value.integer, 120, "recursive factorial works");
+  expectEqlInt(factorial.value.number, 120, "recursive factorial works");
 
   case("empty list and nil handling");
   value_t empty_list;
@@ -115,17 +115,17 @@ int main() {
   case("variable shadowing in nested let");
   value_t shadow_test;
   execute(&shadow_test, "(let ((x 1)) (let ((x 2)) x))");
-  expectEqlInt(shadow_test.value.integer, 2, "inner binding shadows outer");
+  expectEqlInt(shadow_test.value.number, 2, "inner binding shadows outer");
 
   case("multiple expressions with side effects");
   value_t multi_expr;
   execute(&multi_expr, "(def! x 1)\n(def! x (+ x 1))\nx");
-  expectEqlInt(multi_expr.value.integer, 2, "sequential definitions work");
+  expectEqlInt(multi_expr.value.number, 2, "sequential definitions work");
 
   case("function parameter shadowing");
   value_t shadow_param;
   execute(&shadow_param, "(def! x 10)\n(def! test (fn (x) (+ x 1)))\n(test 5)");
-  expectEqlInt(shadow_param.value.integer, 6, "function parameter shadows global variable");
+  expectEqlInt(shadow_param.value.number, 6, "function parameter shadows global variable");
 
   arenaDestroy(&ast_arena);
   arenaDestroy(&temp_arena);
