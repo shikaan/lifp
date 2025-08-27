@@ -107,8 +107,8 @@ int main(int argc, char **argv) {
   formatVersion(512, version);
   char run_help[512];
   formatRunUsage(512, run_help);
-  char repl_help[256];
-  formatRunUsage(256, repl_help);
+  char repl_help[512];
+  formatReplUsage(512, repl_help);
 
   ap_set_helptext(root_parser, usage_help);
   ap_set_version(root_parser, version);
@@ -147,6 +147,11 @@ int main(int argc, char **argv) {
   if (!ap_parse(root_parser, argc, argv)) {
     error("unable to parse command line arguments");
     goto error;
+  }
+
+  if (!ap_found_cmd(root_parser)) {
+    printf("%s", ap_get_helptext(root_parser));
+    return 1;
   }
 
   return ap_get_cmd_exit_code(root_parser);
