@@ -1,6 +1,3 @@
-  * [ ] Enforce immutability
-  * [ ] When `def!` reallocates the same symbol, it leaks memory (old symbol is not evicted)
-  
 BUGS
 ---
   * [ ] `listGet` allows you to go out of bound
