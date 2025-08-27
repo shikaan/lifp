@@ -31,7 +31,7 @@ void getSet() {
     
   case("new item");
   int value = 42;
-  result_void_t setting = mapSet(map, "test", &value);
+  result_void_t setting = mapSet(int, map, "test", &value);
   expectTrue(setting.code == RESULT_OK, "sets successfully");
   expectEqlSize(map->count, 1, "count increases");
   int* item = mapGet(int, map, "test");
@@ -45,13 +45,13 @@ void getSet() {
 
   int value2 = 43;
 
-  setting = mapSet(map, "test", &value);
+  setting = mapSet(int, map, "test", &value);
   assert(setting.code == RESULT_OK);
   expectEqlSize(map->count, 1, "count is 1 after first set");
   item = mapGet(int, map, "test");
   expectEqlInt(*item, value, "value is correct");
   
-  setting = mapSet(map, "test", &value2);
+  setting = mapSet(int, map, "test", &value2);
   expectTrue(setting.code == RESULT_OK, "updates the record");
   expectEqlSize(map->count, 1, "count remains 1 after update");
   item = mapGet(int, map, "test");
@@ -67,10 +67,10 @@ void getSet() {
   const char* key1 = "liquid";
   const char* key2 = "costarring";
 
-  setting = mapSet(map, key1, &value);
+  setting = mapSet(int, map, key1, &value);
   assert(setting.code == RESULT_OK);
 
-  setting = mapSet(map, key2, &value2);
+  setting = mapSet(int, map, key2, &value2);
   assert(setting.code == RESULT_OK);
 
   expectEqlSize(map->count, 2, "increases count");
@@ -85,7 +85,7 @@ void getSet() {
   map = map_creation.value;
 
   // setting with key1 and trying to retrieve with colliding key2
-  setting = mapSet(map, key1, &value);
+  setting = mapSet(int, map, key1, &value);
   assert(setting.code == RESULT_OK);
   expectNull(mapGet(int, map, key2), "doesn't return item from colliding key");
   
@@ -98,9 +98,9 @@ void allocations() {
   Map(int) *map = allocation.value;
 
   int value = 1;
-  tryAssert(mapSet(map, "key", &value));
+  tryAssert(mapSet(int, map, "key", &value));
   
-  result_void_t setting = mapSet(map, "another", &value);
+  result_void_t setting = mapSet(int, map, "another", &value);
   expectTrue(setting.code == RESULT_OK, "allocates over capacity");
   expectEqlSize(map->capacity, 2, "updates capacity");
   arenaReset(test_arena);

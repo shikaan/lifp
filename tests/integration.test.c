@@ -117,11 +117,6 @@ int main() {
   execute(&shadow_test, "(let ((x 1)) (let ((x 2)) x))");
   expectEqlDouble(shadow_test.value.number, 2, "inner binding shadows outer");
 
-  case("multiple expressions with side effects");
-  value_t multi_expr;
-  execute(&multi_expr, "(def! x 1)\n(def! x (+ x 1))\nx");
-  expectEqlDouble(multi_expr.value.number, 2, "sequential definitions work");
-
   case("function parameter shadowing");
   value_t shadow_param;
   execute(&shadow_param, "(def! x 10)\n(def! test (fn (x) (+ x 1)))\n(test 5)");

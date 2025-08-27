@@ -18,12 +18,17 @@ typedef result_void_position_t (*special_form_t)(value_t *, arena_t *,
 static result_void_position_t addToEnvironment(const char *key, value_t *value,
                                                environment_t *environment,
                                                position_t position) {
+  if (mapGet(value_t, environment->values, key)) {
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, position,
+          "identifier '%s' has already been declared", key);
+  }
+
   // If reduction is successful, we can move the closure to VM memory
   value_t copied;
   tryWithMeta(result_void_position_t,
               valueCopy(value, &copied, environment->arena), position);
-  tryWithMeta(result_void_position_t, mapSet(environment->values, key, &copied),
-              position);
+  tryWithMeta(result_void_position_t,
+              mapSet(value_t, environment->values, key, &copied), position);
   return ok(result_void_position_t);
 }
 

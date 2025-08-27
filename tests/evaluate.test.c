@@ -46,7 +46,7 @@ void atoms() {
   case("symbol");
   value_t symbol;
   tryAssert(valueInit(&symbol, test_arena, VALUE_TYPE_NUMBER, 0));
-  mapSet(environment->values, "value", &symbol);
+  mapSet(value_t, environment->values, "value", &symbol);
 
   node_t symbol_node = nSym("value");
   tryAssert(evaluate(&result, test_arena, &symbol_node, environment));
@@ -101,7 +101,7 @@ void functionCall() {
   expectEqlDouble(result.value.number, 6, "has correct result");
   
   value_t val = { .type = VALUE_TYPE_NUMBER, .value.number = 1};
-  mapSet(environment->values, "lol", &val);
+  mapSet(value_t, environment->values, "lol", &val);
   node_t lol_symbol = nSym("lol");
   
   tryAssertAssign(listCreate(node_t, test_arena, 4), list);
@@ -207,6 +207,28 @@ void defSpecialForm() {
 
   expectNotNull(val, "environment is updated");
   expectEqlDouble(val->value.number, 1, "with correct value");
+
+  // Try to override the value using def!
+  node_list_t *override_list = nullptr;
+  tryAssertAssign(listCreate(node_t, test_arena, 3), override_list);
+
+  node_t override_special = nSym("def!");
+  node_t override_var = nSym("foo");
+  node_t override_value = nInt(2);
+
+  tryAssert(listAppend(node_t, override_list, &override_special));
+  tryAssert(listAppend(node_t, override_list, &override_var));
+  tryAssert(listAppend(node_t, override_list, &override_value));
+
+  node_t override_node = nList(3, override_list->data);
+  override_node.value.list.arena = test_arena;
+
+  value_t override_result;
+  auto override_eval = evaluate(&override_result, test_arena, &override_node, environment);
+
+  expectEqlInt(override_eval.code, ERROR_CODE_RUNTIME_ERROR, "def! does not allow overriding an existing value");
+  val = mapGet(value_t, environment->values, "foo");
+  expectEqlDouble(val->value.number, 1, "original value remains unchanged");
 }
 
 void fnSpecialForm() {

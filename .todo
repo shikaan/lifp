@@ -1,7 +1,9 @@
+  * [ ] Enforce immutability
+  * [ ] When `def!` reallocates the same symbol, it leaks memory (old symbol is not evicted)
+  
 BUGS
 ---
   * [ ] `listGet` allows you to go out of bound
-  * [ ] When `def!` reallocates the same symbol, it leaks memory (old symbol is not evicted)
   * [ ] special forms are not recognised (type `def!` alone in repl and get error)
 
 FEATURES
@@ -12,7 +14,6 @@ FEATURES
   * [ ] Enforce naming conventions for functions
     * [ ] effectful functions should terminate with !
     * [ ] functions ending in ? should return bool
-  * [ ] Enforce immutability
   * [ ] Resizable arena, to allow resizable environments
   * [ ] Tail call optimization
   * [ ] Lexer should know about comments (and discard them)

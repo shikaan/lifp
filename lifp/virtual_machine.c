@@ -28,7 +28,7 @@ result_ref_t vmInit() {
 #define setBuiltin(Label, Builtin)                                             \
   builtin.type = VALUE_TYPE_BUILTIN;                                           \
   builtin.value.builtin = (Builtin);                                           \
-  try(result_ref_t, mapSet(builtins, (Label), &builtin));
+  try(result_ref_t, mapSet(value_t, builtins, (Label), &builtin));
 
   value_t builtin;
   setBuiltin(SUM, sum);

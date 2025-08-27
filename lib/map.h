@@ -95,6 +95,7 @@ typedef Map(void) generic_map_t;
 /**
  * Set a key-value pair in the map.
  * @name mapSet
+ * @param {Type} ItemType - The type of values stored in the map
  * @param {Map(Type)*} Map - Pointer to the map to modify
  * @param {const char*} Key - Key string (max 31 characters + null terminator)
  * @param {Type*} Value - Pointer to the value to store
@@ -106,7 +107,7 @@ typedef Map(void) generic_map_t;
  *       // Handle error
  *   }
  */
-#define mapSet(Map, Key, Value)                                                \
+#define mapSet(ItemType, Map, Key, Value)                                      \
   genericMapSet((generic_map_t *)(Map), Key, Value)
 
 /**
