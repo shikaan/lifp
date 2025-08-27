@@ -24,7 +24,6 @@ COMMON_CFLAGS := -std=c23 \
 	-fdiagnostics-color=always \
 	-fno-common \
 	-Winit-self \
-	-Wfloat-equal \
 	-Wundef \
 	-Wshadow \
 	-Wpointer-arith \

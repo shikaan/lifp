@@ -18,7 +18,7 @@ result_void_position_t listCount(value_t *result, value_list_t *values) {
   }
 
   result->type = VALUE_TYPE_NUMBER;
-  result->value.number = (int32_t)list_value.value.list.count;
+  result->value.number = (number_t)list_value.value.list.count;
 
   return ok(result_void_position_t);
 }
@@ -72,7 +72,7 @@ result_void_position_t listNth(value_t *result, value_list_t *values) {
           "%s requires a list. Got type %u", LIST_NTH, list_value.type);
   }
 
-  int32_t index = index_value.value.number;
+  number_t index = index_value.value.number;
   value_list_t *list = &list_value.value.list;
 
   // Check bounds

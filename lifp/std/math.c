@@ -26,7 +26,7 @@ result_void_position_t mathMax(value_t *result, value_list_t *values) {
   }
 
   // Find the maximum value
-  int32_t max_value = INT32_MIN;
+  number_t max_value = INT32_MIN;
   for (size_t i = 0; i < list->count; i++) {
     value_t current = listGet(value_t, list, i);
     if (current.type != VALUE_TYPE_NUMBER) {
@@ -67,7 +67,7 @@ result_void_position_t mathMin(value_t *result, value_list_t *values) {
   }
 
   // Find the minimum value
-  int32_t min_value = INT32_MAX;
+  number_t min_value = INT32_MAX;
   for (size_t i = 0; i < list->count; i++) {
     value_t current = listGet(value_t, list, i);
     if (current.type != VALUE_TYPE_NUMBER) {

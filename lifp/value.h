@@ -33,7 +33,7 @@ typedef struct value_t {
   position_t position;
   union {
     bool boolean;
-    int32_t number;
+    number_t number;
     closure_t closure;
     builtin_t builtin;
     nullptr_t nil;

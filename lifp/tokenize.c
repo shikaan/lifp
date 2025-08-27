@@ -1,6 +1,7 @@
 #include "tokenize.h"
 #include "error.h"
 #include "position.h"
+#include "token.h"
 
 #include <ctype.h>
 #include <stddef.h>
@@ -14,8 +15,7 @@ result_token_t bufferToToken(size_t buffer_len, char buffer[static buffer_len],
                              position_t position) {
   buffer[buffer_len] = 0;
   char *remainder;
-  // FIXME: this is silently overflowing
-  int32_t number = (int32_t)strtol(buffer, &remainder, 10);
+  number_t number = (number_t)strtod(buffer, &remainder);
 
   // This condition is met when all the chars of the token represent an number
   // This includes also leading +/-

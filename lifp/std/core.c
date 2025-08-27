@@ -5,7 +5,7 @@
 
 const char *SUM = "+";
 result_void_position_t sum(value_t *result, value_list_t *values) {
-  int32_t sum = 0;
+  number_t sum = 0;
   for (size_t i = 0; i < values->count; i++) {
     value_t current = listGet(value_t, values, i);
     if (current.type != VALUE_TYPE_NUMBER) {
@@ -35,7 +35,7 @@ result_void_position_t subtract(value_t *result, value_list_t *values) {
           "%s requires a list numbers. Got type %u", SUB, first.type);
   }
 
-  int32_t result_value = first.value.number;
+  number_t result_value = first.value.number;
 
   for (size_t i = 1; i < values->count; i++) {
     value_t current = listGet(value_t, values, i);
@@ -55,7 +55,7 @@ result_void_position_t subtract(value_t *result, value_list_t *values) {
 
 const char *MUL = "*";
 result_void_position_t multiply(value_t *result, value_list_t *values) {
-  int32_t product = 1;
+  number_t product = 1;
   for (size_t i = 0; i < values->count; i++) {
     value_t current = listGet(value_t, values, i);
     if (current.type != VALUE_TYPE_NUMBER) {
@@ -85,7 +85,7 @@ result_void_position_t divide(value_t *result, value_list_t *values) {
           "%s requires a list numbers. Got type %u", DIV, first.type);
   }
 
-  int32_t result_value = first.value.number;
+  number_t result_value = first.value.number;
 
   for (size_t i = 1; i < values->count; i++) {
     value_t current = listGet(value_t, values, i);
@@ -134,7 +134,8 @@ result_void_position_t modulo(value_t *result, value_list_t *values) {
   }
 
   result->type = VALUE_TYPE_NUMBER;
-  result->value.number = first.value.number % second.value.number;
+  result->value.number =
+      (number_t)((int)first.value.number % (int)second.value.number);
 
   return ok(result_void_position_t);
 }

@@ -28,7 +28,7 @@ void atoms() {
   tryAssert(evaluate(&result, test_arena, &number_node, environment));
   expectEqlValueType(result.type, VALUE_TYPE_NUMBER,
                      "has correct type");
-  expectEqlInt(result.value.number, 42, "has correct value");
+  expectEqlDouble(result.value.number, 42, "has correct value");
 
   case("boolean");
   node_t bool_node = nBool(true);
@@ -75,7 +75,7 @@ void listOfElements() {
     value_t node = listGet(value_t, &reduced_list, i);
     node_t expected_node = listGet(node_t, expected, i);
     expectEqlValueType(node.type, VALUE_TYPE_NUMBER, "has correct type");
-    expectEqlInt(node.value.number, expected_node.value.number,
+    expectEqlDouble(node.value.number, expected_node.value.number,
                  "has correct value");
   }
 }
@@ -98,7 +98,7 @@ void functionCall() {
 
   value_t result;
   tryAssert(evaluate(&result, test_arena, &form_node, environment));
-  expectEqlInt(result.value.number, 6, "has correct result");
+  expectEqlDouble(result.value.number, 6, "has correct result");
   
   value_t val = { .type = VALUE_TYPE_NUMBER, .value.number = 1};
   mapSet(environment->values, "lol", &val);
@@ -206,7 +206,7 @@ void defSpecialForm() {
   value_t* val = mapGet(value_t, environment->values, "foo");
 
   expectNotNull(val, "environment is updated");
-  expectEqlInt(val->value.number, 1, "with correct value");
+  expectEqlDouble(val->value.number, 1, "with correct value");
 }
 
 void fnSpecialForm() {
@@ -347,7 +347,7 @@ void letSpecialForm() {
   value_t let;
   tryAssert(evaluate(&let, test_arena, &let_node, environment));
   expectEqlUint(let.type, VALUE_TYPE_NUMBER, "evaluates to number");
-  expectEqlInt(let.value.number, 15, "with correct result (5 + 10)");
+  expectEqlDouble(let.value.number, 15, "with correct result (5 + 10)");
 
   // Verify that let bindings don't leak to outer environment
   value_t* leaked_a = mapGet(value_t, environment->values, "a");
@@ -379,7 +379,7 @@ void condSpecialForm() {
   value_t result;
   tryAssert(evaluate(&result, test_arena, cond, environment));
   expectEqlUint(result.type, VALUE_TYPE_NUMBER, "returns number");
-  expectEqlInt(result.value.number, true_value.value.number, "evaluates true clause");
+  expectEqlDouble(result.value.number, true_value.value.number, "evaluates true clause");
 
   tryAssertAssign(nodeCreate(test_arena, NODE_TYPE_LIST), cond);
   
@@ -394,7 +394,7 @@ void condSpecialForm() {
 
   tryAssert(evaluate(&result, test_arena, cond, environment));
   expectEqlUint(result.type, VALUE_TYPE_NUMBER, "returns number");
-  expectEqlInt(result.value.number, fallback_value.value.number, "evaluates fallback clause");
+  expectEqlDouble(result.value.number, fallback_value.value.number, "evaluates fallback clause");
 
   // (cond (false 42) (true 42) 99)
   tryAssertAssign(nodeCreate(test_arena, NODE_TYPE_LIST), cond);
@@ -406,7 +406,7 @@ void condSpecialForm() {
 
   tryAssert(evaluate(&result, test_arena, cond, environment));
   expectEqlUint(result.type, VALUE_TYPE_NUMBER, "returns number");
-  expectEqlInt(result.value.number, 42, "evaluates the first true clause");
+  expectEqlDouble(result.value.number, 42, "evaluates the first true clause");
 }
 
 int main(void) {

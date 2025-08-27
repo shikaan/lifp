@@ -21,7 +21,7 @@ typedef enum {
 
 typedef union node_value_t {
   node_list_t list;
-  int32_t number;
+  number_t number;
   char symbol[SYMBOL_SIZE];
   bool boolean;
   nullptr_t nil;

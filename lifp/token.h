@@ -9,6 +9,8 @@ constexpr char RPAREN = ')';
 
 constexpr size_t SYMBOL_SIZE = 16;
 
+typedef double number_t;
+
 typedef enum {
   TOKEN_TYPE_LPAREN,
   TOKEN_TYPE_RPAREN,
@@ -18,7 +20,7 @@ typedef enum {
 
 typedef union {
   char symbol[SYMBOL_SIZE];
-  int32_t number;
+  number_t number;
   nullptr_t lparen;
   nullptr_t rparen;
 } token_value_t;

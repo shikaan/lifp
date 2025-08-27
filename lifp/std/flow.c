@@ -2,6 +2,7 @@
 #include "../error.h"
 #include "../value.h"
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <time.h>
 #include <unistd.h>
@@ -20,7 +21,7 @@ result_void_position_t flowSleep(value_t *result, value_list_t *values) {
           "%s requires an number. Got type %u", FLOW_SLEEP, ms_value.type);
   }
 
-  int32_t milliseconds = ms_value.value.number;
+  long milliseconds = (long)ms_value.value.number;
   if (milliseconds < 0) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, ms_value.position,
           "%s requires a non-negative number", FLOW_SLEEP);
