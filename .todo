@@ -8,10 +8,6 @@ BUGS
 
 FEATURES
 ---
-  * [ ] Implement CLI
-    * [ ] Welcome text in REPL with version as `lifp`
-    * [ ] REPL and run as commands
-    * [ ] Set memory boundaries with CLI flags (e.g., `--max-ast-memory=1024`)
   * [ ] Compile AST to bytecode
   * [ ] Implement double/float methods in stdlib (math.floor, math.ceil)
   * [ ] Implement string methods in stdlib (string.length, string.join, string.slice, string.includes, string.trim)
@@ -26,6 +22,7 @@ FEATURES
   * [ ] Auto-generated documentation for standard library
   * [ ] Enum to text for error messages
   * [ ] Currying: `(def! make-adder (fn (x) (fn (y) (+ x y))))\n(make-adder 5)` currently loses context on `x` because of immediate invocation
+  * [ ] Implement `?` in REPL
 
 REFACTORING
 ---

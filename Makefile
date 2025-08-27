@@ -5,10 +5,14 @@ ifeq ($(PROFILE),1)
 endif
 
 .PHONY: all
-all: clean bin/repl
+all: clean bin/lifp
 
 linenoise.o: CFLAGS = -Wall -W -Os
 linenoise.o: vendor/linenoise/linenoise.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+args.o: CFLAGS = -Wall -W -Os
+args.o: vendor/args/src/args.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 lib/list.o: lib/arena.o
@@ -41,15 +45,11 @@ tests/memory.test: \
 	lib/map.o lifp/node.o lifp/virtual_machine.o lifp/value.o lifp/fmt.o \
 	lib/profile.o
 
-bin/repl: \
+bin/lifp: CFLAGS := $(CFLAGS) -DVERSION='"$(VERSION)"' -DSHA='"$(SHA)"'
+bin/lifp: \
 	lifp/tokenize.o lifp/parse.o lib/list.o lifp/evaluate.o lifp/node.o \
 	lib/arena.o lifp/virtual_machine.o lib/map.o lib/profile.o lifp/fmt.o \
-	lifp/value.o linenoise.o
-
-bin/run: \
-	lifp/tokenize.o lifp/parse.o lib/list.o lifp/evaluate.o lifp/node.o \
-	lib/arena.o lifp/virtual_machine.o lib/map.o lifp/fmt.o lifp/value.o \
-	lib/profile.o
+	lifp/value.o linenoise.o args.o
 
 
 .PHONY: clean
@@ -73,9 +73,12 @@ lib-test: tests/arena.test tests/list.test tests/map.test
 	tests/list.test
 	tests/map.test
 
-.PHONY: test
-test: lifp-test lib-test
+.PHONY: memory-test
+memory-test:
 	# Memory tests can only be run with the profiler on
 	make PROFILE=1 clean tests/memory.test
 	tests/memory.test
 	make clean
+
+.PHONY: test
+test: lifp-test lib-test memory-test

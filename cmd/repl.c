@@ -7,21 +7,39 @@
 #include "../lifp/tokenize.h"
 #include "../lifp/virtual_machine.h"
 #include "../vendor/linenoise/linenoise.h"
+#include "utils.h"
 #include <stdio.h>
 #include <string.h>
 
-allocMetricsInit();
+const char REPL[] = "repl";
 
-// Size of the output buffer
-constexpr size_t BUFFER_SIZE = 4096;
+typedef struct {
+  size_t ast_memory;
+  size_t temp_memory;
+  size_t output_size;
+} repl_opts_t;
 
-// Memory allocated for AST parsing
-constexpr size_t AST_MEMORY = (size_t)(1024 * 64);
-
-// Memory allocated for storing transient values across environments
-constexpr size_t TEMP_MEMORY = (size_t)(1024 * 64);
-
-const char REPL_COMMAND_CLEAR[] = "clear";
+static constexpr char REPL_COMMAND_CLEAR[] = "clear";
+void clean(void) { printf("\e[1;1H\e[2J"); }
+static constexpr char REPL_COMMAND_HELP[] = "help";
+void help(void) {
+  printf("lifp is a LISP dialect. Its syntax is made of expressions enclosed "
+         "in parentheses.\n"
+         "Here's your first program:\n"
+         "\n"
+         "    (io.print! (+ 1 2)) ; prints 3\n"
+         "\n"
+         "To learn about the functions and the variables available in this "
+         "environment, use '?':\n"
+         "\n"
+         "    ?           ; lists functions in this environment\n"
+         "    ? io.print! ; show documentation and examples for io.print!\n"
+         "\n"
+         "For more information, feedback, or bug reports "
+         "https://github.com/shikaan/lifp\n");
+}
+static constexpr char REPL_COMMAND_MORE[] = "?";
+void more(void) { printf("Error: not implemented yet!\n"); }
 
 #define printError(Result, InputBuffer, Size, OutputBuffer)                    \
   int _concat(offset_, __LINE__) = 0;                                          \
@@ -32,34 +50,32 @@ const char REPL_COMMAND_CLEAR[] = "clear";
 #define tryREPL(Action, ...)                                                   \
   auto _concat(result, __LINE__) = Action;                                     \
   if (_concat(result, __LINE__).code != RESULT_OK) {                           \
-    printError(&_concat(result, __LINE__), input, BUFFER_SIZE, buffer);        \
+    printError(&_concat(result, __LINE__), input, (int)OPTIONS.output_size,    \
+               buffer);                                                        \
     continue;                                                                  \
   }                                                                            \
   __VA_OPT__(__VA_ARGS__ = _concat(result, __LINE__).value;)
 
-#define tryCLI(Action, Destination, ErrorMessage)                              \
-  auto _concat(result, __LINE__) = Action;                                     \
-  if (_concat(result, __LINE__).code != RESULT_OK) {                           \
-    fprintf(stderr, "lifp: %s", ErrorMessage);                                 \
-    return 1;                                                                  \
-  }                                                                            \
-  (Destination) = _concat(result, __LINE__).value;
-
-int main(void) {
-  char buffer[BUFFER_SIZE];
+int repl(const repl_opts_t OPTIONS) {
+  char buffer[OPTIONS.output_size];
 
   arena_t *ast_arena = nullptr;
-  tryCLI(arenaCreate(AST_MEMORY), ast_arena,
+  tryCLI(arenaCreate(OPTIONS.ast_memory), ast_arena,
          "unable to allocate interpreter memory");
 
   arena_t *temp_arena = nullptr;
-  tryCLI(arenaCreate(TEMP_MEMORY), temp_arena,
+  tryCLI(arenaCreate(OPTIONS.temp_memory), temp_arena,
          "unable to allocate transient memory");
 
   environment_t *global_environment = nullptr;
   tryCLI(vmInit(), global_environment, "unable to initialize virtual machine");
 
   linenoiseSetMultiLine(1);
+
+  char welcome_message[256];
+  formatVersion(256, welcome_message);
+  printf("%s\nType 'help' for help. Press Ctrl+C to exit.\n\n",
+         welcome_message);
 
   profileInit();
   while (true) {
@@ -75,7 +91,17 @@ int main(void) {
       continue;
 
     if (strcmp(input, REPL_COMMAND_CLEAR) == 0) {
-      printf("\e[1;1H\e[2J");
+      clean();
+      continue;
+    }
+
+    if (strcmp(input, REPL_COMMAND_HELP) == 0) {
+      help();
+      continue;
+    }
+
+    if (strcmp(input, REPL_COMMAND_MORE) == 0) {
+      more();
       continue;
     }
 
@@ -94,10 +120,10 @@ int main(void) {
     tryREPL(evaluate(&result, temp_arena, ast, global_environment));
 
     int buffer_offset = 0;
-    formatValue(&result, BUFFER_SIZE, buffer, &buffer_offset);
+    formatValue(&result, (int)OPTIONS.output_size, buffer, &buffer_offset);
     printf("~> %s\n", buffer);
 
-    memset(buffer, 0, BUFFER_SIZE);
+    memset(buffer, 0, OPTIONS.output_size);
   }
   profileEnd();
   environmentDestroy(&global_environment);
@@ -106,6 +132,5 @@ int main(void) {
   return 0;
 }
 
-#undef tryCLI
 #undef tryREPL
 #undef printError
