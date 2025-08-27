@@ -50,6 +50,8 @@ result_ref_t vmInit() {
   setBuiltin(LIST_NTH, listNth);
   setBuiltin(MATH_MAX, mathMax);
   setBuiltin(MATH_MIN, mathMin);
+  setBuiltin(MATH_CEIL, mathCeil);
+  setBuiltin(MATH_FLOOR, mathFloor);
   setBuiltin(MATH_RANDOM, mathRandom);
   setBuiltin(IO_PRINT, ioPrint);
 #undef setBuiltin

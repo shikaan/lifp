@@ -1,7 +1,8 @@
 #include "../../lib/result.h"
 #include "../error.h"
 #include "../value.h"
-#include <stdint.h>
+#include <float.h>
+#include <math.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -26,7 +27,7 @@ result_void_position_t mathMax(value_t *result, value_list_t *values) {
   }
 
   // Find the maximum value
-  number_t max_value = INT32_MIN;
+  number_t max_value = DBL_MIN;
   for (size_t i = 0; i < list->count; i++) {
     value_t current = listGet(value_t, list, i);
     if (current.type != VALUE_TYPE_NUMBER) {
@@ -67,7 +68,7 @@ result_void_position_t mathMin(value_t *result, value_list_t *values) {
   }
 
   // Find the minimum value
-  number_t min_value = INT32_MAX;
+  number_t min_value = DBL_MAX;
   for (size_t i = 0; i < list->count; i++) {
     value_t current = listGet(value_t, list, i);
     if (current.type != VALUE_TYPE_NUMBER) {
@@ -104,6 +105,44 @@ result_void_position_t mathRandom(value_t *result, value_list_t *values) {
 
   result->type = VALUE_TYPE_NUMBER;
   result->value.number = rand();
+
+  return ok(result_void_position_t);
+}
+
+const char *MATH_CEIL = "math.ceil";
+result_void_position_t mathCeil(value_t *result, value_list_t *values) {
+  if (values->count != 1) {
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
+          "%s requires exactly 1 argument. Got %zu", MATH_CEIL, values->count);
+  }
+
+  value_t number = listGet(value_t, values, 0);
+  if (number.type != VALUE_TYPE_NUMBER) {
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, number.position,
+          "%s requires a number. Got type %u", MATH_CEIL, number.type);
+  }
+
+  result->type = VALUE_TYPE_NUMBER;
+  result->value.number = ceil(number.value.number);
+
+  return ok(result_void_position_t);
+}
+
+const char *MATH_FLOOR = "math.floor";
+result_void_position_t mathFloor(value_t *result, value_list_t *values) {
+  if (values->count != 1) {
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
+          "%s requires exactly 1 argument. Got %zu", MATH_FLOOR, values->count);
+  }
+
+  value_t number = listGet(value_t, values, 0);
+  if (number.type != VALUE_TYPE_NUMBER) {
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, number.position,
+          "%s requires a number. Got type %u", MATH_FLOOR, number.type);
+  }
+
+  result->type = VALUE_TYPE_NUMBER;
+  result->value.number = floor(number.value.number);
 
   return ok(result_void_position_t);
 }
