@@ -162,9 +162,10 @@ result_void_position_t let(value_t *result, arena_t *temp_arena,
     tryCatch(result_void_position_t,
              evaluate(&evaluated, temp_arena, &body, local_env),
              environmentDestroy(&local_env));
-    try(result_void_position_t,
-        addToEnvironment(symbol.value.symbol, &evaluated, local_env,
-                         evaluated.position));
+    tryCatch(result_void_position_t,
+             addToEnvironment(symbol.value.symbol, &evaluated, local_env,
+                              evaluated.position),
+             environmentDestroy(&local_env));
     arenaAllocationFrameEnd(temp_arena, bindings_frame);
   }
 
