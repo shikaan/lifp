@@ -31,5 +31,7 @@ void resolutions() {
 int main(void) {
   tryAssert(arenaCreate((size_t)1024 * 1024), test_arena);
   suite(resolutions);
+  arenaDestroy(&test_arena);
+  environmentDestroy(&global);
   return report();
 }
