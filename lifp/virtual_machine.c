@@ -3,7 +3,7 @@
 
 #include "virtual_machine.h"
 
-// NOLINTBEGIN
+// NOLINTBEGIN - intentionally including .c files
 #include "std/core.c"
 #include "std/flow.c"
 #include "std/io.c"
@@ -11,10 +11,12 @@
 #include "std/math.c"
 // NOLINTEND
 
+#include "specials.h"
 #include "value.h"
 #include <assert.h>
 
 static Map(value_t) * builtins;
+static Map(value_t) * specials;
 
 constexpr size_t ENVIRONMENT_MAX_SIZE = (long)32 * 1024;
 
@@ -56,6 +58,19 @@ result_ref_t vmInit() {
   setBuiltin(IO_PRINT, ioPrint);
 #undef setBuiltin
 
+  try(result_ref_t, mapCreate(value_t, global_environment->arena, 4), specials);
+#define setSpecial(Label, Special)                                             \
+  special.type = VALUE_TYPE_SPECIAL;                                           \
+  special.value.special = (Special);                                           \
+  try(result_ref_t, mapSet(value_t, specials, (Label), &special));
+
+  value_t special;
+  setSpecial(DEFINE, define);
+  setSpecial(LET, let);
+  setSpecial(COND, cond);
+  setSpecial(FUNCTION, function);
+#undef setSpecial
+
   return ok(result_ref_t, global_environment);
 }
 
@@ -89,6 +104,11 @@ const value_t *environmentResolveSymbol(environment_t *self,
                                         const char *symbol) {
   assert(self);
 
+  const value_t *special = mapGet(value_t, specials, symbol);
+  if (special) {
+    return special;
+  }
+
   const value_t *builtin = mapGet(value_t, builtins, symbol);
   if (builtin) {
     return builtin;
@@ -104,5 +124,6 @@ const value_t *environmentResolveSymbol(environment_t *self,
 
 void environmentReset(environment_t *self) {
   assert(self);
+  // The environment is allocated on its own arena. This resets its state
   arenaReset(self->arena);
 }

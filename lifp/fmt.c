@@ -109,6 +109,10 @@ void formatValue(const value_t *value, int size,
     append(size, output_buffer, offset, "#<builtin>");
     return;
   }
+  case VALUE_TYPE_SPECIAL: {
+    append(size, output_buffer, offset, "#<special>");
+    return;
+  }
   case VALUE_TYPE_LIST: {
     append(size, output_buffer, offset, "(");
     value_list_t list = value->value.list;

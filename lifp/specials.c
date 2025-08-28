@@ -1,3 +1,4 @@
+#include "specials.h"
 #include "../lib/list.h"
 #include "../lib/map.h"
 #include "../lib/result.h"
@@ -10,10 +11,6 @@
 #include <assert.h>
 #include <stddef.h>
 #include <string.h>
-
-typedef result_void_position_t (*special_form_t)(value_t *, arena_t *,
-                                                 environment_t *,
-                                                 const node_list_t *);
 
 static result_void_position_t addToEnvironment(const char *key, value_t *value,
                                                environment_t *environment,
@@ -33,7 +30,6 @@ static result_void_position_t addToEnvironment(const char *key, value_t *value,
 }
 
 const char *DEFINE_EXAMPLE = "(def! x (+ 1 2))";
-const char *DEFINE = "def!";
 result_void_position_t define(value_t *result, arena_t *temp_arena,
                               environment_t *env, const node_list_t *nodes) {
   assert(nodes->count > 0); // def! is always there
@@ -69,7 +65,6 @@ result_void_position_t define(value_t *result, arena_t *temp_arena,
 }
 
 const char *FUNCTION_EXAMPLE = "(fn (a b) (+ a b))";
-const char *FUNCTION = "fn";
 result_void_position_t function(value_t *result, arena_t *temp_arena,
                                 environment_t *env, const node_list_t *nodes) {
   assert(nodes->count > 0); // fn is always there
@@ -122,7 +117,6 @@ result_void_position_t function(value_t *result, arena_t *temp_arena,
 }
 
 const char *LET_EXAMPLE = "(let ((a 1) (b 2)) (+ a b))";
-const char *LET = "let";
 result_void_position_t let(value_t *result, arena_t *temp_arena,
                            environment_t *env, const node_list_t *nodes) {
   assert(nodes->count > 0); // let is always there
@@ -168,9 +162,10 @@ result_void_position_t let(value_t *result, arena_t *temp_arena,
     tryCatch(result_void_position_t,
              evaluate(&evaluated, temp_arena, &body, local_env),
              environmentDestroy(&local_env));
-    try(result_void_position_t,
-        addToEnvironment(symbol.value.symbol, &evaluated, local_env,
-                         evaluated.position));
+    tryCatch(result_void_position_t,
+             addToEnvironment(symbol.value.symbol, &evaluated, local_env,
+                              evaluated.position),
+             environmentDestroy(&local_env));
     arenaAllocationFrameEnd(temp_arena, bindings_frame);
   }
 
@@ -183,7 +178,6 @@ result_void_position_t let(value_t *result, arena_t *temp_arena,
 }
 
 const char *COND_EXAMPLE = "\n  (cond\n    ((!= x 0) (/ 10 x))\n    (+ x 10))";
-const char *COND = "cond";
 result_void_position_t cond(value_t *result, arena_t *temp_arena,
                             environment_t *env, const node_list_t *nodes) {
   assert(nodes->count > 0);

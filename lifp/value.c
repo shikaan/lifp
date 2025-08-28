@@ -67,6 +67,9 @@ result_void_t valueCopy(value_t *source, value_t *destination,
   case VALUE_TYPE_BUILTIN:
     destination->value.builtin = source->value.builtin;
     break;
+  case VALUE_TYPE_SPECIAL:
+    destination->value.special = source->value.special;
+    break;
   case VALUE_TYPE_NIL:
     destination->value.nil = source->value.nil;
     break;
