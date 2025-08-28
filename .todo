@@ -1,7 +1,6 @@
 BUGS
 ---
   * [ ] `listGet` allows you to go out of bound
-  * [ ] special forms are not recognised (type `def!` alone in repl and get error)
 
 FEATURES
 ---
@@ -19,11 +18,12 @@ FEATURES
   * [ ] Currying: `(def! make-adder (fn (x) (fn (y) (+ x y))))\n(make-adder 5)` currently loses context on `x` because of immediate invocation
   * [ ] Implement `?` in REPL
   * [ ] imports `(import! my-module "./my-module.lifp")
+  * [ ] Type Declaration comments `;; (number, number) -> number`
+  * [ ] Max Call Stack size
 
 REFACTORING
 ---
-  * [ ] Special forms should live in the environment like values and closures
-  * [ ] Make list methods (and hashmap methods) typesafe (now you can (append
+  * [ ] Make list methods (and hashmap methods) typesafe (now you can append
        `node_t` to a `value_list_t` without errors)
   * [ ] Use [`libuv`](https://libuv.org) for non-blocking io
   * [ ] Some structs are huge: mostly because we try to colocate most things. Do we need all of that?

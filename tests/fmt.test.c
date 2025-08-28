@@ -38,6 +38,11 @@ void values() {
   expectEqlString(buffer, "#<builtin>", 11, "formats builtin");
 
   offset = 0;
+  const value_t special = {.type = VALUE_TYPE_SPECIAL};
+  formatValue(&special, size, buffer, &offset);
+  expectEqlString(buffer, "#<special>", 11, "formats specials");
+
+  offset = 0;
   arenaReset(test_arena);
   value_t *list = nullptr;
   tryAssert(valueCreateInit(test_arena, VALUE_TYPE_LIST, 0), list);

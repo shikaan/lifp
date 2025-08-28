@@ -38,7 +38,20 @@ void defSpecialForm() {
 
   tryFail(execute(&result, "(def! foo 2)"), exec);
   expectIncludeString(exec.message, "already been declared",
-                      "prevents overrides");
+                      "prevents overriding globals");
+
+  tryFail(execute(&result, "(def! cond 2)"), exec);
+  expectIncludeString(exec.message, "already been declared",
+                      "prevents overriding specials");
+
+  tryFail(execute(&result, "(def! and 2)"), exec);
+  expectIncludeString(exec.message, "already been declared",
+                      "prevents overriding builtins");
+
+  tryFail(execute(&result, "(let ((foo 1)) (def! foo 2))"), exec);
+  expectIncludeString(exec.message, "already been declared",
+                      "prevents overriding locals");
+
   val = mapGet(value_t, environment->values, "foo");
   expectEqlDouble(val->value.number, 1, "original value remains unchanged");
 }
@@ -71,6 +84,16 @@ void fnSpecialForm() {
   expectIncludeString(exec.message, "shadows a value",
                       "prevents shadowing globals");
 
+  tryAssert(execute(&result, "(def! cond 1)"));
+  tryFail(execute(&result, "(fn (cond) (+ cond 1))"), exec);
+  expectIncludeString(exec.message, "shadows a value",
+                      "prevents shadowing specials");
+
+  tryAssert(execute(&result, "(def! and 1)"));
+  tryFail(execute(&result, "(fn (and) (+ and 1))"), exec);
+  expectIncludeString(exec.message, "shadows a value",
+                      "prevents shadowing builtins");
+
   tryFail(execute(&result, "(let ((a 1)) (fn (a) (+ a 1)))"), exec);
   expectIncludeString(exec.message, "shadows a value",
                       "prevents shadowing locals");
@@ -90,8 +113,8 @@ void letSpecialForm() {
 
   value_t *leaked_a = mapGet(value_t, environment->values, "a");
   value_t *leaked_b = mapGet(value_t, environment->values, "b");
-  expectNull(leaked_a, "let binding 'a' doesn't leak to outer scope");
-  expectNull(leaked_b, "let binding 'b' doesn't leak to outer scope");
+  expectNull(leaked_a, "doesn't leak binding to outer scope");
+  expectNull(leaked_b, "doesn't leak binding to outer scope");
 
   tryFail(execute(&result, "(let (a 1) a)"), exec);
   expectIncludeString(exec.message,
@@ -106,11 +129,19 @@ void letSpecialForm() {
   tryAssert(execute(&result, "(def! x 1)"));
   tryFail(execute(&result, "(let ((x 1)) x)"), exec);
   expectIncludeString(exec.message, "already been declared",
-                      "prevents global shadowing");
+                      "prevents shadowing globals");
+
+  tryFail(execute(&result, "(let ((def! 1)) def!)"), exec);
+  expectIncludeString(exec.message, "already been declared",
+                      "prevents shadowing specials");
+
+  tryFail(execute(&result, "(let ((and 1)) and)"), exec);
+  expectIncludeString(exec.message, "already been declared",
+                      "prevents shadowing builtins");
 
   tryFail(execute(&result, "(let ((y 1)) (let ((y 2)) y))"), exec);
   expectIncludeString(exec.message, "already been declared",
-                      "prevents local shadowing");
+                      "prevents shadowing locals");
 }
 
 void condSpecialForm() {

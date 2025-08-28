@@ -8,11 +8,15 @@
 #include <stdint.h>
 
 typedef struct value_t value_t;
+typedef struct environment_t environment_t;
+
 typedef List(value_t) value_list_t;
 typedef Result(value_t *, position_t) result_value_ref_t;
 typedef ResultVoid(position_t) result_void_position_t;
-typedef result_void_position_t (*builtin_t)(value_t *result,
-                                            value_list_t *nodes);
+typedef result_void_position_t (*builtin_t)(value_t *, value_list_t *);
+typedef result_void_position_t (*special_form_t)(value_t *, arena_t *,
+                                                 environment_t *,
+                                                 const node_list_t *);
 
 typedef enum {
   VALUE_TYPE_BOOLEAN,
@@ -21,6 +25,7 @@ typedef enum {
   VALUE_TYPE_CLOSURE,
   VALUE_TYPE_NIL,
   VALUE_TYPE_LIST,
+  VALUE_TYPE_SPECIAL,
 } value_type_t;
 
 typedef struct {
@@ -38,6 +43,7 @@ typedef struct value_t {
     builtin_t builtin;
     nullptr_t nil;
     value_list_t list;
+    special_form_t special;
   } value;
 } value_t;
 

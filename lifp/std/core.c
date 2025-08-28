@@ -154,6 +154,8 @@ result_void_position_t equal(value_t *result, value_list_t *values) {
   if (first.type == second.type) {
     switch (first.type) {
     case VALUE_TYPE_NUMBER:
+      // NOTE: this is imprecise equality (due to floats) but it's how most
+      // programming languages handle it
       are_equal = first.value.number == second.value.number;
       break;
     case VALUE_TYPE_BOOLEAN:
@@ -163,6 +165,7 @@ result_void_position_t equal(value_t *result, value_list_t *values) {
       are_equal = true;
       break;
     case VALUE_TYPE_BUILTIN:
+    case VALUE_TYPE_SPECIAL:
     case VALUE_TYPE_CLOSURE:
     case VALUE_TYPE_LIST:
     default:
@@ -251,6 +254,7 @@ result_void_position_t notEqual(value_t *result, value_list_t *values) {
       are_equal = true;
       break;
     case VALUE_TYPE_BUILTIN:
+    case VALUE_TYPE_SPECIAL:
     case VALUE_TYPE_CLOSURE:
     case VALUE_TYPE_LIST:
     default:
