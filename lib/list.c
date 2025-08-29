@@ -89,3 +89,5 @@ result_void_t genericListUnshift(generic_list_t *self) {
 
   return ok(result_void_t);
 }
+
+void genericListClear(generic_list_t *self) { self->count = 0; }
