@@ -6,10 +6,15 @@
 
 constexpr char LPAREN = '(';
 constexpr char RPAREN = ')';
+constexpr char LSTR = '"';
+constexpr char RSTR = '"';
 
 constexpr size_t SYMBOL_SIZE = 16;
 
 typedef double number_t;
+typedef char string_t[];
+
+typedef List(char) string_buffer_t;
 
 typedef enum {
   TOKEN_TYPE_LPAREN,
@@ -26,9 +31,9 @@ typedef union {
 } token_value_t;
 
 typedef struct {
-  token_value_t value;
   position_t position;
   token_type_t type;
+  token_value_t value;
 } token_t;
 
 typedef List(token_t) token_list_t;

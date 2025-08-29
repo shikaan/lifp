@@ -11,11 +11,12 @@
 #include <string.h>
 
 typedef Result(token_t, position_t) result_token_t;
-result_token_t bufferToToken(size_t buffer_len, char buffer[static buffer_len],
-                             position_t position) {
-  buffer[buffer_len] = 0;
+result_token_t bufferToToken(string_buffer_t *buffer, position_t position) {
+  char null = 0;
+  tryWithMeta(result_token_t, listAppend(char, buffer, &null), position);
+
   char *remainder;
-  number_t number = (number_t)strtod(buffer, &remainder);
+  number_t number = (number_t)strtod(buffer->data, &remainder);
 
   // This condition is met when all the chars of the token represent an number
   // This includes also leading +/-
@@ -27,102 +28,84 @@ result_token_t bufferToToken(size_t buffer_len, char buffer[static buffer_len],
     return ok(result_token_t, tok);
   }
 
-  if (buffer_len >= SYMBOL_SIZE) {
+  if (buffer->count >= SYMBOL_SIZE) {
     throw(result_token_t, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN, position,
           "Token too long. Expected length <= %lu, got %lu", SYMBOL_SIZE,
-          buffer_len);
+          buffer->count);
   }
 
   // else, it's just a symbol
   token_t tok = {.type = TOKEN_TYPE_SYMBOL, .position = position};
-  memcpy(&tok.value.symbol, buffer, buffer_len);
-  tok.value.symbol[buffer_len] = 0;
+  strlcpy(tok.value.symbol, buffer->data, buffer->count);
   return ok(result_token_t, tok);
 }
 
 result_token_list_ref_t tokenize(arena_t *arena, const char *source) {
-  position_t cursor = {.column = 0, .line = 1};
+  position_t curr_char = {1, 0};
+  position_t curr_token = {0, 0};
 
   token_list_t *tokens = nullptr;
-  tryWithMeta(result_token_list_ref_t, listCreate(token_t, arena, 32), cursor,
-              tokens);
+  tryWithMeta(result_token_list_ref_t, listCreate(token_t, arena, 32),
+              curr_char, tokens);
+  string_buffer_t *buffer = nullptr;
+  tryWithMeta(result_token_list_ref_t, listCreate(char, arena, 64), curr_char,
+              buffer);
 
-  constexpr size_t BUFFER_CAPACITY = 64;
-  char buffer[BUFFER_CAPACITY] = {0};
-  size_t buffer_len = 0;
   token_t token;
-  position_t position = {};
-
   for (int i = 0; source[i] != '\0'; i++) {
-    cursor.column++;
+    curr_char.column++;
     const char current_char = source[i];
 
     if (current_char == LPAREN) {
       token.type = TOKEN_TYPE_LPAREN;
       token.value.lparen = nullptr;
-      token.position = cursor;
+      token.position = curr_char;
       tryWithMeta(result_token_list_ref_t, listAppend(token_t, tokens, &token),
-                  position);
+                  curr_token);
     } else if (current_char == RPAREN) {
-      if (buffer_len > 0) {
-        try(result_token_list_ref_t,
-            bufferToToken(buffer_len, buffer, position), token);
+      if (buffer->count > 0) {
+        try(result_token_list_ref_t, bufferToToken(buffer, curr_token), token);
         tryWithMeta(result_token_list_ref_t,
-                    listAppend(token_t, tokens, &token), position);
-        // clean buffer
-        buffer_len = 0;
+                    listAppend(token_t, tokens, &token), curr_token);
+        listClear(char, buffer);
       }
 
       token.type = TOKEN_TYPE_RPAREN;
       token.value.rparen = nullptr;
-      token.position = cursor;
+      token.position = curr_char;
       tryWithMeta(result_token_list_ref_t, listAppend(token_t, tokens, &token),
-                  position);
+                  curr_token);
     } else if (isspace(current_char)) {
       if (current_char == '\n') {
-        cursor.line++;
-        cursor.column = 0;
+        curr_char.line++;
+        curr_char.column = 0;
       }
 
-      if (buffer_len == 0)
+      if (buffer->count == 0)
         continue;
 
-      try(result_token_list_ref_t, bufferToToken(buffer_len, buffer, position),
-          token);
+      try(result_token_list_ref_t, bufferToToken(buffer, curr_token), token);
       tryWithMeta(result_token_list_ref_t, listAppend(token_t, tokens, &token),
-                  position);
-      // clean buffer
-      buffer_len = 0;
+                  curr_token);
+      listClear(char, buffer);
     } else if (isprint(current_char)) {
-      if (buffer_len == 0) {
-        position.line = cursor.line;
-        position.column = cursor.column;
+      if (buffer->count == 0) {
+        curr_token.line = curr_char.line;
+        curr_token.column = curr_char.column;
       }
-
-      if (buffer_len >= BUFFER_CAPACITY) {
-        throw(result_token_list_ref_t, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN,
-              position, "Token too long. Expected length <= %lu, got %lu",
-              SYMBOL_SIZE, buffer_len);
-      }
-
-      buffer[buffer_len++] = current_char;
+      tryWithMeta(result_token_list_ref_t,
+                  listAppend(char, buffer, &current_char), curr_token);
       continue;
     } else {
-      throw(result_token_list_ref_t, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN, cursor,
-            "Unexpected token '%c'", current_char);
+      throw(result_token_list_ref_t, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN,
+            curr_char, "Unexpected token '%c'", current_char);
     }
   }
 
-  if (buffer_len > 0) {
-    if (buffer_len >= BUFFER_CAPACITY) {
-      throw(result_token_list_ref_t, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN,
-            position, "Token too long. Expected length <= %lu, got %lu",
-            SYMBOL_SIZE, buffer_len);
-    }
-    try(result_token_list_ref_t, bufferToToken(buffer_len, buffer, position),
-        token);
+  if (buffer->count > 0) {
+    try(result_token_list_ref_t, bufferToToken(buffer, curr_token), token);
     tryWithMeta(result_token_list_ref_t, listAppend(token_t, tokens, &token),
-                position);
+                curr_token);
   }
 
   return ok(result_token_list_ref_t, tokens);
