@@ -6,7 +6,7 @@
 #include <string.h>
 
 result_node_ref_t parseAtom(arena_t *arena, token_t token) {
-  assert(token.type == TOKEN_TYPE_NUMBER || token.type == TOKEN_TYPE_SYMBOL);
+  assert(token.type == TOKEN_TYPE_NUMBER || token.type == TOKEN_TYPE_LITERAL);
 
   node_t *node = nullptr;
   tryWithMeta(result_node_ref_t, nodeCreate(arena, NODE_TYPE_NUMBER),
@@ -19,34 +19,34 @@ result_node_ref_t parseAtom(arena_t *arena, token_t token) {
     node->type = NODE_TYPE_NUMBER;
     node->value.number = token.value.number;
     return ok(result_node_ref_t, node);
-  case TOKEN_TYPE_SYMBOL:
-    if (strncmp(token.value.symbol, TRUE, 4) == 0) {
+  case TOKEN_TYPE_LITERAL:
+    if (strncmp(token.value.literal, TRUE, 4) == 0) {
       node->type = NODE_TYPE_BOOLEAN;
       node->value.boolean = true;
       return ok(result_node_ref_t, node);
     }
 
-    if (strncmp(token.value.symbol, FALSE, 5) == 0) {
+    if (strncmp(token.value.literal, FALSE, 5) == 0) {
       node->type = NODE_TYPE_BOOLEAN;
       node->value.boolean = false;
       return ok(result_node_ref_t, node);
     }
 
-    if (strncmp(token.value.symbol, NIL, 3) == 0) {
+    if (strncmp(token.value.literal, NIL, 3) == 0) {
       node->type = NODE_TYPE_NIL;
       node->value.nil = nullptr;
       return ok(result_node_ref_t, node);
     }
 
-    size_t len = strlen(token.value.symbol);
+    size_t len = strlen(token.value.literal);
     char *string = nullptr;
     tryWithMeta(result_node_ref_t, arenaAllocate(arena, len + 1),
                 token.position, string);
-    strlcpy(string, token.value.symbol, len + 1);
+    strlcpy(string, token.value.literal, len + 1);
     node->type = NODE_TYPE_SYMBOL;
     node->position = token.position;
     node->value.symbol = string;
-    memcpy(node->value.symbol, token.value.symbol, 16);
+    memcpy(node->value.symbol, token.value.literal, 16);
     return ok(result_node_ref_t, node);
   case TOKEN_TYPE_LPAREN:
   case TOKEN_TYPE_RPAREN:

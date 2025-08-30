@@ -56,7 +56,7 @@ static inline token_t tSym(arena_t *arena, const char *string) {
   tryAssert(arenaAllocate(arena, len + 1), value);
   strlcpy(value, string, len + 1);
   return (token_t){
-      .position = {1, 1}, .type = TOKEN_TYPE_SYMBOL, .value.symbol = value};
+      .position = {1, 1}, .type = TOKEN_TYPE_LITERAL, .value.literal = value};
 }
 
 static inline token_t tParen(char paren) {

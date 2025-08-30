@@ -37,9 +37,9 @@ result_void_position_t bufferToToken(token_t *token, string_buffer_t *buffer,
   tryWithMeta(result_void_position_t,
               arenaAllocate(buffer->arena, buffer->count), position, string);
   strlcpy(string, buffer->data, buffer->count);
-  token->type = TOKEN_TYPE_SYMBOL;
+  token->type = TOKEN_TYPE_LITERAL;
   token->position = position;
-  token->value.symbol = string;
+  token->value.literal = string;
   return ok(result_void_position_t);
 }
 

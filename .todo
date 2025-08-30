@@ -1,3 +1,5 @@
+  * [ ] Implement string methods in stdlib (string.length, string.join, string.slice, string.includes, string.trim)
+
 BUGS
 ---
   * [ ] `listGet` allows you to go out of bound
@@ -5,7 +7,6 @@ BUGS
 FEATURES
 ---
   * [ ] Compile AST to bytecode
-  * [ ] Implement string methods in stdlib (string.length, string.join, string.slice, string.includes, string.trim)
   * [ ] Implement list methods (list.map, list.each, list.times, list.filter)
   * [ ] Decouple validation from execution
   * [ ] Enforce naming conventions for functions

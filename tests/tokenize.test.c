@@ -18,8 +18,8 @@ static bool tokenEql(const token_t *self, const token_t *other) {
     return true;
   case TOKEN_TYPE_NUMBER:
     return self->value.number == other->value.number;
-  case TOKEN_TYPE_SYMBOL:
-    return strcmp(self->value.symbol, other->value.symbol) == 0;
+  case TOKEN_TYPE_LITERAL:
+    return strcmp(self->value.literal, other->value.literal) == 0;
   default:
     return false;
   }
