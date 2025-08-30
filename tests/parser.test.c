@@ -24,7 +24,7 @@ static bool eqlNode(node_t *self, node_t *other) {
   case NODE_TYPE_NUMBER:
     return self->value.number == other->value.number;
   case NODE_TYPE_SYMBOL:
-    return strncmp(self->value.symbol, other->value.symbol, SYMBOL_SIZE) == 0;
+    return strcmp(self->value.symbol, other->value.symbol) == 0;
   case NODE_TYPE_LIST: {
     if (self->value.list.count != other->value.list.count) {
       return false;
@@ -49,28 +49,11 @@ void atoms(void) {
     token_t input;
     const char *name;
     node_t expected;
-  } cases[] = {{
-                   tInt(1),
-                   "number",
-                   (node_t){.type = NODE_TYPE_NUMBER, .value.number = 1},
-               },
-               {
-                   tSym("test"),
-                   "symbol",
-                   (node_t){.type = NODE_TYPE_SYMBOL, .value.symbol = "test"},
-               },
-               {
-                   tSym("true"),
-                   "true",
-                   (node_t){.type = NODE_TYPE_BOOLEAN, .value.boolean = true},
-               },
-               {tSym("false"), "false",
-                (node_t){.type = NODE_TYPE_BOOLEAN, .value.boolean = false}},
-               {
-                   tSym("nil"),
-                   "nil",
-                   (node_t){.type = NODE_TYPE_NIL, .value.nil = nullptr},
-               }};
+  } cases[] = {{tNum(1), "number", nInt(1)},
+               {tSym(test_arena, "test"), "symbol", nSym(test_arena, "test")},
+               {tSym(test_arena, "true"), "true", nBool(true)},
+               {tSym(test_arena, "false"), "false", nBool(false)},
+               {tSym(test_arena, "nil"), "nil", nNil()}};
 
   for (size_t i = 0; i < arraySize(cases); i++) {
     token_list_t *list = makeTokenList(test_arena, &cases[i].input, 1);
@@ -88,24 +71,24 @@ void unary(void) {
   node_t boolean_true = nBool(true);
   node_t boolean_false = nBool(false);
   node_t nil = nNil();
-  node_t symbol = nSym("sym");
+  node_t symbol = nSym(test_arena, "sym");
 
   token_t lparen = tParen('(');
   token_t rparen = tParen(')');
 
-  token_t int_token = tInt(1);
+  token_t int_token = tNum(1);
   token_t int_tokens[3] = {lparen, int_token, rparen};
 
-  token_t true_token = tSym("true");
+  token_t true_token = tSym(test_arena, "true");
   token_t true_tokens[3] = {lparen, true_token, rparen};
 
-  token_t false_token = tSym("false");
+  token_t false_token = tSym(test_arena, "false");
   token_t false_tokens[3] = {lparen, false_token, rparen};
 
-  token_t nil_token = tSym("nil");
+  token_t nil_token = tSym(test_arena, "nil");
   token_t nil_tokens[3] = {lparen, nil_token, rparen};
 
-  token_t sym_token = tSym("sym");
+  token_t sym_token = tSym(test_arena, "sym");
   token_t sym_tokens[3] = {lparen, sym_token, rparen};
 
   struct {
@@ -134,9 +117,9 @@ void unary(void) {
 void complex(void) {
   token_t lparen = tParen('(');
   token_t rparen = tParen(')');
-  token_t add_token = tSym("add");
-  token_t int_token = tInt(1);
-  token_t bool_token = tSym("true");
+  token_t add_token = tSym(test_arena, "add");
+  token_t int_token = tNum(1);
+  token_t bool_token = tSym(test_arena, "true");
 
   token_t empty[2] = {lparen, rparen};
   token_t mixed[5] = {lparen, add_token, bool_token, int_token, rparen};
@@ -145,7 +128,7 @@ void complex(void) {
 
   node_t number = nInt(1);
   node_t boolean = nBool(true);
-  node_t add = nSym("add");
+  node_t add = nSym(test_arena, "add");
   node_t mixed_nodes[3] = {add, boolean, number};
   node_t nested_nodes[3] = {add, number, nList(3, mixed_nodes)};
 
@@ -173,7 +156,7 @@ void complex(void) {
 void errors() {
   token_t lparen = tParen('(');
   token_t rparen = tParen(')');
-  token_t number = tInt(1);
+  token_t number = tNum(1);
 
   token_t unbalanced_right[4] = {lparen, lparen, number, rparen};
   token_t unbalanced_left[4] = {lparen, number, rparen, rparen};

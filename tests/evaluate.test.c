@@ -48,7 +48,7 @@ void atoms() {
   tryAssert(valueInit(&symbol, test_arena, VALUE_TYPE_NUMBER, 0));
   mapSet(value_t, environment->values, "value", &symbol);
 
-  node_t symbol_node = nSym("value");
+  node_t symbol_node = nSym(test_arena, "value");
   tryAssert(evaluate(&result, test_arena, &symbol_node, environment));
   expectEqlValueType(result.type, VALUE_TYPE_NUMBER,
                      "has correct type");
@@ -84,7 +84,7 @@ void functionCall() {
   node_list_t *list = nullptr;
   tryAssert(listCreate(node_t, test_arena, 4), list);
 
-  node_t symbol = nSym("+");
+  node_t symbol = nSym(test_arena, "+");
   node_t num1 = nInt(1);
   node_t num2 = nInt(2);
   node_t num3 = nInt(3);
@@ -102,7 +102,7 @@ void functionCall() {
   
   value_t val = { .type = VALUE_TYPE_NUMBER, .value.number = 1};
   mapSet(value_t, environment->values, "lol", &val);
-  node_t lol_symbol = nSym("lol");
+  node_t lol_symbol = nSym(test_arena, "lol");
   
   tryAssert(listCreate(node_t, test_arena, 4), list);
   tryAssert(listAppend(node_t, list, &lol_symbol))
@@ -178,7 +178,7 @@ void errors() {
   tryAssert(listCreate(node_t, test_arena, 1), list);
 
   case("non-existing symbol");
-  node_t sym = nSym("not-existent");
+  node_t sym = nSym(test_arena, "not-existent");
   tryAssert(listAppend(node_t, list, &sym));
 
   value_t result;

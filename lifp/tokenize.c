@@ -10,10 +10,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef Result(token_t, position_t) result_token_t;
-result_token_t bufferToToken(string_buffer_t *buffer, position_t position) {
+typedef List(char) string_buffer_t;
+typedef ResultVoid(position_t) result_void_position_t;
+
+result_void_position_t bufferToToken(token_t *token, string_buffer_t *buffer,
+                                     position_t position) {
   char null = 0;
-  tryWithMeta(result_token_t, listAppend(char, buffer, &null), position);
+  tryWithMeta(result_void_position_t, listAppend(char, buffer, &null),
+              position);
 
   char *remainder;
   number_t number = (number_t)strtod(buffer->data, &remainder);
@@ -22,22 +26,21 @@ result_token_t bufferToToken(string_buffer_t *buffer, position_t position) {
   // This includes also leading +/-
   const bool is_number = ((!remainder) || (strlen(remainder) == 0)) != 0;
   if (is_number) {
-    const token_t tok = {.type = TOKEN_TYPE_NUMBER,
-                         .value.number = number,
-                         .position = position};
-    return ok(result_token_t, tok);
-  }
-
-  if (buffer->count >= SYMBOL_SIZE) {
-    throw(result_token_t, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN, position,
-          "Token too long. Expected length <= %lu, got %lu", SYMBOL_SIZE,
-          buffer->count);
+    token->type = TOKEN_TYPE_NUMBER;
+    token->value.number = number;
+    token->position = position;
+    return ok(result_void_position_t);
   }
 
   // else, it's just a symbol
-  token_t tok = {.type = TOKEN_TYPE_SYMBOL, .position = position};
-  strlcpy(tok.value.symbol, buffer->data, buffer->count);
-  return ok(result_token_t, tok);
+  char *string = nullptr;
+  tryWithMeta(result_void_position_t,
+              arenaAllocate(buffer->arena, buffer->count), position, string);
+  strlcpy(string, buffer->data, buffer->count);
+  token->type = TOKEN_TYPE_SYMBOL;
+  token->position = position;
+  token->value.symbol = string;
+  return ok(result_void_position_t);
 }
 
 result_token_list_ref_t tokenize(arena_t *arena, const char *source) {
@@ -64,7 +67,7 @@ result_token_list_ref_t tokenize(arena_t *arena, const char *source) {
                   curr_token);
     } else if (current_char == RPAREN) {
       if (buffer->count > 0) {
-        try(result_token_list_ref_t, bufferToToken(buffer, curr_token), token);
+        try(result_token_list_ref_t, bufferToToken(&token, buffer, curr_token));
         tryWithMeta(result_token_list_ref_t,
                     listAppend(token_t, tokens, &token), curr_token);
         listClear(char, buffer);
@@ -84,7 +87,7 @@ result_token_list_ref_t tokenize(arena_t *arena, const char *source) {
       if (buffer->count == 0)
         continue;
 
-      try(result_token_list_ref_t, bufferToToken(buffer, curr_token), token);
+      try(result_token_list_ref_t, bufferToToken(&token, buffer, curr_token));
       tryWithMeta(result_token_list_ref_t, listAppend(token_t, tokens, &token),
                   curr_token);
       listClear(char, buffer);
@@ -103,7 +106,7 @@ result_token_list_ref_t tokenize(arena_t *arena, const char *source) {
   }
 
   if (buffer->count > 0) {
-    try(result_token_list_ref_t, bufferToToken(buffer, curr_token), token);
+    try(result_token_list_ref_t, bufferToToken(&token, buffer, curr_token));
     tryWithMeta(result_token_list_ref_t, listAppend(token_t, tokens, &token),
                 curr_token);
   }

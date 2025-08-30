@@ -19,7 +19,7 @@ static bool tokenEql(const token_t *self, const token_t *other) {
   case TOKEN_TYPE_NUMBER:
     return self->value.number == other->value.number;
   case TOKEN_TYPE_SYMBOL:
-    return strncmp(self->value.symbol, other->value.symbol, SYMBOL_SIZE) == 0;
+    return strcmp(self->value.symbol, other->value.symbol) == 0;
   default:
     return false;
   }
@@ -42,8 +42,9 @@ static bool tokenListEql(const token_list_t *self, const token_list_t *other) {
 void atoms() {
   token_t lparen_token = tParen('(');
   token_t rparen_token = tParen(')');
-  token_t number_token = tInt(12);
-  token_t symbol_token = tSym("lol");
+  token_t int_token = tNum(12);
+  token_t float_token = tNum(1.2);
+  token_t symbol_token = tSym(test_arena, "lol");
 
   struct {
     const char *input;
@@ -57,8 +58,11 @@ void atoms() {
        .expected = makeTokenList(test_arena, &rparen_token, 1),
        .name = "rparen"},
       {.input = "12",
-       .expected = makeTokenList(test_arena, &number_token, 1),
-       .name = "number"},
+       .expected = makeTokenList(test_arena, &int_token, 1),
+       .name = "integer"},
+      {.input = "1.2",
+       .expected = makeTokenList(test_arena, &float_token, 1),
+       .name = "float"},
       {.input = "lol",
        .expected = makeTokenList(test_arena, &symbol_token, 1),
        .name = "symbol"},
@@ -73,12 +77,8 @@ void atoms() {
 }
 
 void whitespaces() {
-  token_t token = {.type = TOKEN_TYPE_SYMBOL,
-                   .value = {.symbol = {'a'}},
-                   .position = {.column = 2, .line = 1}};
-  token_t other_token = {.type = TOKEN_TYPE_SYMBOL,
-                         .value = {.symbol = {'b'}},
-                         .position = {.column = 1, .line = 2}};
+  token_t token = tSym(test_arena, "a");
+  token_t other_token = tSym(test_arena, "b");
 
   struct {
     const char *input;
@@ -118,9 +118,7 @@ void errors() {
       {"a\b", 2, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN,
        "unexpected character with symbol"},
       {"1\b", 2, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN,
-       "unexpected character with number"},
-      {"symbol_way_too_long", 1, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN,
-       "symbol too long"}};
+       "unexpected character with number"}};
 
   for (size_t i = 0; i < arraySize(cases); i++) {
     auto result = tokenize(test_arena, cases[i].input);
@@ -133,10 +131,10 @@ void errors() {
 void complex() {
   token_t lparen_token = tParen('(');
   token_t rparen_token = tParen(')');
-  token_t twelve_token = tInt(12);
-  token_t two_token = tInt(2);
-  token_t def_token = tSym("def!");
-  token_t x_token = tSym("x");
+  token_t twelve_token = tNum(12);
+  token_t two_token = tNum(2);
+  token_t def_token = tSym(test_arena, "def!");
+  token_t x_token = tSym(test_arena, "x");
 
   token_t flat_list[4] = {lparen_token, twelve_token, two_token, rparen_token};
   token_t nested_list[6] = {lparen_token, two_token,    lparen_token,

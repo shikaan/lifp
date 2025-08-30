@@ -59,17 +59,14 @@ void values() {
   tryAssert(valueCreateInit(test_arena, VALUE_TYPE_CLOSURE, NODE_TYPE_LIST),
             closure);
 
-  node_t *symbol = nullptr;
-  tryAssert(nodeCreate(test_arena, NODE_TYPE_SYMBOL), symbol);
-  symbol->value.symbol[0] = 'a';
-  symbol->value.symbol[1] = 0;
+  node_t symbol = nSym(test_arena, "a");
 
-  tryAssert(listAppend(node_t, &closure->value.closure.arguments, symbol));
+  tryAssert(listAppend(node_t, &closure->value.closure.arguments, &symbol));
 
   closure->value.closure.form.type = NODE_TYPE_LIST;
 
   tryAssert(
-      listAppend(node_t, &closure->value.closure.form.value.list, symbol));
+      listAppend(node_t, &closure->value.closure.form.value.list, &symbol));
 
   formatValue(list, size, buffer, &offset);
   expectEqlString(buffer, "(fn (a) (a))", 10, "formats lambdas");

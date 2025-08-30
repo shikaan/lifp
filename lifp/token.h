@@ -9,12 +9,8 @@ constexpr char RPAREN = ')';
 constexpr char LSTR = '"';
 constexpr char RSTR = '"';
 
-constexpr size_t SYMBOL_SIZE = 16;
-
 typedef double number_t;
-typedef char string_t[];
-
-typedef List(char) string_buffer_t;
+typedef char *string_t;
 
 typedef enum {
   TOKEN_TYPE_LPAREN,
@@ -24,7 +20,7 @@ typedef enum {
 } token_type_t;
 
 typedef union {
-  char symbol[SYMBOL_SIZE];
+  string_t symbol;
   number_t number;
   nullptr_t lparen;
   nullptr_t rparen;

@@ -38,8 +38,15 @@ result_node_ref_t parseAtom(arena_t *arena, token_t token) {
       return ok(result_node_ref_t, node);
     }
 
+    size_t len = strlen(token.value.symbol);
+    char *string = nullptr;
+    tryWithMeta(result_node_ref_t, arenaAllocate(arena, len + 1),
+                token.position, string);
+    strlcpy(string, token.value.symbol, len + 1);
     node->type = NODE_TYPE_SYMBOL;
-    memcpy(node->value.symbol, token.value.symbol, SYMBOL_SIZE);
+    node->position = token.position;
+    node->value.symbol = string;
+    memcpy(node->value.symbol, token.value.symbol, 16);
     return ok(result_node_ref_t, node);
   case TOKEN_TYPE_LPAREN:
   case TOKEN_TYPE_RPAREN:
