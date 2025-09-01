@@ -43,6 +43,12 @@ void values() {
   expectEqlString(buffer, "#<special>", 11, "formats specials");
 
   offset = 0;
+  char test[] = {'t', 'e', 's', 't', 0};
+  const value_t string = {.type = VALUE_TYPE_STRING, .value.string = test};
+  formatValue(&string, size, buffer, &offset);
+  expectEqlString(buffer, "\"test\"", 7, "formats strings");
+
+  offset = 0;
   arenaReset(test_arena);
   value_t *list = nullptr;
   tryAssert(valueCreateInit(test_arena, VALUE_TYPE_LIST, 0), list);

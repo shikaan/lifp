@@ -167,6 +167,7 @@ result_void_position_t equal(value_t *result, value_list_t *values) {
     case VALUE_TYPE_BUILTIN:
     case VALUE_TYPE_SPECIAL:
     case VALUE_TYPE_CLOSURE:
+    case VALUE_TYPE_STRING:
     case VALUE_TYPE_LIST:
     default:
       are_equal = false;
@@ -256,6 +257,7 @@ result_void_position_t notEqual(value_t *result, value_list_t *values) {
     case VALUE_TYPE_BUILTIN:
     case VALUE_TYPE_SPECIAL:
     case VALUE_TYPE_CLOSURE:
+    case VALUE_TYPE_STRING:
     case VALUE_TYPE_LIST:
     default:
       are_equal = false;

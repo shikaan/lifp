@@ -114,8 +114,14 @@ result_void_position_t evaluate(value_t *result, arena_t *temp_arena,
     return ok(result_void_position_t);
   }
   case NODE_TYPE_STRING:
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, ast->position,
-          "Not supported yet");
+    result->type = VALUE_TYPE_STRING;
+    size_t len = strlen(ast->value.string);
+    string_t string;
+    tryWithMeta(result_void_position_t, arenaAllocate(temp_arena, len + 1),
+                ast->position, string);
+    strlcpy(string, ast->value.string, len + 1);
+    result->value.string = string;
+    return ok(result_void_position_t);
   case NODE_TYPE_SYMBOL: {
     const value_t *resolved_value =
         environmentResolveSymbol(env, ast->value.symbol);
@@ -176,6 +182,7 @@ result_void_position_t evaluate(value_t *result, arena_t *temp_arena,
     case VALUE_TYPE_NUMBER:
     case VALUE_TYPE_LIST:
     case VALUE_TYPE_NIL:
+    case VALUE_TYPE_STRING:
     case VALUE_TYPE_BOOLEAN:
     default:
       tryCatch(result_void_position_t,

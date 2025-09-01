@@ -26,6 +26,7 @@ typedef enum {
   VALUE_TYPE_NIL,
   VALUE_TYPE_LIST,
   VALUE_TYPE_SPECIAL,
+  VALUE_TYPE_STRING,
 } value_type_t;
 
 typedef struct {
@@ -44,6 +45,7 @@ typedef struct value_t {
     nullptr_t nil;
     value_list_t list;
     special_form_t special;
+    string_t string;
   } value;
 } value_t;
 

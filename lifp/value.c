@@ -73,6 +73,14 @@ result_void_t valueCopy(value_t *source, value_t *destination,
   case VALUE_TYPE_NIL:
     destination->value.nil = source->value.nil;
     break;
+  case VALUE_TYPE_STRING:
+    size_t len = strlen(source->value.string);
+    string_t string;
+    try(result_void_t,
+        arenaAllocate(destination_arena, (len + 1) * sizeof(char)), string);
+    strlcpy(string, source->value.string, len + 1);
+    destination->value.string = string;
+    break;
   case VALUE_TYPE_CLOSURE:
     nodeCopy(&source->value.closure.form, &destination->value.closure.form);
     try(result_void_t, listCopy(value_t, &source->value.closure.arguments,

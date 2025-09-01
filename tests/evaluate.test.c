@@ -42,6 +42,11 @@ void atoms() {
   tryAssert(evaluate(&result, test_arena, &nil_node, environment));
   expectEqlValueType(result.type, VALUE_TYPE_NIL,
                      "has correct type");
+  case("string");
+  node_t string_node = nStr(test_arena, "str");
+  tryAssert(evaluate(&result, test_arena, &string_node, environment));
+  expectEqlValueType(result.type, VALUE_TYPE_STRING,
+                     "has correct type");
 
   case("symbol");
   value_t symbol;
