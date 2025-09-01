@@ -2,13 +2,11 @@
 
 #include "../lib/list.h"
 #include "position.h"
+#include "types.h"
 #include <stdint.h>
 
 constexpr char LPAREN = '(';
 constexpr char RPAREN = ')';
-
-typedef double number_t;
-typedef char *string_t;
 
 typedef enum {
   TOKEN_TYPE_LPAREN,

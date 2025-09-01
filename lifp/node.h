@@ -4,7 +4,7 @@
 #include "../lib/list.h"
 #include "../lib/result.h"
 #include "position.h"
-#include "token.h"
+#include "types.h"
 #include <stddef.h>
 
 typedef struct node_t node_t;
