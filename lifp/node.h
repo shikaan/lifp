@@ -15,6 +15,7 @@ typedef enum {
   NODE_TYPE_LIST,
   NODE_TYPE_NUMBER,
   NODE_TYPE_SYMBOL,
+  NODE_TYPE_STRING,
   NODE_TYPE_BOOLEAN,
   NODE_TYPE_NIL,
 } node_type_t;
@@ -23,6 +24,7 @@ typedef union node_value_t {
   node_list_t list;
   number_t number;
   string_t symbol;
+  string_t string;
   bool boolean;
   nullptr_t nil;
 } node_value_t;

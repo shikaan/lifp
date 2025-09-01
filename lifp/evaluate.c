@@ -113,6 +113,9 @@ result_void_position_t evaluate(value_t *result, arena_t *temp_arena,
     result->value.number = ast->value.number;
     return ok(result_void_position_t);
   }
+  case NODE_TYPE_STRING:
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, ast->position,
+          "Not supported yet");
   case NODE_TYPE_SYMBOL: {
     const value_t *resolved_value =
         environmentResolveSymbol(env, ast->value.symbol);

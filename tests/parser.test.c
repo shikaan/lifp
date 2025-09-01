@@ -25,6 +25,8 @@ static bool eqlNode(node_t *self, node_t *other) {
     return self->value.number == other->value.number;
   case NODE_TYPE_SYMBOL:
     return strcmp(self->value.symbol, other->value.symbol) == 0;
+  case NODE_TYPE_STRING:
+    return strcmp(self->value.string, other->value.string) == 0;
   case NODE_TYPE_LIST: {
     if (self->value.list.count != other->value.list.count) {
       return false;
@@ -49,11 +51,13 @@ void atoms(void) {
     token_t input;
     const char *name;
     node_t expected;
-  } cases[] = {{tNum(1), "number", nInt(1)},
-               {tSym(test_arena, "test"), "symbol", nSym(test_arena, "test")},
-               {tSym(test_arena, "true"), "true", nBool(true)},
-               {tSym(test_arena, "false"), "false", nBool(false)},
-               {tSym(test_arena, "nil"), "nil", nNil()}};
+  } cases[] = {
+      {tNum(1), "number", nInt(1)},
+      {tLit(test_arena, "test"), "symbol", nSym(test_arena, "test")},
+      {tLit(test_arena, "\"test\""), "string", nStr(test_arena, "test")},
+      {tLit(test_arena, "true"), "true", nBool(true)},
+      {tLit(test_arena, "false"), "false", nBool(false)},
+      {tLit(test_arena, "nil"), "nil", nNil()}};
 
   for (size_t i = 0; i < arraySize(cases); i++) {
     token_list_t *list = makeTokenList(test_arena, &cases[i].input, 1);
@@ -72,6 +76,7 @@ void unary(void) {
   node_t boolean_false = nBool(false);
   node_t nil = nNil();
   node_t symbol = nSym(test_arena, "sym");
+  node_t string = nStr(test_arena, "str");
 
   token_t lparen = tParen('(');
   token_t rparen = tParen(')');
@@ -79,17 +84,20 @@ void unary(void) {
   token_t int_token = tNum(1);
   token_t int_tokens[3] = {lparen, int_token, rparen};
 
-  token_t true_token = tSym(test_arena, "true");
+  token_t true_token = tLit(test_arena, "true");
   token_t true_tokens[3] = {lparen, true_token, rparen};
 
-  token_t false_token = tSym(test_arena, "false");
+  token_t false_token = tLit(test_arena, "false");
   token_t false_tokens[3] = {lparen, false_token, rparen};
 
-  token_t nil_token = tSym(test_arena, "nil");
+  token_t nil_token = tLit(test_arena, "nil");
   token_t nil_tokens[3] = {lparen, nil_token, rparen};
 
-  token_t sym_token = tSym(test_arena, "sym");
+  token_t sym_token = tLit(test_arena, "sym");
   token_t sym_tokens[3] = {lparen, sym_token, rparen};
+
+  token_t str_token = tLit(test_arena, "\"str\"");
+  token_t str_tokens[3] = {lparen, str_token, rparen};
 
   struct {
     const char *name;
@@ -98,6 +106,7 @@ void unary(void) {
     node_t expected;
   } cases[] = {{"number", 3, int_tokens, nList(1, (node_t *){&number})},
                {"symbol", 3, sym_tokens, nList(1, (node_t *){&symbol})},
+               {"string", 3, str_tokens, nList(1, (node_t *){&string})},
                {"true", 3, true_tokens, nList(1, (node_t *){&boolean_true})},
                {"false", 3, false_tokens, nList(1, (node_t *){&boolean_false})},
                {"nil", 3, nil_tokens, nList(1, (node_t *){&nil})}};
@@ -117,9 +126,9 @@ void unary(void) {
 void complex(void) {
   token_t lparen = tParen('(');
   token_t rparen = tParen(')');
-  token_t add_token = tSym(test_arena, "add");
+  token_t add_token = tLit(test_arena, "add");
   token_t int_token = tNum(1);
-  token_t bool_token = tSym(test_arena, "true");
+  token_t bool_token = tLit(test_arena, "true");
 
   token_t empty[2] = {lparen, rparen};
   token_t mixed[5] = {lparen, add_token, bool_token, int_token, rparen};
@@ -157,10 +166,12 @@ void errors() {
   token_t lparen = tParen('(');
   token_t rparen = tParen(')');
   token_t number = tNum(1);
+  token_t symbol = tLit(test_arena, "this_is_a_very_very_long_symbol");
 
   token_t unbalanced_right[4] = {lparen, lparen, number, rparen};
   token_t unbalanced_left[4] = {lparen, number, rparen, rparen};
   token_t dangling[4] = {lparen, number, rparen, number};
+  token_t symbol_too_long[4] = {lparen, symbol, rparen};
 
   struct {
     const char *name;
@@ -173,6 +184,8 @@ void errors() {
       {"unbalanced parentheses left", 4, unbalanced_left,
        ERROR_CODE_SYNTAX_UNBALANCED_PARENTHESES},
       {"dangling symbols", 4, dangling, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN},
+      {"symbol too long", 4, symbol_too_long,
+       ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN},
   };
 
   for (size_t i = 0; i < arraySize(cases); i++) {

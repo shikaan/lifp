@@ -44,7 +44,7 @@ void atoms() {
   token_t rparen_token = tParen(')');
   token_t int_token = tNum(12);
   token_t float_token = tNum(1.2);
-  token_t symbol_token = tSym(test_arena, "lol");
+  token_t symbol_token = tLit(test_arena, "lol");
 
   struct {
     const char *input;
@@ -77,8 +77,8 @@ void atoms() {
 }
 
 void whitespaces() {
-  token_t token = tSym(test_arena, "a");
-  token_t other_token = tSym(test_arena, "b");
+  token_t token = tLit(test_arena, "a");
+  token_t other_token = tLit(test_arena, "b");
 
   struct {
     const char *input;
@@ -133,8 +133,8 @@ void complex() {
   token_t rparen_token = tParen(')');
   token_t twelve_token = tNum(12);
   token_t two_token = tNum(2);
-  token_t def_token = tSym(test_arena, "def!");
-  token_t x_token = tSym(test_arena, "x");
+  token_t def_token = tLit(test_arena, "def!");
+  token_t x_token = tLit(test_arena, "x");
 
   token_t flat_list[4] = {lparen_token, twelve_token, two_token, rparen_token};
   token_t nested_list[6] = {lparen_token, two_token,    lparen_token,

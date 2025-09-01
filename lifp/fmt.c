@@ -56,6 +56,10 @@ static void formatNode(const node_t *node, int size, char buffer[static size],
     append(size, buffer, offset, "%s", node->value.symbol);
     return;
   }
+  case NODE_TYPE_STRING: {
+    append(size, buffer, offset, "\"%s\"", node->value.string);
+    return;
+  }
   case NODE_TYPE_LIST: {
     append(size, buffer, offset, "(");
     node_list_t list = node->value.list;

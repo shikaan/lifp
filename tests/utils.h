@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../lifp/token.h"
 #include "../lifp/value.h"
 #include <assert.h>
 #include <stddef.h>
@@ -50,7 +51,7 @@ static inline token_t tNum(double number) {
   };
 }
 
-static inline token_t tSym(arena_t *arena, const char *string) {
+static inline token_t tLit(arena_t *arena, const char *string) {
   size_t len = strlen(string);
   string_t value;
   tryAssert(arenaAllocate(arena, len + 1), value);
@@ -98,14 +99,24 @@ static inline node_t nNil() {
                   .value.nil = nullptr};
 }
 
-static inline node_t nSym(arena_t *arena, const char *string) {
+static inline node_t nSym(arena_t *arena, const char *symbol) {
+  size_t len = strlen(symbol);
+  string_t value;
+  tryAssert(arenaAllocate(arena, len + 1), value);
+  strlcpy(value, symbol, len + 1);
+  return (node_t){.position = {.column = 1, .line = 1},
+                  .type = NODE_TYPE_SYMBOL,
+                  .value.symbol = value};
+}
+
+static inline node_t nStr(arena_t *arena, const char *string) {
   size_t len = strlen(string);
   string_t value;
   tryAssert(arenaAllocate(arena, len + 1), value);
   strlcpy(value, string, len + 1);
   return (node_t){.position = {.column = 1, .line = 1},
-                  .type = NODE_TYPE_SYMBOL,
-                  .value.symbol = value};
+                  .type = NODE_TYPE_STRING,
+                  .value.string = value};
 }
 
 #define nList(Count, Data)                                                     \
