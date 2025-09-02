@@ -226,7 +226,6 @@ void condSpecialForm() {
 
 int main(void) {
   tryAssert(arenaCreate((size_t)(1024 * 1024)), test_arena);
-  tryAssert(vmInit(), environment);
 
   tryAssert(vmInit(), environment);
   suite(defSpecialForm);
