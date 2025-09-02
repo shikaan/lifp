@@ -171,10 +171,19 @@ result_void_position_t let(value_t *result, arena_t *temp_arena,
   }
 
   node_t form = listGet(node_t, nodes, 2);
-  tryFinally(result_void_position_t,
-             evaluate(result, temp_arena, &form, local_env),
-             environmentDestroy(&local_env));
+  value_t temp_result;
+  tryCatch(result_void_position_t,
+           evaluate(&temp_result, temp_arena, &form, local_env),
+           environmentDestroy(&local_env));
 
+  // The result from the evaluation might be allocated in the local_env's arena,
+  // which will be destroyed. We need to copy it to the temp arena to allow
+  // expressions like `(let ((l (1 2))) l)` where values can escape the env
+  tryWithMeta(result_void_position_t,
+              valueCopy(&temp_result, result, temp_arena),
+              temp_result.position);
+
+  environmentDestroy(&local_env);
   return ok(result_void_position_t);
 }
 

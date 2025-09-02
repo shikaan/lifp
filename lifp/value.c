@@ -21,16 +21,13 @@ result_void_t valueInit(value_t *value, arena_t *arena, value_type_t type,
   value->type = type;
 
   if (value->type == VALUE_TYPE_LIST) {
-    frame_handle_t frame = arenaAllocationFrameStart(arena);
     value_list_t *list = nullptr;
     try(result_void_t, listCreate(value_t, arena, VALUE_LIST_INITIAL_SIZE),
         list);
     memcpy(&value->value.list, list, sizeof(value_list_t));
-    arenaAllocationFrameEnd(arena, frame);
   }
 
   if (value->type == VALUE_TYPE_CLOSURE) {
-    frame_handle_t frame = arenaAllocationFrameStart(arena);
     value_list_t *list = nullptr;
     try(result_void_t, listCreate(node_t, arena, VALUE_LIST_INITIAL_SIZE),
         list);
@@ -39,7 +36,6 @@ result_void_t valueInit(value_t *value, arena_t *arena, value_type_t type,
     node_t *form = nullptr;
     try(result_void_t, nodeCreate(arena, form_type), form);
     memcpy(&value->value.closure.form, form, sizeof(node_t));
-    arenaAllocationFrameEnd(arena, frame);
   }
 
   return ok(result_void_t);
@@ -99,7 +95,7 @@ result_void_t valueCopy(value_t *source, value_t *destination,
       value_t value = listGet(value_t, &source->value.list, i);
       value_t duplicated;
       try(result_void_t, valueCopy(&value, &duplicated, destination_arena));
-    try(result_void_t,
+      try(result_void_t,
           listAppend(value_t, &destination->value.list, &duplicated));
     }
     break;

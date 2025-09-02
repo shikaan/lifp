@@ -9,6 +9,7 @@
 #include "std/io.c"
 #include "std/list.c"
 #include "std/math.c"
+#include "std/str.c"
 // NOLINTEND
 
 #include "specials.h"
@@ -55,6 +56,7 @@ result_ref_t vmInit() {
   setBuiltin(MATH_CEIL, mathCeil);
   setBuiltin(MATH_FLOOR, mathFloor);
   setBuiltin(MATH_RANDOM, mathRandom);
+  setBuiltin(STR_LENGTH, strLength);
   setBuiltin(IO_PRINT, ioPrint);
 #undef setBuiltin
 

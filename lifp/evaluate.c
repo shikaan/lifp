@@ -188,8 +188,21 @@ result_void_position_t evaluate(value_t *result, arena_t *temp_arena,
       tryCatch(result_void_position_t,
                evaluateNodes(temp_arena, ast, env, &first_value),
                arenaAllocationFrameEnd(temp_arena, frame), evaluated);
-      result->type = VALUE_TYPE_LIST;
-      memcpy(&result->value.list, evaluated, sizeof(result->value.list));
+
+      tryWithMeta(result_void_position_t,
+                  valueInit(result, temp_arena, VALUE_TYPE_LIST, 0),
+                  ast->position);
+
+      for (size_t i = 0; i < evaluated->count; i++) {
+        value_t value = listGet(value_t, evaluated, i);
+        value_t duplicated;
+        tryWithMeta(result_void_position_t,
+                    valueCopy(&value, &duplicated, temp_arena), ast->position);
+        tryWithMeta(result_void_position_t,
+                    listAppend(value_t, &result->value.list, &duplicated),
+                    ast->position);
+      }
+
       arenaAllocationFrameEnd(temp_arena, frame);
       return ok(result_void_position_t);
     }
