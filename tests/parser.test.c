@@ -51,13 +51,12 @@ void atoms(void) {
     token_t input;
     const char *name;
     node_t expected;
-  } cases[] = {
-      {tNum(1), "number", nInt(1)},
-      {tLit(test_arena, "test"), "symbol", nSym(test_arena, "test")},
-      {tLit(test_arena, "\"test\""), "string", nStr(test_arena, "test")},
-      {tLit(test_arena, "true"), "true", nBool(true)},
-      {tLit(test_arena, "false"), "false", nBool(false)},
-      {tLit(test_arena, "nil"), "nil", nNil()}};
+  } cases[] = {{tNum(1), "number", nInt(1)},
+               {tLit(test_arena, "test"), "symbol", nSym(test_arena, "test")},
+               {tStr(test_arena, "test"), "string", nStr(test_arena, "test")},
+               {tLit(test_arena, "true"), "true", nBool(true)},
+               {tLit(test_arena, "false"), "false", nBool(false)},
+               {tLit(test_arena, "nil"), "nil", nNil()}};
 
   for (size_t i = 0; i < arraySize(cases); i++) {
     token_list_t *list = makeTokenList(test_arena, &cases[i].input, 1);
@@ -96,7 +95,7 @@ void unary(void) {
   token_t sym_token = tLit(test_arena, "sym");
   token_t sym_tokens[3] = {lparen, sym_token, rparen};
 
-  token_t str_token = tLit(test_arena, "\"str\"");
+  token_t str_token = tStr(test_arena, "str");
   token_t str_tokens[3] = {lparen, str_token, rparen};
 
   struct {

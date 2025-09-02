@@ -18,6 +18,8 @@ static bool tokenEql(const token_t *self, const token_t *other) {
     return true;
   case TOKEN_TYPE_NUMBER:
     return self->value.number == other->value.number;
+  case TOKEN_TYPE_STRING:
+    return strcmp(self->value.string, other->value.string) == 0;
   case TOKEN_TYPE_LITERAL:
     return strcmp(self->value.literal, other->value.literal) == 0;
   default:
@@ -45,6 +47,7 @@ void atoms() {
   token_t int_token = tNum(12);
   token_t float_token = tNum(1.2);
   token_t symbol_token = tLit(test_arena, "lol");
+  token_t string_token = tStr(test_arena, "str ing");
 
   struct {
     const char *input;
@@ -66,6 +69,9 @@ void atoms() {
       {.input = "lol",
        .expected = makeTokenList(test_arena, &symbol_token, 1),
        .name = "symbol"},
+      {.input = "\"str ing\"",
+       .expected = makeTokenList(test_arena, &string_token, 1),
+       .name = "string"},
   };
 
   for (size_t i = 0; i < arraySize(cases); i++) {
@@ -79,6 +85,7 @@ void atoms() {
 void whitespaces() {
   token_t token = tLit(test_arena, "a");
   token_t other_token = tLit(test_arena, "b");
+  token_t line_breaks = tStr(test_arena, "a\nb");
 
   struct {
     const char *input;
@@ -97,6 +104,9 @@ void whitespaces() {
       {.input = "\nb\r",
        .expected = makeTokenList(test_arena, &other_token, 1),
        .name = "new line"},
+      {.input = "\"a\nb\"",
+       .expected = makeTokenList(test_arena, &line_breaks, 1),
+       .name = "string with line breaks"},
   };
 
   for (size_t i = 0; i < arraySize(cases); i++) {
@@ -163,8 +173,8 @@ int main(void) {
   tryAssert(arenaCreate((size_t)(1024 * 1024)), test_arena);
 
   suite(atoms);
-  suite(complex);
   suite(whitespaces);
+  suite(complex);
   suite(errors);
 
   arenaDestroy(&test_arena);

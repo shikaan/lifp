@@ -2,12 +2,14 @@
 #include "../lib/string.h"
 #include "error.h"
 #include "node.h"
+#include "token.h"
 #include <assert.h>
 #include <stddef.h>
 #include <string.h>
 
 result_node_ref_t parseAtom(arena_t *arena, token_t token) {
-  assert(token.type == TOKEN_TYPE_NUMBER || token.type == TOKEN_TYPE_LITERAL);
+  assert(token.type == TOKEN_TYPE_NUMBER || token.type == TOKEN_TYPE_LITERAL ||
+         token.type == TOKEN_TYPE_STRING);
 
   node_t *node = nullptr;
   tryWithMeta(result_node_ref_t, nodeCreate(arena, NODE_TYPE_NUMBER),
@@ -17,11 +19,12 @@ result_node_ref_t parseAtom(arena_t *arena, token_t token) {
   node->position = token.position;
 
   switch (token.type) {
-  case TOKEN_TYPE_NUMBER:
+  case TOKEN_TYPE_NUMBER: {
     node->type = NODE_TYPE_NUMBER;
     node->value.number = token.value.number;
     return ok(result_node_ref_t, node);
-  case TOKEN_TYPE_LITERAL:
+  }
+  case TOKEN_TYPE_LITERAL: {
     if (strncmp(token.value.literal, TRUE, 4) == 0) {
       node->type = NODE_TYPE_BOOLEAN;
       node->value.boolean = true;
@@ -41,30 +44,30 @@ result_node_ref_t parseAtom(arena_t *arena, token_t token) {
     }
 
     size_t len = strlen(token.value.literal);
-    int is_string =
-        token.value.literal[0] == '"' && token.value.literal[len - 1] == '"';
 
-    if (is_string) {
-      node->type = NODE_TYPE_STRING;
-      char *string = nullptr;
-      tryWithMeta(result_node_ref_t, arenaAllocate(arena, len - 1),
-                  token.position, string);
-      stringCopy(string, token.value.literal + 1, len - 1);
-      node->value.string = string;
-    } else {
-      if (len >= MAX_SYMBOL_LENGTH) {
-        throw(result_node_ref_t, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN,
-              token.position, "Token too long. Expected length <= %lu, got %lu",
-              MAX_SYMBOL_LENGTH, len);
-      }
-      node->type = NODE_TYPE_SYMBOL;
-      char *symbol = nullptr;
-      tryWithMeta(result_node_ref_t, arenaAllocate(arena, len + 1),
-                  token.position, symbol);
-      stringCopy(symbol, token.value.literal, len + 1);
-      node->value.symbol = symbol;
+    if (len >= MAX_SYMBOL_LENGTH) {
+      throw(result_node_ref_t, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN,
+            token.position, "Token too long. Expected length <= %lu, got %lu",
+            MAX_SYMBOL_LENGTH, len);
     }
+    node->type = NODE_TYPE_SYMBOL;
+    char *symbol = nullptr;
+    tryWithMeta(result_node_ref_t, arenaAllocate(arena, len + 1),
+                token.position, symbol);
+    stringCopy(symbol, token.value.literal, len + 1);
+    node->value.symbol = symbol;
     return ok(result_node_ref_t, node);
+  }
+  case TOKEN_TYPE_STRING: {
+    size_t len = strlen(token.value.literal);
+    node->type = NODE_TYPE_STRING;
+    char *string = nullptr;
+    tryWithMeta(result_node_ref_t, arenaAllocate(arena, len + 1),
+                token.position, string);
+    stringCopy(string, token.value.string, len + 1);
+    node->value.string = string;
+    return ok(result_node_ref_t, node);
+  }
   case TOKEN_TYPE_LPAREN:
   case TOKEN_TYPE_RPAREN:
   default:

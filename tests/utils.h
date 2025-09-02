@@ -61,6 +61,15 @@ static inline token_t tLit(arena_t *arena, const char *string) {
       .position = {1, 1}, .type = TOKEN_TYPE_LITERAL, .value.literal = value};
 }
 
+static inline token_t tStr(arena_t *arena, const char *string) {
+  size_t len = strlen(string);
+  string_t value;
+  tryAssert(arenaAllocate(arena, len + 1), value);
+  stringCopy(value, string, len + 1);
+  return (token_t){
+      .position = {1, 1}, .type = TOKEN_TYPE_STRING, .value.string = value};
+}
+
 static inline token_t tParen(char paren) {
   auto value = paren == '(' ? (token_value_t){.lparen = nullptr}
                             : (token_value_t){.rparen = nullptr};
