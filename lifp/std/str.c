@@ -164,3 +164,37 @@ result_void_position_t strSlice(arena_t *arena, value_t *result,
   result->value.string = buffer;
   return ok(result_void_position_t);
 }
+const char *STR_INCLUDE = "str.include";
+result_void_position_t strInclude(arena_t *arena, value_t *result,
+                                  value_list_t *values) {
+  (void)arena;
+  if (values->count != 2) {
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
+          "%s requires exactly 2 arguments. Got %zu", STR_INCLUDE,
+          values->count);
+  }
+
+  value_t string_value = listGet(value_t, values, 0);
+  if (string_value.type != VALUE_TYPE_STRING) {
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,
+          string_value.position,
+          "%s requires a string as first argument. Got type %u", STR_INCLUDE,
+          string_value.type);
+  }
+
+  value_t search_value = listGet(value_t, values, 1);
+  if (search_value.type != VALUE_TYPE_STRING) {
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,
+          search_value.position,
+          "%s requires a string as second argument. Got type %u", STR_INCLUDE,
+          search_value.type);
+  }
+
+  bool found =
+      strstr(string_value.value.string, search_value.value.string) != nullptr;
+
+  result->type = VALUE_TYPE_BOOLEAN;
+  result->value.boolean = found;
+
+  return ok(result_void_position_t);
+}

@@ -59,6 +59,7 @@ result_ref_t vmInit() {
   setBuiltin(STR_LENGTH, strLength);
   setBuiltin(STR_JOIN, strJoin);
   setBuiltin(STR_SLICE, strSlice);
+  setBuiltin(STR_INCLUDE, strInclude);
   setBuiltin(IO_PRINT, ioPrint);
 #undef setBuiltin
 
