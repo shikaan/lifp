@@ -57,6 +57,7 @@ result_ref_t vmInit() {
   setBuiltin(MATH_FLOOR, mathFloor);
   setBuiltin(MATH_RANDOM, mathRandom);
   setBuiltin(STR_LENGTH, strLength);
+  setBuiltin(STR_JOIN, strJoin);
   setBuiltin(IO_PRINT, ioPrint);
 #undef setBuiltin
 

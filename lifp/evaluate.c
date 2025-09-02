@@ -20,12 +20,14 @@ invokeSpecial(value_t *result, value_t special_value, arena_t *arena,
   return ok(result_void_position_t);
 }
 
-static result_void_position_t
-invokeBuiltin(value_t *result, value_list_t *evaluated, value_t builtin_value) {
+static result_void_position_t invokeBuiltin(value_t *result,
+                                            arena_t *temp_arena,
+                                            value_list_t *evaluated,
+                                            value_t builtin_value) {
   assert(builtin_value.type == VALUE_TYPE_BUILTIN);
   builtin_t builtin = builtin_value.value.builtin;
   listUnshift(value_t, evaluated);
-  try(result_void_position_t, builtin(result, evaluated));
+  try(result_void_position_t, builtin(temp_arena, result, evaluated));
   return ok(result_void_position_t);
 }
 
@@ -168,7 +170,7 @@ result_void_position_t evaluate(value_t *result, arena_t *temp_arena,
                evaluateNodes(temp_arena, ast, env, &first_value),
                arenaAllocationFrameEnd(temp_arena, frame), evaluated);
       tryFinally(result_void_position_t,
-                 invokeBuiltin(result, evaluated, first_value),
+                 invokeBuiltin(result, temp_arena, evaluated, first_value),
                  arenaAllocationFrameEnd(temp_arena, frame));
       return ok(result_void_position_t);
     case VALUE_TYPE_CLOSURE:

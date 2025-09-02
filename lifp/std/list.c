@@ -5,7 +5,9 @@
 
 // List count function - counts elements in a list
 const char *LIST_COUNT = "list.count";
-result_void_position_t listCount(value_t *result, value_list_t *values) {
+result_void_position_t listCount(arena_t *arena, value_t *result,
+                                 value_list_t *values) {
+  (void)arena;
   if (values->count != 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 1 argument. Got %zu", LIST_COUNT, values->count);
@@ -25,7 +27,9 @@ result_void_position_t listCount(value_t *result, value_list_t *values) {
 
 // List from function - creates a list from the given arguments
 const char *LIST_FROM = "list.from";
-result_void_position_t listFrom(value_t *result, value_list_t *values) {
+result_void_position_t listFrom(arena_t *arena, value_t *result,
+                                value_list_t *values) {
+  (void)arena;
   result->type = VALUE_TYPE_LIST;
 
   value_list_t *new_list = nullptr;
@@ -52,7 +56,9 @@ result_void_position_t listFrom(value_t *result, value_list_t *values) {
 // List nth function - returns the nth element of a list, or nil if out of
 // bounds
 const char *LIST_NTH = "list.nth";
-result_void_position_t listNth(value_t *result, value_list_t *values) {
+result_void_position_t listNth(arena_t *arena, value_t *result,
+                               value_list_t *values) {
+  (void)arena;
   if (values->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 2 arguments. Got %zu", LIST_NTH, values->count);

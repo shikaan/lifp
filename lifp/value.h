@@ -13,7 +13,8 @@ typedef struct environment_t environment_t;
 typedef List(value_t) value_list_t;
 typedef Result(value_t *, position_t) result_value_ref_t;
 typedef ResultVoid(position_t) result_void_position_t;
-typedef result_void_position_t (*builtin_t)(value_t *, value_list_t *);
+typedef result_void_position_t (*builtin_t)(arena_t *, value_t *,
+                                            value_list_t *);
 typedef result_void_position_t (*special_form_t)(value_t *, arena_t *,
                                                  environment_t *,
                                                  const node_list_t *);
