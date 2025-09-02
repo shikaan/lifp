@@ -83,11 +83,6 @@ result_void_position_t strJoin(arena_t *arena, value_t *result,
 
   for (size_t i = 0; i < list_value.value.list.count - 1; i++) {
     value_t current = listGet(value_t, &list_value.value.list, i);
-    if (current.type != VALUE_TYPE_STRING) {
-      throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, current.position,
-            "%s requires a list of strings. Got type %u", STR_JOIN,
-            current.type);
-    }
     strcat(buffer, current.value.string);
     strcat(buffer, separator_value.value.string);
   }
