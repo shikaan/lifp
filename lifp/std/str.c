@@ -86,6 +86,7 @@ result_void_position_t strJoin(arena_t *arena, value_t *result,
     strcat(buffer, current.value.string);
     strcat(buffer, separator_value.value.string);
   }
+
   value_t last =
       listGet(value_t, &list_value.value.list, list_value.value.list.count - 1);
   strcat(buffer, last.value.string);
@@ -145,10 +146,10 @@ result_void_position_t strSlice(arena_t *arena, value_t *result,
 
   if (start > end)
     start = end;
-  size_t slice_len = (end > start) ? (end - start) : 0;
+  size_t slice_len = (end > start) ? (end - start + 1) : 0;
 
   string_t buffer;
-  tryCreateBuffer(buffer, slice_len + 1);
+  tryCreateBuffer(buffer, slice_len);
 
   if (slice_len > 0) {
     stringCopy(buffer, string_value.value.string + start, slice_len);
