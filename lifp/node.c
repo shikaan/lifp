@@ -1,4 +1,5 @@
 #include "node.h"
+#include "../lib/string.h"
 #include <string.h>
 
 static constexpr size_t INITIAL_SIZE = 8;
@@ -30,6 +31,20 @@ result_void_t nodeCopy(const node_t *source, node_t *destination,
       try(result_void_t, nodeCreate(destination_arena, value.type), dupe);
       try(result_void_t, nodeCopy(&value, dupe, destination_arena));
       try(result_void_t, listAppend(node_t, &destination->value.list, dupe));
+    }
+  } else if (source->type == NODE_TYPE_SYMBOL ||
+             source->type == NODE_TYPE_STRING) {
+    const string_t src_str = (source->type == NODE_TYPE_SYMBOL)
+                                 ? source->value.symbol
+                                 : source->value.string;
+    size_t len = strlen(src_str) + 1;
+    string_t dest_str;
+    try(result_void_t, arenaAllocate(destination_arena, len), dest_str);
+    stringCopy(dest_str, src_str, len);
+    if (source->type == NODE_TYPE_SYMBOL) {
+      destination->value.symbol = dest_str;
+    } else {
+      destination->value.string = dest_str;
     }
   } else {
     destination->value = source->value;

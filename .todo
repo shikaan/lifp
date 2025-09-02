@@ -1,4 +1,4 @@
-  * [ ] Implement string methods in stdlib (string.slice, string.includes, string.trim)
+  * [ ] Implement string methods in stdlib (string.trim)
 
 BUGS
 ---
