@@ -5,6 +5,8 @@
 #include "../lib/result.h"
 #include "node.h"
 #include "position.h"
+#include "types.h"
+#include <stddef.h>
 #include <stdint.h>
 
 typedef struct value_t value_t;
@@ -54,6 +56,27 @@ constexpr size_t VALUE_LIST_INITIAL_SIZE = 8;
 
 result_void_t valueCopy(value_t *source, value_t *destination,
                         arena_t *destination_arena);
-result_void_t valueInit(value_t *value, arena_t *arena, value_type_t type,
-                        node_type_t form_type);
 result_ref_t valueCreate(arena_t *arena);
+
+#define valueInit(Self, Arena, Value)                                          \
+  _Generic((Value),                                                            \
+      bool: valueInitBoolean,                                                  \
+      number_t: valueInitNumber,                                               \
+      nullptr_t: valueInitNil,                                                 \
+      size_t: valueInitList,                                                   \
+      node_type_t: valueInitClosure,                                           \
+      builtin_t: valueInitBuiltin,                                             \
+      special_form_t: valueInitSpecial,                                        \
+      string_t: valueInitString,                                               \
+      const char *: valueInitString)(Self, Arena, Value)
+
+result_void_t valueInitBoolean(value_t *self, arena_t *arena, bool value);
+result_void_t valueInitNumber(value_t *self, arena_t *arena, number_t value);
+result_void_t valueInitBuiltin(value_t *self, arena_t *arena, builtin_t value);
+result_void_t valueInitClosure(value_t *self, arena_t *arena,
+                               node_type_t form_type);
+result_void_t valueInitNil(value_t *self, arena_t *arena, nullptr_t value);
+result_void_t valueInitList(value_t *self, arena_t *arena, size_t size);
+result_void_t valueInitSpecial(value_t *self, arena_t *arena,
+                               special_form_t value);
+result_void_t valueInitString(value_t *self, arena_t *arena, const char *value);

@@ -51,7 +51,7 @@ void atoms() {
 
   case("symbol");
   value_t symbol;
-  tryAssert(valueInit(&symbol, test_arena, VALUE_TYPE_NUMBER, 0));
+  tryAssert(valueInit(&symbol, test_arena, (number_t)0));
   mapSet(value_t, environment->values, "value", &symbol);
 
   node_t symbol_node = nSym(test_arena, "value");

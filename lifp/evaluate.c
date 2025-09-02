@@ -102,18 +102,21 @@ result_void_position_t evaluate(value_t *result, arena_t *temp_arena,
 
   switch (ast->type) {
   case NODE_TYPE_BOOLEAN: {
-    result->type = VALUE_TYPE_BOOLEAN;
-    result->value.boolean = ast->value.boolean;
+    tryWithMeta(result_void_position_t,
+                valueInit(result, temp_arena, ast->value.boolean),
+                result->position);
     return ok(result_void_position_t);
   }
   case NODE_TYPE_NIL: {
-    result->type = VALUE_TYPE_NIL;
-    result->value.nil = ast->value.nil;
+    tryWithMeta(result_void_position_t,
+                valueInit(result, temp_arena, ast->value.nil),
+                result->position);
     return ok(result_void_position_t);
   }
   case NODE_TYPE_NUMBER: {
-    result->type = VALUE_TYPE_NUMBER;
-    result->value.number = ast->value.number;
+    tryWithMeta(result_void_position_t,
+                valueInit(result, temp_arena, ast->value.number),
+                result->position);
     return ok(result_void_position_t);
   }
   case NODE_TYPE_STRING:
@@ -193,7 +196,7 @@ result_void_position_t evaluate(value_t *result, arena_t *temp_arena,
                arenaAllocationFrameEnd(temp_arena, frame), evaluated);
 
       tryWithMeta(result_void_position_t,
-                  valueInit(result, temp_arena, VALUE_TYPE_LIST, 0),
+                  valueInit(result, temp_arena, evaluated->count),
                   ast->position);
 
       for (size_t i = 0; i < evaluated->count; i++) {

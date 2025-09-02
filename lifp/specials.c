@@ -85,8 +85,7 @@ result_void_position_t function(value_t *result, arena_t *temp_arena,
   node_t form = listGet(node_t, nodes, 2);
 
   frame_handle_t frame = arenaAllocationFrameStart(temp_arena);
-  tryWithMeta(result_void_position_t,
-              valueInit(result, temp_arena, VALUE_TYPE_CLOSURE, form.type),
+  tryWithMeta(result_void_position_t, valueInit(result, temp_arena, form.type),
               result->position);
 
   for (size_t i = 0; i < arguments.value.list.count; i++) {
