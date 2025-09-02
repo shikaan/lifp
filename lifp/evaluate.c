@@ -1,5 +1,6 @@
 #include "evaluate.h"
 #include "../lib/profile.h"
+#include "../lib/string.h"
 #include "error.h"
 #include "node.h"
 #include "position.h"
@@ -121,7 +122,7 @@ result_void_position_t evaluate(value_t *result, arena_t *temp_arena,
     string_t string;
     tryWithMeta(result_void_position_t, arenaAllocate(temp_arena, len + 1),
                 ast->position, string);
-    strlcpy(string, ast->value.string, len + 1);
+    stringCopy(string, ast->value.string, len + 1);
     result->value.string = string;
     return ok(result_void_position_t);
   case NODE_TYPE_SYMBOL: {

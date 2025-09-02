@@ -1,4 +1,5 @@
 #include "value.h"
+#include "../lib/string.h"
 #include "node.h"
 #include <string.h>
 
@@ -74,7 +75,7 @@ result_void_t valueCopy(value_t *source, value_t *destination,
     string_t string;
     try(result_void_t,
         arenaAllocate(destination_arena, (len + 1) * sizeof(char)), string);
-    strlcpy(string, source->value.string, len + 1);
+    stringCopy(string, source->value.string, len + 1);
     destination->value.string = string;
     break;
   case VALUE_TYPE_CLOSURE:

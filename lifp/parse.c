@@ -1,4 +1,5 @@
 #include "parse.h"
+#include "../lib/string.h"
 #include "error.h"
 #include "node.h"
 #include <assert.h>
@@ -47,7 +48,7 @@ result_node_ref_t parseAtom(arena_t *arena, token_t token) {
       char *string = nullptr;
       tryWithMeta(result_node_ref_t, arenaAllocate(arena, len - 1),
                   token.position, string);
-      strlcpy(string, token.value.literal + 1, len - 1);
+      stringCopy(string, token.value.literal + 1, len - 1);
       node->value.string = string;
     } else {
       if (len >= MAX_SYMBOL_LENGTH) {
@@ -59,7 +60,7 @@ result_node_ref_t parseAtom(arena_t *arena, token_t token) {
       char *symbol = nullptr;
       tryWithMeta(result_node_ref_t, arenaAllocate(arena, len + 1),
                   token.position, symbol);
-      strlcpy(symbol, token.value.literal, len + 1);
+      stringCopy(symbol, token.value.literal, len + 1);
       node->value.symbol = symbol;
     }
     return ok(result_node_ref_t, node);

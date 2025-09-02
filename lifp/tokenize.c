@@ -1,4 +1,5 @@
 #include "tokenize.h"
+#include "../lib/string.h"
 #include "error.h"
 #include "position.h"
 #include "token.h"
@@ -36,7 +37,7 @@ result_void_position_t bufferToToken(token_t *token, string_buffer_t *buffer,
   char *string = nullptr;
   tryWithMeta(result_void_position_t,
               arenaAllocate(buffer->arena, buffer->count), position, string);
-  strlcpy(string, buffer->data, buffer->count);
+  stringCopy(string, buffer->data, buffer->count);
   token->type = TOKEN_TYPE_LITERAL;
   token->position = position;
   token->value.literal = string;

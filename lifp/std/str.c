@@ -1,9 +1,8 @@
 #include "../../lib/result.h"
+#include "../../lib/string.h"
 #include "../error.h"
 #include "../value.h"
-#include <float.h>
-#include <stddef.h>
-#include <stdlib.h>
+#include <ctype.h>
 #include <string.h>
 
 const char *STR_LENGTH = "str.length";
@@ -156,14 +155,14 @@ result_void_position_t strSlice(arena_t *arena, value_t *result,
               result->position, buffer);
 
   if (slice_len > 0) {
-    memcpy(buffer, string_value.value.string + start, slice_len);
+    stringCopy(buffer, string_value.value.string + start, slice_len);
   }
-  buffer[slice_len] = 0;
 
   result->type = VALUE_TYPE_STRING;
   result->value.string = buffer;
   return ok(result_void_position_t);
 }
+
 const char *STR_INCLUDE = "str.include";
 result_void_position_t strInclude(arena_t *arena, value_t *result,
                                   value_list_t *values) {
