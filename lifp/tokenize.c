@@ -1,9 +1,9 @@
 #include "tokenize.h"
-#include "../lib/string.h"
 #include "error.h"
 #include "position.h"
 #include "token.h"
 
+#include <assert.h>
 #include <ctype.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -14,154 +14,237 @@
 typedef List(char) string_buffer_t;
 typedef ResultVoid(position_t) result_void_position_t;
 
-typedef enum {
-  LEXER_STATE_DEFAULT,
-  LEXER_STATE_COLLECTING_STRING
-} lexer_state_t;
-
-typedef struct {
-  lexer_state_t state;
-  position_t token_position;
-  string_buffer_t *buffer;
-  token_list_t *tokens;
-} lexer_t;
-
-static result_void_t lexerInit(lexer_t *self, arena_t *arena) {
-  self->state = LEXER_STATE_DEFAULT;
-  try(result_void_t, listCreate(char, arena, 64), self->buffer);
-  try(result_void_t, listCreate(token_t, arena, 32), self->tokens);
-  return ok(result_void_t);
+// All printable symbols, except for special symbols, and whitespace are valid
+static int isValidSeparator(char character) {
+  return (character == 0 || isspace(character) || character == RPAREN ||
+          character == COMMENT_DELIMITER) != 0;
 }
 
-static result_void_position_t lexerDecode(lexer_t *self, token_type_t type) {
-  token_t token;
-  token.position = self->token_position;
-
-#define resetAndAppendResult()                                                 \
-  self->state = LEXER_STATE_DEFAULT;                                           \
-  listClear(char, self->buffer);                                               \
-  tryWithMeta(result_void_position_t,                                          \
-              listAppend(token_t, self->tokens, &token),                       \
-              self->token_position);
-
-  if (type == TOKEN_TYPE_LPAREN || type == TOKEN_TYPE_RPAREN) {
-    token.type = type;
-    token.value.lparen = nullptr;
-    token.value.rparen = nullptr;
-
-    resetAndAppendResult();
-    return ok(result_void_position_t);
-  }
-
-  string_buffer_t *buffer = self->buffer;
-  char null = 0;
-  tryWithMeta(result_void_position_t, listAppend(char, buffer, &null),
-              self->token_position);
-
-  char *remainder;
-  number_t number = (number_t)strtod(buffer->data, &remainder);
-
-  // This condition is met when all the chars of the token represent an number
-  // This includes also leading +/-
-  const bool is_number = ((!remainder) || (strlen(remainder) == 0)) != 0;
-  if (is_number) {
-    token.type = TOKEN_TYPE_NUMBER;
-    token.value.number = number;
-    resetAndAppendResult();
-    return ok(result_void_position_t);
-  }
-
-  if (self->state == LEXER_STATE_COLLECTING_STRING) {
-    char *string = nullptr;
-    tryWithMeta(result_void_position_t,
-                arenaAllocate(buffer->arena, buffer->count - 2),
-                self->token_position, string);
-    stringCopy(string, buffer->data + 1, buffer->count - 2);
-    token.type = TOKEN_TYPE_STRING;
-    token.value.string = string;
-  } else {
-    char *literal = nullptr;
-    tryWithMeta(result_void_position_t,
-                arenaAllocate(buffer->arena, buffer->count),
-                self->token_position, literal);
-    stringCopy(literal, buffer->data, buffer->count);
-    token.type = TOKEN_TYPE_LITERAL;
-    token.value.literal = literal;
-  }
-
-  resetAndAppendResult();
-  return ok(result_void_position_t);
-#undef resetAndAppendResult
+// All printable symbols, except for special symbols, and whitespace are valid
+static int isValidSymbolChar(char character) {
+  return ((isprint(character) != 0) && character != ' ' && character != '\t' &&
+          character != '\n' && character != '\r' &&
+          character != COMMENT_DELIMITER && character != STRING_DELIMITER &&
+          character != LPAREN && character != RPAREN) != 0;
 }
 
-static bool lexerIsEmpty(lexer_t *self) { return self->buffer->count == 0; }
+static int isValidSymbolName(size_t len, const char *symbol) {
+  // Empty names are not allowed
+  if (len == 0)
+    return 0;
 
-static result_void_position_t lexerAppend(lexer_t *self, char character) {
-  tryWithMeta(result_void_position_t,
-              listAppend(char, self->buffer, &character), self->token_position);
-  return ok(result_void_position_t);
+  // ? and ! alone are not allowed
+  if (len == 1 &&
+      (symbol[0] == BOOLEAN_DELIMITER || symbol[0] == EFFECTFUL_DEIMITER))
+    return 0;
+
+  // ? and ! can only appear at the end
+  for (size_t i = 0; i < len - 1; i++) {
+    if (symbol[i] == BOOLEAN_DELIMITER || symbol[i] == EFFECTFUL_DEIMITER) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+// Helper function to process escape sequences in strings
+static char processEscapeSequence(const char **source, position_t *pos) {
+  char character = **source;
+  (*source)++;
+  pos->column++;
+
+  switch (character) {
+  case 'n':
+    return '\n';
+  case 't':
+    return '\t';
+  case 'r':
+    return '\r';
+  case 'b':
+    return '\b';
+  case 'f':
+    return '\f';
+  case 'v':
+    return '\v';
+  case 'a':
+    return '\a';
+  case '0':
+    return '\0';
+  case '\\':
+    return '\\';
+  case '"':
+    return '"';
+  default:
+    // For unrecognized escapes, return the character as-is
+    return character;
+  }
+}
+
+static void skipWhitespaceAndComments(const char **source, position_t *pos) {
+  while (**source) {
+    if (isspace(**source)) {
+      if (**source == '\n') {
+        pos->line++;
+        pos->column = 1;
+      } else {
+        pos->column++;
+      }
+      (*source)++;
+    } else if (**source == COMMENT_DELIMITER) {
+      // Skip comment until end of line
+      while (**source && **source != '\n') {
+        (*source)++;
+        pos->column++;
+      }
+      // Don't increment here, let the next iteration handle the newline
+    } else {
+      break;
+    }
+  }
 }
 
 result_token_list_ref_t tokenize(arena_t *arena, const char *source) {
-  position_t cursor = {1, 0};
+  position_t pos = {.line = 1, .column = 1};
 
-  lexer_t lexer;
-  tryWithMeta(result_token_list_ref_t, lexerInit(&lexer, arena), cursor);
+  token_list_t *tokens = nullptr;
+  tryWithMeta(result_token_list_ref_t, listCreate(token_t, arena, 16), pos,
+              tokens);
 
-  for (int i = 0; source[i] != '\0'; i++) {
-    cursor.column++;
-    const char current_char = source[i];
+  const char *current = source;
+
+  const char null = '\0';
+
+  while (*current) {
+    skipWhitespaceAndComments(&current, &pos);
+    if (!*current)
+      break;
+
+    position_t token_pos = pos;
+    token_t token = {.position = token_pos};
+
+    char current_char = *current;
 
     if (current_char == LPAREN) {
-      try(result_token_list_ref_t, lexerDecode(&lexer, TOKEN_TYPE_LPAREN));
-      continue;
+      token.type = TOKEN_TYPE_LPAREN;
+      token.value.lparen = nullptr;
+      current++;
+      pos.column++;
+      goto append_and_continue;
     }
 
     if (current_char == RPAREN) {
-      if (lexer.buffer->count > 0) {
-        try(result_token_list_ref_t, lexerDecode(&lexer, TOKEN_TYPE_STRING));
-      }
-
-      try(result_token_list_ref_t, lexerDecode(&lexer, TOKEN_TYPE_RPAREN));
-      continue;
+      token.type = TOKEN_TYPE_RPAREN;
+      token.value.rparen = nullptr;
+      current++;
+      pos.column++;
+      goto append_and_continue;
     }
 
-    const bool should_collect =
-        ((int)lexer.state == LEXER_STATE_COLLECTING_STRING ||
-         (isprint(current_char) && current_char != ' ')) != 0;
+    if (current_char == STRING_DELIMITER) {
+      current++; // Skip opening quote
+      pos.column++;
 
-    if (should_collect) {
-      if (lexerIsEmpty(&lexer)) {
-        lexer.token_position = cursor;
-        lexer.state = current_char == STRING_DELIMITER
-                          ? LEXER_STATE_COLLECTING_STRING
-                          : LEXER_STATE_DEFAULT;
+      string_buffer_t *str = nullptr;
+      tryWithMeta(result_token_list_ref_t, listCreate(char, arena, 16), pos,
+                  str);
+
+      while (*current && *current != STRING_DELIMITER) {
+        char string_char;
+        if (*current == '\\') {
+          current++; // Skip backslash
+          pos.column++;
+
+          if (!*current) {
+            throw(result_token_list_ref_t, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN,
+                  pos, "Unterminated string escape sequence");
+          }
+
+          string_char = processEscapeSequence(&current, &pos);
+        } else {
+          string_char = *current;
+          current++;
+          if (string_char == '\n') {
+            pos.line++;
+            pos.column = 1;
+          } else {
+            pos.column++;
+          }
+        }
+
+        tryWithMeta(result_token_list_ref_t,
+                    listAppend(char, str, &string_char), pos);
       }
 
-      try(result_token_list_ref_t, lexerAppend(&lexer, current_char));
-      continue;
-    }
-
-    if (isspace(current_char)) {
-      if (current_char == '\n') {
-        cursor.line++;
-        cursor.column = 0;
+      if (!*current) {
+        throw(result_token_list_ref_t, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN,
+              token_pos, "Incomplete string literal");
       }
 
-      if (lexerIsEmpty(&lexer))
-        continue;
+      // After closing string, check if next character is a valid separator
+      // We don't want to allow '"' in the middle of a literal
+      char next_char = *(current + 1);
+      if (!isValidSeparator(next_char)) {
+        pos.column++;
+        throw(result_token_list_ref_t, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN, pos,
+              "Invalid string literal");
+      }
 
-      try(result_token_list_ref_t, lexerDecode(&lexer, TOKEN_TYPE_STRING));
-      continue;
+      current++; // Skip closing quote
+      pos.column++;
+
+      // Null-terminate the string
+      tryWithMeta(result_token_list_ref_t, listAppend(char, str, &null), pos);
+
+      token.type = TOKEN_TYPE_STRING;
+      token.value.string = str->data;
+      goto append_and_continue;
     }
 
-    throw(result_token_list_ref_t, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN, cursor,
-          "Unexpected token '%c'", current_char);
+    if (isValidSymbolChar(current_char)) {
+      string_buffer_t *str = nullptr;
+      tryWithMeta(result_token_list_ref_t, listCreate(char, arena, 16), pos,
+                  str);
+
+      while (*current != '\0' && isValidSymbolChar(*current)) {
+        tryWithMeta(result_token_list_ref_t, listAppend(char, str, current),
+                    pos);
+        current++;
+        pos.column++;
+      }
+
+      // Null-terminate
+      tryWithMeta(result_token_list_ref_t, listAppend(char, str, &null), pos);
+
+      if (!isValidSymbolName(str->count - 1, str->data)) {
+        throw(result_token_list_ref_t, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN,
+              token_pos, "Invalid symbol name");
+      }
+
+      char *remainder;
+      number_t number = (number_t)strtod(str->data, &remainder);
+
+      // This condition is met when all the chars of the token represent an
+      // number. This includes also leading +/- and scientific notation
+      const bool is_number = ((!remainder) || (strlen(remainder) == 0)) != 0;
+      if (is_number) {
+        token.type = TOKEN_TYPE_NUMBER;
+        token.value.number = number;
+        goto append_and_continue;
+      }
+
+      // Else, default to literal
+      token.type = TOKEN_TYPE_LITERAL;
+      token.value.literal = str->data;
+      goto append_and_continue;
+    }
+
+    throw(result_token_list_ref_t, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN, pos,
+          "Unexpected character(s): \"%c\"", current_char);
+
+  append_and_continue:
+    tryWithMeta(result_token_list_ref_t, listAppend(token_t, tokens, &token),
+                pos);
   }
 
-  if (!lexerIsEmpty(&lexer)) {
-    try(result_token_list_ref_t, lexerDecode(&lexer, TOKEN_TYPE_STRING));
-  }
-
-  return ok(result_token_list_ref_t, lexer.tokens);
+  return ok(result_token_list_ref_t, tokens);
 }

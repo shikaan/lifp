@@ -1,5 +1,4 @@
   * [ ] Implement string methods in stdlib (string.trim)
-  * [ ]  Whitespaces are not handled in strings (example: `"lol "` in repl does not work)
 
 BUGS
 ---
@@ -16,7 +15,6 @@ FEATURES
     * [ ] functions ending in ? should return bool
   * [ ] Resizable arena, to allow resizable environments
   * [ ] Tail call optimization
-  * [ ] Lexer should know about comments (and discard them)
   * [ ] Auto-generated documentation for standard library
   * [ ] Enum to text for error messages
   * [ ] Currying: `(def! make-adder (fn (x) (fn (y) (+ x y))))\n(make-adder 5)` currently loses context on `x` because of immediate invocation

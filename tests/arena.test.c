@@ -27,13 +27,15 @@ void basic() {
 void overflow() {
   result_ref_t creation = arenaCreate(100);
   expectTrue(creation.code == 0, "succeeds arena creation");
-  
+
   arena_t *arena = creation.value;
-  
+
   result_ref_t allocation = arenaAllocate(arena, 200);
   expectFalse(allocation.code == 0, "fails oversized allocation");
-  expectIncludeString(allocation.message, "Available 100, requested 200, total 100", "throws correct exception");
-  
+  expectIncludeString(allocation.message,
+                      "Available 84, requested 208, total 100",
+                      "throws correct exception");
+
   arenaDestroy(&arena);
 }
 
@@ -46,7 +48,7 @@ void alignment() {
     result_ref_t allocation = arenaAllocate(arena, i);
     assert(allocation.code == 0);
     uintptr_t pointer = (uintptr_t)allocation.value;
-    expectEqlUint(pointer % 8, 0, "address is 8-aligned");
+    expectEqlUint(pointer % 16, 0, "address is 16-aligned");
   }
 
   arenaDestroy(&arena);
