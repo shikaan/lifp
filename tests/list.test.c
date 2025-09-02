@@ -39,19 +39,6 @@ int main(void) {
   }
   expectEqlSize(list->capacity, 8, "has updated capacity again");
 
-  case("copy");
-  int_list_t *another = nullptr;
-  tryAssert(listCreate(int, test_arena, 1), another);
-  tryAssert(listAppend(int, another, &item));
-  result_void_t result = listCopy(int, list, another);
-  expectEqlInt(result.code, RESULT_OK, "copies the list");
-  expectEqlSize(list->count, 6, "updates count");
- 
-  List(char) *different = nullptr;
-  tryAssert(listCreate(char, test_arena, 1), different); 
-  result = listCopy(int, list, different);
-  expectEqlInt(result.code, LIST_ERROR_INCOMPATIBLE_LISTS, "throws error");
-
   arenaDestroy(&test_arena);
   return report();
 }

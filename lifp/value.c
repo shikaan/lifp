@@ -82,14 +82,28 @@ result_void_t valueCopy(value_t *source, value_t *destination,
     destination->value.string = string;
     break;
   case VALUE_TYPE_CLOSURE:
-    nodeCopy(&source->value.closure.form, &destination->value.closure.form);
-    try(result_void_t, listCopy(value_t, &source->value.closure.arguments,
-                                &destination->value.closure.arguments));
-    break;
-  case VALUE_TYPE_LIST:
     try(result_void_t,
-        listCopy(value_t, &source->value.list, &destination->value.list));
+        nodeCopy(&source->value.closure.form, &destination->value.closure.form,
+                 destination_arena));
+    for (size_t i = 0; i < source->value.closure.arguments.count; i++) {
+      node_t value = source->value.closure.arguments.data[i];
+      node_t duplicated;
+      try(result_void_t, nodeCopy(&value, &duplicated, destination_arena));
+      try(result_void_t,
+          listAppend(node_t, &destination->value.closure.arguments,
+                     &duplicated));
+    }
     break;
+  case VALUE_TYPE_LIST: {
+    for (size_t i = 0; i < source->value.list.count; i++) {
+      value_t value = listGet(value_t, &source->value.list, i);
+      value_t duplicated;
+      try(result_void_t, valueCopy(&value, &duplicated, destination_arena));
+    try(result_void_t,
+          listAppend(value_t, &destination->value.list, &duplicated));
+    }
+    break;
+  }
   default:
     unreachable();
   }

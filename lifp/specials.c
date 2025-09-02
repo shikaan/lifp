@@ -111,7 +111,8 @@ result_void_position_t function(value_t *result, arena_t *temp_arena,
   }
 
   tryWithMeta(result_void_position_t,
-              nodeCopy(&form, &result->value.closure.form), form.position);
+              nodeCopy(&form, &result->value.closure.form, temp_arena),
+              form.position);
 
   return ok(result_void_position_t);
 }
