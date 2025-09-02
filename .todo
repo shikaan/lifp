@@ -3,6 +3,7 @@
 BUGS
 ---
   * [ ] `listGet` allows you to go out of bound
+  * [ ]  Nesting lists yields to a format stack overflow (example: `((1) 2)` in the repl
 
 FEATURES
 ---
