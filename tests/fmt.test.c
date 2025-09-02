@@ -7,6 +7,13 @@
 #include <stddef.h>
 
 static arena_t *test_arena;
+result_ref_t valueCreateInit(arena_t *arena, value_type_t type,
+                             node_type_t form_type) {
+  value_t *value = nullptr;
+  try(result_ref_t, arenaAllocate(arena, sizeof(value_t)), value);
+  try(result_ref_t, valueInit(value, arena, type, form_type));
+  return ok(result_ref_t, value);
+}
 
 void values() {
   const int size = 128;

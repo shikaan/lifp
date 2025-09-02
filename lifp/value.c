@@ -3,14 +3,6 @@
 #include "node.h"
 #include <string.h>
 
-result_ref_t valueCreateInit(arena_t *arena, value_type_t type,
-                             node_type_t form_type) {
-  value_t *value = nullptr;
-  try(result_ref_t, arenaAllocate(arena, sizeof(value_t)), value);
-  try(result_ref_t, valueInit(value, arena, type, form_type));
-  return ok(result_ref_t, value);
-}
-
 result_ref_t valueCreate(arena_t *arena) {
   value_t *value = nullptr;
   try(result_ref_t, arenaAllocate(arena, sizeof(value_t)), value);
@@ -29,10 +21,10 @@ result_void_t valueInit(value_t *value, arena_t *arena, value_type_t type,
   }
 
   if (value->type == VALUE_TYPE_CLOSURE) {
-    value_list_t *list = nullptr;
+    value_list_t *arguments = nullptr;
     try(result_void_t, listCreate(node_t, arena, VALUE_LIST_INITIAL_SIZE),
-        list);
-    memcpy(&value->value.closure.arguments, list, sizeof(value_list_t));
+        arguments);
+    memcpy(&value->value.closure.arguments, arguments, sizeof(value_list_t));
 
     node_t *form = nullptr;
     try(result_void_t, nodeCreate(arena, form_type), form);
