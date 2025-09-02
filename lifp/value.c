@@ -6,9 +6,12 @@
 #include <stddef.h>
 #include <string.h>
 
-result_ref_t valueCreate(arena_t *arena) {
+result_ref_t valueCreate(arena_t *arena, value_type_t type) {
   value_t *value = nullptr;
   try(result_ref_t, arenaAllocate(arena, sizeof(value_t)), value);
+  value->type = type;
+  value->position.column = 0;
+  value->position.line = 0;
   return ok(result_ref_t, value);
 }
 
@@ -30,6 +33,7 @@ result_void_t valueInitClosure(value_t *self, arena_t *arena,
 
   node_t *form = nullptr;
   try(result_void_t, nodeCreate(arena, form_type), form);
+  try(result_void_t, nodeInit(form, arena));
   self->value.closure.form = *form;
 
   return ok(result_void_t);

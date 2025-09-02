@@ -1,10 +1,10 @@
   * [ ] Implement string methods in stdlib (string.trim)
+  * [ ]  Whitespaces are not handled in strings (example: `"lol "` in repl does not work)
 
 BUGS
 ---
   * [ ] `listGet` allows you to go out of bound
   * [ ]  Nesting lists yields to a format stack overflow (example: `((1) 2)` in the repl)
-  * [ ]  Whitespaces are not handled in strings (example: `"lol "` in repl does not work)
 
 FEATURES
 ---

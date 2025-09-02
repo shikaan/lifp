@@ -36,5 +36,6 @@ typedef struct node_t {
 } node_t;
 
 result_ref_t nodeCreate(arena_t *arena, node_type_t type);
-result_void_t nodeCopy(const node_t *source, node_t *destination,
+result_void_t nodeInit(node_t *self, arena_t *arena);
+result_void_t nodeCopy(const node_t *self, node_t *destination,
                        arena_t *destination_arena);

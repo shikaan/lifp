@@ -12,6 +12,7 @@ result_node_ref_t parseAtom(arena_t *arena, token_t token) {
   node_t *node = nullptr;
   tryWithMeta(result_node_ref_t, nodeCreate(arena, NODE_TYPE_NUMBER),
               token.position, node);
+  tryWithMeta(result_node_ref_t, nodeInit(node, arena), token.position);
 
   node->position = token.position;
 
@@ -78,6 +79,7 @@ result_node_ref_t parseList(arena_t *arena, const token_list_t *tokens,
   node_t *node = nullptr;
   tryWithMeta(result_node_ref_t, nodeCreate(arena, NODE_TYPE_LIST),
               first_token.position, node);
+  tryWithMeta(result_node_ref_t, nodeInit(node, arena), first_token.position);
 
   node->position = first_token.position;
   node->type = NODE_TYPE_LIST;
