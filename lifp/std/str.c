@@ -5,6 +5,12 @@
 #include <ctype.h>
 #include <string.h>
 
+#define tryCreateBuffer(Buffer, Length)                                        \
+  tryWithMeta(result_void_position_t,                                          \
+              arenaAllocate(arena, (Length) * sizeof(char)), result->position, \
+              Buffer);                                                         \
+  memset(Buffer, 0, Length);
+
 const char *STR_LENGTH = "str.length";
 result_void_position_t strLength(arena_t *arena, value_t *result,
                                  value_list_t *values) {
@@ -52,9 +58,7 @@ result_void_position_t strJoin(arena_t *arena, value_t *result,
 
   if (list_value.value.list.count == 0) {
     string_t buffer;
-    tryWithMeta(result_void_position_t, arenaAllocate(arena, sizeof(char)),
-                result->position, buffer);
-    buffer[0] = 0;
+    tryCreateBuffer(buffer, 1);
     result->type = VALUE_TYPE_STRING;
     result->value.string = buffer;
     return ok(result_void_position_t);
@@ -75,9 +79,7 @@ result_void_position_t strJoin(arena_t *arena, value_t *result,
   total_length += separator_length * (list_value.value.list.count - 1);
 
   string_t buffer;
-  tryWithMeta(result_void_position_t,
-              arenaAllocate(arena, total_length * sizeof(char)),
-              result->position, buffer);
+  tryCreateBuffer(buffer, total_length + 1);
 
   for (size_t i = 0; i < list_value.value.list.count - 1; i++) {
     value_t current = listGet(value_t, &list_value.value.list, i);
@@ -151,8 +153,7 @@ result_void_position_t strSlice(arena_t *arena, value_t *result,
   size_t slice_len = (end > start) ? (end - start) : 0;
 
   string_t buffer;
-  tryWithMeta(result_void_position_t, arenaAllocate(arena, slice_len + 1),
-              result->position, buffer);
+  tryCreateBuffer(buffer, slice_len + 1);
 
   if (slice_len > 0) {
     stringCopy(buffer, string_value.value.string + start, slice_len);
@@ -197,3 +198,5 @@ result_void_position_t strInclude(arena_t *arena, value_t *result,
 
   return ok(result_void_position_t);
 }
+
+#undef tryCreateBuffer
