@@ -1,5 +1,3 @@
-  * [ ] Implement string methods in stdlib (string.trim)
-
 BUGS
 ---
   * [ ] `listGet` allows you to go out of bound

@@ -235,7 +235,7 @@ result_void_position_t strTrimRight(arena_t *arena, value_t *result,
   (void)arena;
   if (values->count != 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires exactly 1 argument. Got %zu", STR_TRIM_LEFT,
+          "%s requires exactly 1 argument. Got %zu", STR_TRIM_RIGHT,
           values->count);
   }
 
@@ -243,7 +243,7 @@ result_void_position_t strTrimRight(arena_t *arena, value_t *result,
   if (string_value.type != VALUE_TYPE_STRING) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,
           string_value.position, "%s requires a string. Got type %u",
-          STR_TRIM_LEFT, string_value.type);
+          STR_TRIM_RIGHT, string_value.type);
   }
 
   size_t len = strlen(string_value.value.string);
