@@ -52,11 +52,11 @@ void atoms(void) {
     const char *name;
     node_t expected;
   } cases[] = {{tNum(1), "number", nInt(1)},
-               {tLit(test_arena, "test"), "symbol", nSym(test_arena, "test")},
+               {tSym(test_arena, "test"), "symbol", nSym(test_arena, "test")},
                {tStr(test_arena, "test"), "string", nStr(test_arena, "test")},
-               {tLit(test_arena, "true"), "true", nBool(true)},
-               {tLit(test_arena, "false"), "false", nBool(false)},
-               {tLit(test_arena, "nil"), "nil", nNil()}};
+               {tSym(test_arena, "true"), "true", nBool(true)},
+               {tSym(test_arena, "false"), "false", nBool(false)},
+               {tSym(test_arena, "nil"), "nil", nNil()}};
 
   for (size_t i = 0; i < arraySize(cases); i++) {
     token_list_t *list = makeTokenList(test_arena, &cases[i].input, 1);
@@ -83,16 +83,16 @@ void unary(void) {
   token_t int_token = tNum(1);
   token_t int_tokens[3] = {lparen, int_token, rparen};
 
-  token_t true_token = tLit(test_arena, "true");
+  token_t true_token = tSym(test_arena, "true");
   token_t true_tokens[3] = {lparen, true_token, rparen};
 
-  token_t false_token = tLit(test_arena, "false");
+  token_t false_token = tSym(test_arena, "false");
   token_t false_tokens[3] = {lparen, false_token, rparen};
 
-  token_t nil_token = tLit(test_arena, "nil");
+  token_t nil_token = tSym(test_arena, "nil");
   token_t nil_tokens[3] = {lparen, nil_token, rparen};
 
-  token_t sym_token = tLit(test_arena, "sym");
+  token_t sym_token = tSym(test_arena, "sym");
   token_t sym_tokens[3] = {lparen, sym_token, rparen};
 
   token_t str_token = tStr(test_arena, "str");
@@ -125,9 +125,9 @@ void unary(void) {
 void complex(void) {
   token_t lparen = tParen('(');
   token_t rparen = tParen(')');
-  token_t add_token = tLit(test_arena, "add");
+  token_t add_token = tSym(test_arena, "add");
   token_t int_token = tNum(1);
-  token_t bool_token = tLit(test_arena, "true");
+  token_t bool_token = tSym(test_arena, "true");
 
   token_t empty[2] = {lparen, rparen};
   token_t mixed[5] = {lparen, add_token, bool_token, int_token, rparen};
@@ -165,7 +165,7 @@ void errors() {
   token_t lparen = tParen('(');
   token_t rparen = tParen(')');
   token_t number = tNum(1);
-  token_t symbol = tLit(test_arena, "this_is_a_very_very_long_symbol");
+  token_t symbol = tSym(test_arena, "this_is_a_very_very_long_symbol");
 
   token_t unbalanced_right[4] = {lparen, lparen, number, rparen};
   token_t unbalanced_left[4] = {lparen, number, rparen, rparen};

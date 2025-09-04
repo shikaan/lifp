@@ -23,8 +23,8 @@ static void printToken(const token_t *token) {
   case TOKEN_TYPE_STRING:
     printf("STRING(\"%s\") ", token->value.string);
     break;
-  case TOKEN_TYPE_LITERAL:
-    printf("LITERAL(%s) ", token->value.literal);
+  case TOKEN_TYPE_SYMBOL:
+    printf("SYMBOL(%s) ", token->value.symbol);
     break;
   default:
     printf("UNKNOWN ");
@@ -53,8 +53,8 @@ static bool tokenEql(const token_t *self, const token_t *other) {
     return self->value.number == other->value.number;
   case TOKEN_TYPE_STRING:
     return strcmp(self->value.string, other->value.string) == 0;
-  case TOKEN_TYPE_LITERAL:
-    return strcmp(self->value.literal, other->value.literal) == 0;
+  case TOKEN_TYPE_SYMBOL:
+    return strcmp(self->value.symbol, other->value.symbol) == 0;
   default:
     return false;
   }
@@ -83,9 +83,9 @@ void atoms() {
   token_t rparen_token = tParen(')');
   token_t int_token = tNum(12);
   token_t float_token = tNum(1.2);
-  token_t symbol_token = tLit(test_arena, "lol");
-  token_t bool_symbol_token = tLit(test_arena, "lol?");
-  token_t effectful_symbol_token = tLit(test_arena, "lol!");
+  token_t symbol_token = tSym(test_arena, "lol");
+  token_t bool_symbol_token = tSym(test_arena, "lol?");
+  token_t effectful_symbol_token = tSym(test_arena, "lol!");
   token_t string_token = tStr(test_arena, "str ing");
 
   struct {
@@ -130,8 +130,8 @@ void atoms() {
 }
 
 void whitespaces() {
-  token_t token = tLit(test_arena, "a");
-  token_t other_token = tLit(test_arena, "b");
+  token_t token = tSym(test_arena, "a");
+  token_t other_token = tSym(test_arena, "b");
   token_t line_breaks = tStr(test_arena, "a\nb");
 
   struct {
@@ -202,8 +202,8 @@ void complex() {
   token_t rparen_token = tParen(')');
   token_t twelve_token = tNum(12);
   token_t two_token = tNum(2);
-  token_t def_token = tLit(test_arena, "def!");
-  token_t x_token = tLit(test_arena, "x");
+  token_t def_token = tSym(test_arena, "def!");
+  token_t x_token = tSym(test_arena, "x");
   token_t str_token = tStr(test_arena, "lol");
 
   token_t flat_list[4] = {lparen_token, twelve_token, two_token, rparen_token};

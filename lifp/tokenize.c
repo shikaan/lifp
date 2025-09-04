@@ -181,7 +181,7 @@ result_token_list_ref_t tokenize(arena_t *arena, const char *source) {
       }
 
       // After closing string, check if next character is a valid separator
-      // We don't want to allow '"' in the middle of a literal
+      // We don't want to allow '"' in the middle of a aymbol
       char next_char = *(current + 1);
       if (!isValidSeparator(next_char)) {
         pos.column++;
@@ -232,9 +232,9 @@ result_token_list_ref_t tokenize(arena_t *arena, const char *source) {
         goto append_and_continue;
       }
 
-      // Else, default to literal
-      token.type = TOKEN_TYPE_LITERAL;
-      token.value.literal = str->data;
+      // Else, default to symbol
+      token.type = TOKEN_TYPE_SYMBOL;
+      token.value.symbol = str->data;
       goto append_and_continue;
     }
 

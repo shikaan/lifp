@@ -15,13 +15,13 @@ constexpr char EFFECTFUL_DEIMITER = '!';
 typedef enum {
   TOKEN_TYPE_LPAREN,
   TOKEN_TYPE_RPAREN,
-  TOKEN_TYPE_LITERAL,
+  TOKEN_TYPE_SYMBOL,
   TOKEN_TYPE_STRING,
   TOKEN_TYPE_NUMBER,
 } token_type_t;
 
 typedef union {
-  string_t literal;
+  string_t symbol;
   string_t string;
   number_t number;
   nullptr_t lparen;

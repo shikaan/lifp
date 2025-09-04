@@ -52,13 +52,13 @@ static inline token_t tNum(double number) {
   };
 }
 
-static inline token_t tLit(arena_t *arena, const char *string) {
+static inline token_t tSym(arena_t *arena, const char *string) {
   size_t len = strlen(string);
   string_t value;
   tryAssert(arenaAllocate(arena, len + 1), value);
   stringCopy(value, string, len + 1);
   return (token_t){
-      .position = {1, 1}, .type = TOKEN_TYPE_LITERAL, .value.literal = value};
+      .position = {1, 1}, .type = TOKEN_TYPE_SYMBOL, .value.symbol = value};
 }
 
 static inline token_t tStr(arena_t *arena, const char *string) {

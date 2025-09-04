@@ -8,7 +8,7 @@
 #include <string.h>
 
 result_node_ref_t parseAtom(arena_t *arena, token_t token) {
-  assert(token.type == TOKEN_TYPE_NUMBER || token.type == TOKEN_TYPE_LITERAL ||
+  assert(token.type == TOKEN_TYPE_NUMBER || token.type == TOKEN_TYPE_SYMBOL ||
          token.type == TOKEN_TYPE_STRING);
 
   node_t *node = nullptr;
@@ -24,26 +24,26 @@ result_node_ref_t parseAtom(arena_t *arena, token_t token) {
     node->value.number = token.value.number;
     return ok(result_node_ref_t, node);
   }
-  case TOKEN_TYPE_LITERAL: {
-    if (strncmp(token.value.literal, TRUE, 4) == 0) {
+  case TOKEN_TYPE_SYMBOL: {
+    if (strncmp(token.value.symbol, TRUE, 4) == 0) {
       node->type = NODE_TYPE_BOOLEAN;
       node->value.boolean = true;
       return ok(result_node_ref_t, node);
     }
 
-    if (strncmp(token.value.literal, FALSE, 5) == 0) {
+    if (strncmp(token.value.symbol, FALSE, 5) == 0) {
       node->type = NODE_TYPE_BOOLEAN;
       node->value.boolean = false;
       return ok(result_node_ref_t, node);
     }
 
-    if (strncmp(token.value.literal, NIL, 3) == 0) {
+    if (strncmp(token.value.symbol, NIL, 3) == 0) {
       node->type = NODE_TYPE_NIL;
       node->value.nil = nullptr;
       return ok(result_node_ref_t, node);
     }
 
-    size_t len = strlen(token.value.literal);
+    size_t len = strlen(token.value.symbol);
 
     if (len >= MAX_SYMBOL_LENGTH) {
       throw(result_node_ref_t, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN,
@@ -54,7 +54,7 @@ result_node_ref_t parseAtom(arena_t *arena, token_t token) {
     char *symbol = nullptr;
     tryWithMeta(result_node_ref_t, arenaAllocate(arena, len + 1),
                 token.position, symbol);
-    stringCopy(symbol, token.value.literal, len + 1);
+    stringCopy(symbol, token.value.symbol, len + 1);
     node->value.symbol = symbol;
     return ok(result_node_ref_t, node);
   }
