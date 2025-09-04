@@ -3,6 +3,7 @@
 #include "../error.h"
 #include "../value.h"
 #include <ctype.h>
+#include <stddef.h>
 #include <string.h>
 
 #define tryCreateBuffer(Buffer, Length)                                        \
@@ -122,7 +123,7 @@ result_void_position_t strSlice(arena_t *arena, value_t *result,
   }
 
   size_t str_len = strlen(string_value.value.string);
-  double start_num = start_value.value.number;
+  number_t start_num = start_value.value.number;
   size_t start = (start_num < 0) ? (size_t)((int)str_len + (int)start_num)
                                  : (size_t)start_num;
   if (start > str_len)
@@ -137,7 +138,7 @@ result_void_position_t strSlice(arena_t *arena, value_t *result,
             "%s requires a number as third argument. Got type %u", STR_SLICE,
             end_value.type);
     }
-    double end_num = end_value.value.number;
+    number_t end_num = end_value.value.number;
     end =
         (end_num < 0) ? (size_t)((int)str_len + (int)end_num) : (size_t)end_num;
     if (end > str_len)
@@ -191,6 +192,73 @@ result_void_position_t strInclude(arena_t *arena, value_t *result,
 
   result->type = VALUE_TYPE_BOOLEAN;
   result->value.boolean = found;
+
+  return ok(result_void_position_t);
+}
+
+const char *STR_TRIM_LEFT = "str.trimLeft";
+result_void_position_t strTrimLeft(arena_t *arena, value_t *result,
+                                   value_list_t *values) {
+  (void)arena;
+  if (values->count != 1) {
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
+          "%s requires exactly 1 argument. Got %zu", STR_TRIM_LEFT,
+          values->count);
+  }
+
+  value_t string_value = listGet(value_t, values, 0);
+  if (string_value.type != VALUE_TYPE_STRING) {
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,
+          string_value.position, "%s requires a string. Got type %u",
+          STR_TRIM_LEFT, string_value.type);
+  }
+
+  char *start = string_value.value.string;
+  while (isspace(*start)) {
+    start++;
+  }
+
+  size_t len = strlen(start);
+  string_t buffer;
+  tryCreateBuffer(buffer, len + 1);
+  stringCopy(buffer, start, len + 1);
+
+  result->type = VALUE_TYPE_STRING;
+  result->value.string = buffer;
+
+  return ok(result_void_position_t);
+}
+
+const char *STR_TRIM_RIGHT = "str.trimRight";
+result_void_position_t strTrimRight(arena_t *arena, value_t *result,
+                                    value_list_t *values) {
+  (void)arena;
+  if (values->count != 1) {
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
+          "%s requires exactly 1 argument. Got %zu", STR_TRIM_LEFT,
+          values->count);
+  }
+
+  value_t string_value = listGet(value_t, values, 0);
+  if (string_value.type != VALUE_TYPE_STRING) {
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,
+          string_value.position, "%s requires a string. Got type %u",
+          STR_TRIM_LEFT, string_value.type);
+  }
+
+  size_t len = strlen(string_value.value.string);
+  char *end = string_value.value.string + len - 1;
+  while (isspace(*end)) {
+    len--;
+    end--;
+  }
+
+  string_t buffer;
+  tryCreateBuffer(buffer, len + 1);
+  stringCopy(buffer, string_value.value.string, len + 1);
+
+  result->type = VALUE_TYPE_STRING;
+  result->value.string = buffer;
 
   return ok(result_void_position_t);
 }
