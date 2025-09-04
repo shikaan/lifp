@@ -8,6 +8,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+constexpr size_t MAX_SYMBOL_LENGTH = 32;
+
 constexpr char TRUE[] = "true";
 constexpr char FALSE[] = "false";
 constexpr char NIL[] = "nil";

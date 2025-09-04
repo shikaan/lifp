@@ -5,7 +5,9 @@
 #include <stdint.h>
 
 const char *SUM = "+";
-result_void_position_t sum(value_t *result, value_list_t *values) {
+result_void_position_t sum(arena_t *arena, value_t *result,
+                           value_list_t *values) {
+  (void)arena;
   number_t sum = 0;
   for (size_t i = 0; i < values->count; i++) {
     value_t current = listGet(value_t, values, i);
@@ -24,7 +26,9 @@ result_void_position_t sum(value_t *result, value_list_t *values) {
 }
 
 const char *SUB = "-";
-result_void_position_t subtract(value_t *result, value_list_t *values) {
+result_void_position_t subtract(arena_t *arena, value_t *result,
+                                value_list_t *values) {
+  (void)arena;
   if (values->count == 0) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires a non-empty list of numbers", SUB);
@@ -55,7 +59,9 @@ result_void_position_t subtract(value_t *result, value_list_t *values) {
 }
 
 const char *MUL = "*";
-result_void_position_t multiply(value_t *result, value_list_t *values) {
+result_void_position_t multiply(arena_t *arena, value_t *result,
+                                value_list_t *values) {
+  (void)arena;
   number_t product = 1;
   for (size_t i = 0; i < values->count; i++) {
     value_t current = listGet(value_t, values, i);
@@ -74,7 +80,9 @@ result_void_position_t multiply(value_t *result, value_list_t *values) {
 }
 
 const char *DIV = "/";
-result_void_position_t divide(value_t *result, value_list_t *values) {
+result_void_position_t divide(arena_t *arena, value_t *result,
+                              value_list_t *values) {
+  (void)arena;
   if (values->count == 0) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires a non-empty list of numbers", DIV);
@@ -110,7 +118,9 @@ result_void_position_t divide(value_t *result, value_list_t *values) {
 }
 
 const char *MOD = "%";
-result_void_position_t modulo(value_t *result, value_list_t *values) {
+result_void_position_t modulo(arena_t *arena, value_t *result,
+                              value_list_t *values) {
+  (void)arena;
   if (values->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 2 arguments. Got %zu", MOD, values->count);
@@ -141,7 +151,9 @@ result_void_position_t modulo(value_t *result, value_list_t *values) {
 }
 
 const char *EQUAL = "=";
-result_void_position_t equal(value_t *result, value_list_t *values) {
+result_void_position_t equal(arena_t *arena, value_t *result,
+                             value_list_t *values) {
+  (void)arena;
   if (values->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 2 arguments. Got %zu", EQUAL, values->count);
@@ -167,6 +179,7 @@ result_void_position_t equal(value_t *result, value_list_t *values) {
     case VALUE_TYPE_BUILTIN:
     case VALUE_TYPE_SPECIAL:
     case VALUE_TYPE_CLOSURE:
+    case VALUE_TYPE_STRING:
     case VALUE_TYPE_LIST:
     default:
       are_equal = false;
@@ -181,7 +194,9 @@ result_void_position_t equal(value_t *result, value_list_t *values) {
 }
 
 const char *LESS_THAN = "<";
-result_void_position_t lessThan(value_t *result, value_list_t *values) {
+result_void_position_t lessThan(arena_t *arena, value_t *result,
+                                value_list_t *values) {
+  (void)arena;
   if (values->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 2 arguments. Got %zu", LESS_THAN, values->count);
@@ -206,7 +221,9 @@ result_void_position_t lessThan(value_t *result, value_list_t *values) {
 }
 
 const char *GREATER_THAN = ">";
-result_void_position_t greaterThan(value_t *result, value_list_t *values) {
+result_void_position_t greaterThan(arena_t *arena, value_t *result,
+                                   value_list_t *values) {
+  (void)arena;
   if (values->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 2 arguments. Got %zu", GREATER_THAN,
@@ -232,7 +249,9 @@ result_void_position_t greaterThan(value_t *result, value_list_t *values) {
 }
 
 const char *NEQ = "!=";
-result_void_position_t notEqual(value_t *result, value_list_t *values) {
+result_void_position_t notEqual(arena_t *arena, value_t *result,
+                                value_list_t *values) {
+  (void)arena;
   if (values->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 2 arguments. Got %zu", NEQ, values->count);
@@ -256,6 +275,7 @@ result_void_position_t notEqual(value_t *result, value_list_t *values) {
     case VALUE_TYPE_BUILTIN:
     case VALUE_TYPE_SPECIAL:
     case VALUE_TYPE_CLOSURE:
+    case VALUE_TYPE_STRING:
     case VALUE_TYPE_LIST:
     default:
       are_equal = false;
@@ -271,7 +291,9 @@ result_void_position_t notEqual(value_t *result, value_list_t *values) {
 }
 
 const char *LEQ = "<=";
-result_void_position_t lessEqual(value_t *result, value_list_t *values) {
+result_void_position_t lessEqual(arena_t *arena, value_t *result,
+                                 value_list_t *values) {
+  (void)arena;
   if (values->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 2 arguments. Got %zu", LEQ, values->count);
@@ -296,7 +318,9 @@ result_void_position_t lessEqual(value_t *result, value_list_t *values) {
 }
 
 const char *GEQ = ">=";
-result_void_position_t greaterEqual(value_t *result, value_list_t *values) {
+result_void_position_t greaterEqual(arena_t *arena, value_t *result,
+                                    value_list_t *values) {
+  (void)arena;
   if (values->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 2 arguments. Got %zu", GEQ, values->count);
@@ -321,7 +345,9 @@ result_void_position_t greaterEqual(value_t *result, value_list_t *values) {
 }
 
 const char *LOGICAL_AND = "and";
-result_void_position_t logicalAnd(value_t *result, value_list_t *values) {
+result_void_position_t logicalAnd(arena_t *arena, value_t *result,
+                                  value_list_t *values) {
+  (void)arena;
   if (values->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 2 arguments. Got %zu", LOGICAL_AND,
@@ -352,7 +378,9 @@ result_void_position_t logicalAnd(value_t *result, value_list_t *values) {
 }
 
 const char *LOGICAL_OR = "or";
-result_void_position_t logicalOr(value_t *result, value_list_t *values) {
+result_void_position_t logicalOr(arena_t *arena, value_t *result,
+                                 value_list_t *values) {
+  (void)arena;
   if (values->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 2 arguments. Got %zu", LOGICAL_OR,

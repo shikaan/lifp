@@ -117,24 +117,6 @@ typedef List(void) generic_list_t;
 #define listGet(ItemType, List, Index) (ItemType)(List)->data[Index]
 
 /**
- * Performs a deep copy of the source list appeding to the destination.
- * @name listCopy
- * @param {Type} ItemType - The type of values stored in the list
- * @param {List(Type)*} Source - Pointer to the source list
- * @param {List(Type)*} Destination - Pointer to the destination list
- * @returns {Type*} Success, allocation error or destination too small error
- * @example
- *   result_void_t result = listCopy(int, src, dst);
- *   if (!result.ok) {
- *       // Handle error
- *   }
- */
-// TODO: can this be made typesafe with static asserts?
-#define listCopy(ItemType, Source, Destination)                                \
-  genericListCopy((const generic_list_t *)(Source),                            \
-                  (generic_list_t *)(Destination))
-
-/**
  * Remove the first element from the list (unshift operation).
  * @name listUnshift
  * @param {Type} ItemType - The type of values stored in the list
@@ -148,12 +130,14 @@ typedef List(void) generic_list_t;
  */
 #define listUnshift(ItemType, List) genericListUnshift((generic_list_t *)(List))
 
+#define listClear(ItemType, List) genericListClear((generic_list_t *)(List))
+
 result_ref_t genericListCreate(arena_t *arena, size_t capacity,
                                size_t list_size, size_t item_size);
 result_void_t genericListAppend(generic_list_t *self, const void *item);
 
 void *genericListGet(const generic_list_t *self, size_t index);
 
-result_void_t genericListCopy(const generic_list_t *source,
-                              generic_list_t *destination);
 result_void_t genericListUnshift(generic_list_t *self);
+
+void genericListClear(generic_list_t *self);

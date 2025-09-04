@@ -10,7 +10,9 @@
 
 const char *FLOW_SLEEP = "flow.sleep";
 
-result_void_position_t flowSleep(value_t *result, value_list_t *values) {
+result_void_position_t flowSleep(arena_t *arena, value_t *result,
+                                 value_list_t *values) {
+  (void)arena;
   if (values->count != 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 1 argument. Got %zu", FLOW_SLEEP, values->count);

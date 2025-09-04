@@ -19,8 +19,7 @@ void resolutions() {
   expectEqlUint(special->type, VALUE_TYPE_SPECIAL, "with correct type");
 
   value_t custom_value;
-  valueInit(&custom_value, test_arena, VALUE_TYPE_NUMBER, 0);
-  custom_value.value.number = 12;
+  valueInit(&custom_value, test_arena, 12.0);
 
   mapSet(value_t, global->values, "custom", &custom_value);
   const value_t *custom = environmentResolveSymbol(global, "custom");

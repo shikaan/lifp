@@ -13,23 +13,27 @@ void values() {
   char buffer[size];
   int offset = 0;
 
-  const value_t number = {.type = VALUE_TYPE_NUMBER, .value.number = 123};
+  value_t number;
+  tryAssert(valueInit(&number, test_arena, 123.0));
   formatValue(&number, size, buffer, &offset);
   expectEqlString(buffer, "123", 3, "formats numbers");
 
   offset = 0;
-  const value_t nil = {.type = VALUE_TYPE_NIL};
+  value_t nil;
+  tryAssert(valueInit(&nil, test_arena, nullptr));
   formatValue(&nil, size, buffer, &offset);
   expectEqlString(buffer, "nil", 3, "formats nil");
 
   offset = 0;
-  const value_t v_true = {.type = VALUE_TYPE_BOOLEAN, .value.boolean = true};
-  formatValue(&v_true, size, buffer, &offset);
+  value_t true_value;
+  tryAssert(valueInit(&true_value, test_arena, true));
+  formatValue(&true_value, size, buffer, &offset);
   expectEqlString(buffer, "true", 4, "formats true");
 
   offset = 0;
-  const value_t v_false = {.type = VALUE_TYPE_BOOLEAN, .value.boolean = false};
-  formatValue(&v_false, size, buffer, &offset);
+  value_t false_value;
+  tryAssert(valueInit(&false_value, test_arena, false));
+  formatValue(&false_value, size, buffer, &offset);
   expectEqlString(buffer, "false", 5, "formats false");
 
   offset = 0;
@@ -43,36 +47,36 @@ void values() {
   expectEqlString(buffer, "#<special>", 11, "formats specials");
 
   offset = 0;
+  value_t string_value;
+  tryAssert(valueInit(&string_value, test_arena, "test"));
+  formatValue(&string_value, size, buffer, &offset);
+  expectEqlString(buffer, "\"test\"", 7, "formats strings");
+
+  offset = 0;
   arenaReset(test_arena);
-  value_t *list = nullptr;
-  tryAssert(valueCreateInit(test_arena, VALUE_TYPE_LIST, 0), list);
+  value_t list_value;
+  tryAssert(valueInit(&list_value, test_arena, (size_t)2));
+  tryAssert(listAppend(value_t, &list_value.value.list, &number));
+  tryAssert(listAppend(value_t, &list_value.value.list, &nil));
 
-  tryAssert(listAppend(value_t, &list->value.list, &number));
-  tryAssert(listAppend(value_t, &list->value.list, &nil));
-
-  formatValue(list, size, buffer, &offset);
+  formatValue(&list_value, size, buffer, &offset);
   expectEqlString(buffer, "(123 nil)", 10, "formats lists");
 
   offset = 0;
   arenaReset(test_arena);
-  value_t *closure = nullptr;
-  tryAssert(valueCreateInit(test_arena, VALUE_TYPE_CLOSURE, NODE_TYPE_LIST),
-            closure);
+  value_t closure_value;
+  tryAssert(
+      valueInit(&closure_value, test_arena, (node_type_t)(NODE_TYPE_LIST)));
 
-  node_t *symbol = nullptr;
-  tryAssert(nodeCreate(test_arena, NODE_TYPE_SYMBOL), symbol);
-  symbol->value.symbol[0] = 'a';
-  symbol->value.symbol[1] = 0;
-
-  tryAssert(listAppend(node_t, &closure->value.closure.arguments, symbol));
-
-  closure->value.closure.form.type = NODE_TYPE_LIST;
+  node_t symbol = nSym(test_arena, "a");
 
   tryAssert(
-      listAppend(node_t, &closure->value.closure.form.value.list, symbol));
+      listAppend(node_t, &closure_value.value.closure.arguments, &symbol));
+  tryAssert(listAppend(node_t, &closure_value.value.closure.form.value.list,
+                       &symbol));
 
-  formatValue(list, size, buffer, &offset);
-  expectEqlString(buffer, "(fn (a) (a))", 10, "formats lambdas");
+  formatValue(&closure_value, size, buffer, &offset);
+  expectEqlString(buffer, "(fn (a) (a))", 13, "formats lambdas");
 }
 
 void errors() {

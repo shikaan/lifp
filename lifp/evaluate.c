@@ -1,5 +1,6 @@
 #include "evaluate.h"
 #include "../lib/profile.h"
+#include "../lib/string.h"
 #include "error.h"
 #include "node.h"
 #include "position.h"
@@ -20,12 +21,14 @@ invokeSpecial(value_t *result, value_t special_value, arena_t *arena,
   return ok(result_void_position_t);
 }
 
-static result_void_position_t
-invokeBuiltin(value_t *result, value_list_t *evaluated, value_t builtin_value) {
+static result_void_position_t invokeBuiltin(value_t *result,
+                                            arena_t *temp_arena,
+                                            value_list_t *evaluated,
+                                            value_t builtin_value) {
   assert(builtin_value.type == VALUE_TYPE_BUILTIN);
   builtin_t builtin = builtin_value.value.builtin;
   listUnshift(value_t, evaluated);
-  try(result_void_position_t, builtin(result, evaluated));
+  try(result_void_position_t, builtin(temp_arena, result, evaluated));
   return ok(result_void_position_t);
 }
 
@@ -99,20 +102,32 @@ result_void_position_t evaluate(value_t *result, arena_t *temp_arena,
 
   switch (ast->type) {
   case NODE_TYPE_BOOLEAN: {
-    result->type = VALUE_TYPE_BOOLEAN;
-    result->value.boolean = ast->value.boolean;
+    tryWithMeta(result_void_position_t,
+                valueInit(result, temp_arena, ast->value.boolean),
+                result->position);
     return ok(result_void_position_t);
   }
   case NODE_TYPE_NIL: {
-    result->type = VALUE_TYPE_NIL;
-    result->value.nil = ast->value.nil;
+    tryWithMeta(result_void_position_t,
+                valueInit(result, temp_arena, ast->value.nil),
+                result->position);
     return ok(result_void_position_t);
   }
   case NODE_TYPE_NUMBER: {
-    result->type = VALUE_TYPE_NUMBER;
-    result->value.number = ast->value.number;
+    tryWithMeta(result_void_position_t,
+                valueInit(result, temp_arena, ast->value.number),
+                result->position);
     return ok(result_void_position_t);
   }
+  case NODE_TYPE_STRING:
+    result->type = VALUE_TYPE_STRING;
+    size_t len = strlen(ast->value.string);
+    string_t string;
+    tryWithMeta(result_void_position_t, arenaAllocate(temp_arena, len + 1),
+                ast->position, string);
+    stringCopy(string, ast->value.string, len + 1);
+    result->value.string = string;
+    return ok(result_void_position_t);
   case NODE_TYPE_SYMBOL: {
     const value_t *resolved_value =
         environmentResolveSymbol(env, ast->value.symbol);
@@ -159,7 +174,7 @@ result_void_position_t evaluate(value_t *result, arena_t *temp_arena,
                evaluateNodes(temp_arena, ast, env, &first_value),
                arenaAllocationFrameEnd(temp_arena, frame), evaluated);
       tryFinally(result_void_position_t,
-                 invokeBuiltin(result, evaluated, first_value),
+                 invokeBuiltin(result, temp_arena, evaluated, first_value),
                  arenaAllocationFrameEnd(temp_arena, frame));
       return ok(result_void_position_t);
     case VALUE_TYPE_CLOSURE:
@@ -173,13 +188,27 @@ result_void_position_t evaluate(value_t *result, arena_t *temp_arena,
     case VALUE_TYPE_NUMBER:
     case VALUE_TYPE_LIST:
     case VALUE_TYPE_NIL:
+    case VALUE_TYPE_STRING:
     case VALUE_TYPE_BOOLEAN:
     default:
       tryCatch(result_void_position_t,
                evaluateNodes(temp_arena, ast, env, &first_value),
                arenaAllocationFrameEnd(temp_arena, frame), evaluated);
-      result->type = VALUE_TYPE_LIST;
-      memcpy(&result->value.list, evaluated, sizeof(result->value.list));
+
+      tryWithMeta(result_void_position_t,
+                  valueInit(result, temp_arena, evaluated->count),
+                  ast->position);
+
+      for (size_t i = 0; i < evaluated->count; i++) {
+        value_t value = listGet(value_t, evaluated, i);
+        value_t duplicated;
+        tryWithMeta(result_void_position_t,
+                    valueCopy(&value, &duplicated, temp_arena), ast->position);
+        tryWithMeta(result_void_position_t,
+                    listAppend(value_t, &result->value.list, &duplicated),
+                    ast->position);
+      }
+
       arenaAllocationFrameEnd(temp_arena, frame);
       return ok(result_void_position_t);
     }
