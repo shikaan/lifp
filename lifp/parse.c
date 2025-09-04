@@ -59,7 +59,7 @@ result_node_ref_t parseAtom(arena_t *arena, token_t token) {
     return ok(result_node_ref_t, node);
   }
   case TOKEN_TYPE_STRING: {
-    size_t len = strlen(token.value.literal);
+    size_t len = strlen(token.value.string);
     node->type = NODE_TYPE_STRING;
     char *string = nullptr;
     tryWithMeta(result_node_ref_t, arenaAllocate(arena, len + 1),
