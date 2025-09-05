@@ -68,6 +68,18 @@ int main() {
   value_t second = listGet(value_t, &list.value.list, 1);
   expectEqlDouble(second.value.number, 2, "correct second item");
   
+  case("nested list");
+  value_t nested_list;
+  execute(&nested_list, "((1) 2)");
+  expectEqlUint(nested_list.type, VALUE_TYPE_LIST, "returns a list");
+  expectEqlUint(nested_list.value.list.data[0].type, VALUE_TYPE_LIST, "with nested list");
+
+  case("immediate invocation");
+  value_t immediate_invocation;
+  execute(&immediate_invocation, "((fn (a) a) 2)");
+  expectEqlUint(immediate_invocation.type, VALUE_TYPE_NUMBER, "returns a number");
+  expectEqlDouble(immediate_invocation.value.number, 2, "with correct value");
+
   case("simple form");
   value_t simple;
   execute(&simple, "(+ 1 2)");
