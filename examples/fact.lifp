@@ -2,4 +2,4 @@
 
 (io.print! (fact 50))
 
-; vim syntax=lisp
+; vim:ft=lisp

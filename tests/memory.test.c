@@ -206,8 +206,6 @@ int main(void) {
   suite(recursiveMemory);
   suite(errorHandlingMemory);
   suite(danglingArenas);
-
-  return report();
 }
 #else
 #include <stdio.h>

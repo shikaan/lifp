@@ -13,4 +13,4 @@
 
 (io.print! (fibonacci 30))
 
-; vim syntax=lisp
+; vim:ft=lisp
