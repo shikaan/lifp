@@ -72,13 +72,14 @@ invokeClosure(value_t *result, value_list_t *evaluated, value_t closure_value,
 }
 
 typedef Result(value_list_t *, position_t) result_value_list_t;
-static result_value_list_t evaluateNodes(arena_t *temp_arena, node_t *ast,
+static result_value_list_t evaluateNodes(arena_t *scratch_arena, node_t *ast,
                                          environment_t *env,
                                          value_t *first_value) {
   const auto list = ast->value.list;
   value_list_t *evaluated;
-  tryWithMeta(result_value_list_t, listCreate(value_t, temp_arena, list.count),
-              ast->position, evaluated);
+  tryWithMeta(result_value_list_t,
+              listCreate(value_t, scratch_arena, list.count), ast->position,
+              evaluated);
 
   // Just for the sake of not re-evaluating the first value
   tryWithMeta(result_value_list_t, listAppend(value_t, evaluated, first_value),
@@ -88,7 +89,7 @@ static result_value_list_t evaluateNodes(arena_t *temp_arena, node_t *ast,
     auto node = listGet(node_t, &list, i);
     value_t reduced;
     try(result_value_list_t,
-        evaluate(&reduced, temp_arena, temp_arena, &node, env));
+        evaluate(&reduced, scratch_arena, scratch_arena, &node, env));
     tryWithMeta(result_value_list_t, listAppend(value_t, evaluated, &reduced),
                 node.position);
   }
