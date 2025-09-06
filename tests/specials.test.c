@@ -19,7 +19,8 @@ result_void_t execute(value_t *result, const char *input) {
   size_t depth = 0;
   node_t *ast;
   tryAssert(parse(test_arena, tokens, &offset, &depth), ast);
-  tryWithMeta(result_void_t, evaluate(result, test_arena, ast, environment),
+  tryWithMeta(result_void_t,
+              evaluate(result, test_arena, test_arena, ast, environment),
               nullptr);
   return ok(result_void_t);
 }

@@ -102,7 +102,11 @@ int run(const run_opts_t OPTIONS) {
          "unable to allocate interpreter memory");
 
   arena_t *temp_arena = nullptr;
-  tryCLI(arenaCreate(OPTIONS.temp_memory), temp_arena,
+  tryCLI(arenaCreate(OPTIONS.temp_memory / 2), temp_arena,
+         "unable to allocate transient memory");
+
+  arena_t *result_arena = nullptr;
+  tryCLI(arenaCreate(OPTIONS.temp_memory / 2), result_arena,
          "unable to allocate transient memory");
 
   environment_t *global_environment = nullptr;
@@ -126,7 +130,8 @@ int run(const run_opts_t OPTIONS) {
     tryRun(parse(ast_arena, tokens, &line_offset, &depth), syntax_tree);
 
     value_t reduced;
-    tryRun(evaluate(&reduced, temp_arena, syntax_tree, global_environment));
+    tryRun(evaluate(&reduced, result_arena, temp_arena, syntax_tree,
+                    global_environment));
   } while (strlen(line_buffer) > 0);
 
   profileReport();

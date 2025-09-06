@@ -1,7 +1,6 @@
 BUGS
 ---
   * [ ] `listGet` allows you to go out of bound
-  * [ ]  Nesting lists yields to a format stack overflow (example: `((1) 2)` in the repl)
 
 FEATURES
 ---
@@ -15,7 +14,8 @@ FEATURES
   * [ ] Tail call optimization
   * [ ] Auto-generated documentation for standard library
   * [ ] Enum to text for error messages
-  * [ ] Currying: `(def! make-adder (fn (x) (fn (y) (+ x y))))\n(make-adder 5)` currently loses context on `x` because of immediate invocation
+  * [ ] Currying: `(def! make-adder (fn (x) (fn (y) (+ x y))))\n(make-adder 5)` 
+        currently loses context on `x` because of immediate invocation
   * [ ] Implement `?` in REPL
   * [ ] imports `(import! my-module "./my-module.lifp")
   * [ ] Type Declaration comments `;; (number, number) -> number`

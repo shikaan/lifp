@@ -27,8 +27,7 @@ result_void_t valueInitClosure(value_t *self, arena_t *arena,
                                node_type_t form_type) {
   self->type = VALUE_TYPE_CLOSURE;
   node_list_t *arguments = nullptr;
-  try(result_void_t, listCreate(node_t, arena, VALUE_LIST_INITIAL_SIZE),
-      arguments);
+  try(result_void_t, listCreate(node_t, arena, 2), arguments);
   self->value.closure.arguments = *arguments;
 
   node_t *form = nullptr;

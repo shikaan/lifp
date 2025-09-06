@@ -64,7 +64,11 @@ int repl(const repl_opts_t OPTIONS) {
          "unable to allocate interpreter memory");
 
   arena_t *temp_arena = nullptr;
-  tryCLI(arenaCreate(OPTIONS.temp_memory), temp_arena,
+  tryCLI(arenaCreate(OPTIONS.temp_memory / 2), temp_arena,
+         "unable to allocate transient memory");
+
+  arena_t *result_arena = nullptr;
+  tryCLI(arenaCreate(OPTIONS.temp_memory / 2), result_arena,
          "unable to allocate transient memory");
 
   environment_t *global_environment = nullptr;
@@ -117,7 +121,8 @@ int repl(const repl_opts_t OPTIONS) {
     tryREPL(parse(ast_arena, tokens, &offset, &depth), ast);
 
     value_t result;
-    tryREPL(evaluate(&result, temp_arena, ast, global_environment));
+    tryREPL(
+        evaluate(&result, result_arena, temp_arena, ast, global_environment));
 
     int buffer_offset = 0;
     formatValue(&result, (int)OPTIONS.output_size, buffer, &buffer_offset);

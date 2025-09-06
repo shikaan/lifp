@@ -29,12 +29,10 @@ result_void_position_t listCount(arena_t *arena, value_t *result,
 const char *LIST_FROM = "list.from";
 result_void_position_t listFrom(arena_t *arena, value_t *result,
                                 value_list_t *values) {
-  (void)arena;
   result->type = VALUE_TYPE_LIST;
 
   value_list_t *new_list = nullptr;
-  tryWithMeta(result_void_position_t,
-              listCreate(value_t, values->arena, values->count),
+  tryWithMeta(result_void_position_t, listCreate(value_t, arena, values->count),
               result->position, new_list);
   result->value.list = *new_list;
 
@@ -42,8 +40,11 @@ result_void_position_t listFrom(arena_t *arena, value_t *result,
     // Copy all values to the new list
     for (size_t i = 0; i < values->count; i++) {
       value_t source = listGet(value_t, values, i);
+      value_t duplicated;
       tryWithMeta(result_void_position_t,
-                  listAppend(value_t, &result->value.list, &source),
+                  valueCopy(&source, &duplicated, arena), result->position);
+      tryWithMeta(result_void_position_t,
+                  listAppend(value_t, &result->value.list, &duplicated),
                   source.position);
     }
   } else {

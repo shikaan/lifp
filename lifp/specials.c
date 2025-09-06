@@ -50,7 +50,8 @@ result_void_position_t define(value_t *result, arena_t *temp_arena,
   // Perform reduction in the temporary memory
   value_t reduced;
   node_t value = listGet(node_t, nodes, 2);
-  tryCatch(result_void_position_t, evaluate(&reduced, temp_arena, &value, env),
+  tryCatch(result_void_position_t,
+           evaluate(&reduced, temp_arena, temp_arena, &value, env),
            arenaAllocationFrameEnd(temp_arena, frame));
 
   // If reduction is successful, we can move the closure to VM memory
@@ -160,7 +161,7 @@ result_void_position_t let(value_t *result, arena_t *temp_arena,
     frame_handle_t bindings_frame = arenaAllocationFrameStart(temp_arena);
     value_t evaluated;
     tryCatch(result_void_position_t,
-             evaluate(&evaluated, temp_arena, &body, local_env),
+             evaluate(&evaluated, temp_arena, temp_arena, &body, local_env),
              environmentDestroy(&local_env));
     tryCatch(result_void_position_t,
              addToEnvironment(symbol.value.symbol, &evaluated, local_env,
@@ -172,7 +173,7 @@ result_void_position_t let(value_t *result, arena_t *temp_arena,
   node_t form = listGet(node_t, nodes, 2);
   value_t temp_result;
   tryCatch(result_void_position_t,
-           evaluate(&temp_result, temp_arena, &form, local_env),
+           evaluate(&temp_result, temp_arena, temp_arena, &form, local_env),
            environmentDestroy(&local_env));
 
   // The result from the evaluation might be allocated in the local_env's arena,
@@ -202,7 +203,8 @@ result_void_position_t cond(value_t *result, arena_t *temp_arena,
     }
 
     node_t condition = listGet(node_t, &node.value.list, 0);
-    try(result_void_position_t, evaluate(result, temp_arena, &condition, env));
+    try(result_void_position_t,
+        evaluate(result, temp_arena, temp_arena, &condition, env));
 
     if (result->type != VALUE_TYPE_BOOLEAN) {
       arenaAllocationFrameEnd(temp_arena, frame);
@@ -212,13 +214,15 @@ result_void_position_t cond(value_t *result, arena_t *temp_arena,
 
     if (result->value.boolean) {
       node_t form = listGet(node_t, &node.value.list, 1);
-      try(result_void_position_t, evaluate(result, temp_arena, &form, env));
+      try(result_void_position_t,
+          evaluate(result, temp_arena, temp_arena, &form, env));
       return ok(result_void_position_t);
     }
     arenaAllocationFrameEnd(temp_arena, frame);
   }
 
   node_t fallback = listGet(node_t, nodes, nodes->count - 1);
-  try(result_void_position_t, evaluate(result, temp_arena, &fallback, env));
+  try(result_void_position_t,
+      evaluate(result, temp_arena, temp_arena, &fallback, env));
   return ok(result_void_position_t);
 }
