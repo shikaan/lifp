@@ -63,8 +63,12 @@ int repl(const repl_opts_t OPTIONS) {
   tryCLI(arenaCreate(OPTIONS.ast_memory), ast_arena,
          "unable to allocate interpreter memory");
 
-  arena_t *temp_arena = nullptr;
-  tryCLI(arenaCreate(OPTIONS.temp_memory), temp_arena,
+  arena_t *scratch_arena = nullptr;
+  tryCLI(arenaCreate(OPTIONS.temp_memory), scratch_arena,
+         "unable to allocate transient memory");
+
+  arena_t *result_arena = nullptr;
+  tryCLI(arenaCreate(OPTIONS.temp_memory), result_arena,
          "unable to allocate transient memory");
 
   environment_t *global_environment = nullptr;
@@ -81,7 +85,7 @@ int repl(const repl_opts_t OPTIONS) {
   while (true) {
     profileReport();
     arenaReset(ast_arena);
-    arenaReset(temp_arena);
+    arenaReset(scratch_arena);
     char *input = linenoise("> ");
 
     if (!input)
@@ -117,7 +121,8 @@ int repl(const repl_opts_t OPTIONS) {
     tryREPL(parse(ast_arena, tokens, &offset, &depth), ast);
 
     value_t result;
-    tryREPL(evaluate(&result, temp_arena, ast, global_environment));
+    tryREPL(evaluate(&result, result_arena, scratch_arena, ast,
+                     global_environment));
 
     int buffer_offset = 0;
     formatValue(&result, (int)OPTIONS.output_size, buffer, &buffer_offset);
@@ -127,7 +132,8 @@ int repl(const repl_opts_t OPTIONS) {
   }
   profileEnd();
   environmentDestroy(&global_environment);
-  arenaDestroy(&temp_arena);
+  arenaDestroy(&result_arena);
+  arenaDestroy(&scratch_arena);
   arenaDestroy(&ast_arena);
   return 0;
 }

@@ -52,8 +52,6 @@ typedef struct value_t {
   } value;
 } value_t;
 
-constexpr size_t VALUE_LIST_INITIAL_SIZE = 8;
-
 result_void_t valueCopy(value_t *source, value_t *destination,
                         arena_t *destination_arena);
 result_ref_t valueCreate(arena_t *arena, value_type_t type);

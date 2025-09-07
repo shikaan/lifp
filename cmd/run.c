@@ -101,8 +101,12 @@ int run(const run_opts_t OPTIONS) {
   tryCLI(arenaCreate(OPTIONS.ast_memory), ast_arena,
          "unable to allocate interpreter memory");
 
-  arena_t *temp_arena = nullptr;
-  tryCLI(arenaCreate(OPTIONS.temp_memory), temp_arena,
+  arena_t *scratch_arena = nullptr;
+  tryCLI(arenaCreate(OPTIONS.temp_memory), scratch_arena,
+         "unable to allocate transient memory");
+
+  arena_t *result_arena = nullptr;
+  tryCLI(arenaCreate(OPTIONS.temp_memory), result_arena,
          "unable to allocate transient memory");
 
   environment_t *global_environment = nullptr;
@@ -111,7 +115,7 @@ int run(const run_opts_t OPTIONS) {
   do {
     memset(line_buffer, 0, (size_t)len);
     arenaReset(ast_arena);
-    arenaReset(temp_arena);
+    arenaReset(scratch_arena);
     readLine(len, line_buffer, file_buffer, &file_offset);
 
     if (strlen(line_buffer) == 0)
@@ -126,13 +130,15 @@ int run(const run_opts_t OPTIONS) {
     tryRun(parse(ast_arena, tokens, &line_offset, &depth), syntax_tree);
 
     value_t reduced;
-    tryRun(evaluate(&reduced, temp_arena, syntax_tree, global_environment));
+    tryRun(evaluate(&reduced, result_arena, scratch_arena, syntax_tree,
+                    global_environment));
   } while (strlen(line_buffer) > 0);
 
   profileReport();
 
   environmentDestroy(&global_environment);
-  arenaDestroy(&temp_arena);
+  arenaDestroy(&result_arena);
+  arenaDestroy(&scratch_arena);
   arenaDestroy(&ast_arena);
   return 0;
 }

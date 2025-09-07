@@ -14,11 +14,12 @@ allocMetricsInit();
 
 static arena_t *test_ast_arena;
 static arena_t *test_temp_arena;
+static arena_t *test_result_arena;
 static environment_t *global;
 
 // This execute function does stack allocations, hence why we expect no
 // allocations in the following tests
-void execute(const char *input) {
+result_void_t execute(const char *input) {
   char input_copy[1024];
   strcpy(input_copy, input);
 
@@ -36,10 +37,15 @@ void execute(const char *input) {
     tryAssert(parse(test_ast_arena, tokens, &offset, &depth), ast);
 
     value_t result;
-    evaluate(&result, test_temp_arena, ast, global);
+    tryWithMeta(
+        result_void_t,
+        evaluate(&result, test_result_arena, test_temp_arena, ast, global),
+        nullptr);
 
     line = strtok(nullptr, "\n");
   }
+
+  return ok(result_void_t);
 }
 
 size_t getUsedArenas(void) {
@@ -56,145 +62,278 @@ size_t getTotalAllocatedBytes(void) { return allocGetMetrics().bytes; }
 size_t getArenaMemoryUsage(arena_t *arena) { return arena->offset; }
 
 void transientAllocations(void) {
-  size_t initial_temp_usage = getArenaMemoryUsage(test_temp_arena);
+  size_t usage = getArenaMemoryUsage(test_result_arena);
 
-  execute("(+ 1 2 3)");
-  expectEqlSize(getArenaMemoryUsage(test_temp_arena), initial_temp_usage,
-                "cleans arena after simple invocation");
+  case("inlined values");
+  tryAssert(execute("3"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena), usage,
+  "not persisted for simple evaluations");
+  usage = getArenaMemoryUsage(test_result_arena);
 
-  execute("(def! add (fn (a b) (+ a b)))");
-  execute("(add 10 20)");
-  expectEqlSize(getArenaMemoryUsage(test_temp_arena), initial_temp_usage,
-                "cleans arena after closure invocation");
+  tryAssert(execute("(+ 1 2 3)"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena), usage,
+  "not persisted for builtins invocations");
+  usage = getArenaMemoryUsage(test_result_arena);
 
-  execute("(+ (+ 1 2) (+ 3 4))");
-  expectEqlSize(getArenaMemoryUsage(test_temp_arena), initial_temp_usage,
-                "cleans arena after nested evaluations");
+  tryAssert(execute("((fn (a b) (+ a b)) 10 20)"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena), usage,
+  "not persisted for closure invocations");
+  usage = getArenaMemoryUsage(test_result_arena);
 
-  execute("(1 2 3 4 5)");
-  expectEqlSize(getArenaMemoryUsage(test_temp_arena), initial_temp_usage,
-                "cleans arena after list evaluation");
+  tryAssert(execute("(+ (+ 1 2) (+ 3 4))"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena), usage,
+  "not persisted for nested invocations");
+  usage = getArenaMemoryUsage(test_result_arena);
+
+  case("allocated values");
+  tryAssert(execute("(1 2 3 4 5)"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena),
+                usage + (sizeof(value_t) * 5) +
+                    sizeof(List(value_t)),
+                "persisted for simple evaluations");
+  usage = getArenaMemoryUsage(test_result_arena);
+
+  tryAssert(execute("(list.from 1 2 3 4 5)"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena),
+                usage + (sizeof(value_t) * 5) +
+                    sizeof(List(value_t)),
+                "persisted for builtin invocations");
+  usage = getArenaMemoryUsage(test_result_arena);
+
+  tryAssert(execute("((fn (a) (1 a)) 2)"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena),
+                usage + (sizeof(value_t) * 2) + sizeof(List(value_t)),
+                "persisted for closure invocations");
+  usage = getArenaMemoryUsage(test_result_arena);
+
+  // TODO: there is no way of nesting builtins for non stack allocated values
+  // yet
 
   arenaReset(test_ast_arena);
   arenaReset(test_temp_arena);
+  arenaReset(test_result_arena);
 }
 
 void letBindingsMemory(void) {
-  size_t initial_temp_usage = getArenaMemoryUsage(test_temp_arena);
+  size_t usage = getArenaMemoryUsage(test_result_arena);
 
-  execute("(let ((x 10) (y 20)) (+ x y))");
-  expectEqlSize(getArenaMemoryUsage(test_temp_arena), initial_temp_usage,
-                "cleans arena after let binding");
+  case("inlined values");
+  tryAssert(execute("(let ((x 10)) x)"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena), usage,
+                "not persisted for simple evaluations");
+  usage = getArenaMemoryUsage(test_result_arena);
+  
+  tryAssert(execute("(let ((x 10) (y 20)) (+ x y))"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena), usage,
+                "not persisted for builtin invocations");
+  usage = getArenaMemoryUsage(test_result_arena);
 
-  execute("(let ((x 1)) (let ((y 2)) (+ x y)))");
-  expectEqlSize(getArenaMemoryUsage(test_temp_arena), initial_temp_usage,
-                "cleans arena after nested let bindings");
+  tryAssert(execute("(let ((x 1)) (let ((y 2)) (+ x y)))"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena), usage,
+                "not persisted after nested let bindings");
+  usage = getArenaMemoryUsage(test_result_arena);
 
-  execute("(let ((f (fn (a) (+ a 1)))) (f 10))");
-  expectEqlSize(getArenaMemoryUsage(test_temp_arena), initial_temp_usage,
-                "cleans arena after let with closures");
+  tryAssert(execute("(let ((f (fn (a) (+ a 1)))) (f 10))"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena), usage,
+                "not persisted after let with closures");
+  usage = getArenaMemoryUsage(test_result_arena);
+  
+  case("allocated values");
+  tryAssert(execute("(let ((x 10)) (x))"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena), 
+                usage + sizeof(List(value_t)) + sizeof(value_t),
+                "persisted for simple evaluations");
+  usage = getArenaMemoryUsage(test_result_arena);
+  
+  tryAssert(execute("(let ((x 10) (y 20)) (list.from x y))"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena),
+                usage + sizeof(List(value_t)) + (sizeof(value_t) * 2),
+                "persisted for builtin invocations");
+  usage = getArenaMemoryUsage(test_result_arena);
+
+  tryAssert(execute("(let ((x 1)) (let ((y 2)) (x y)))"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena),
+                usage + sizeof(List(value_t)) + (sizeof(value_t) * 2),
+                "persisted for nested let bindings");
+  usage = getArenaMemoryUsage(test_result_arena);
+
+  tryAssert(execute("(let ((f (fn (a) (+ a 1)))) (list.from (f 10)))"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena),
+                usage + sizeof(List(value_t)) + (sizeof(value_t)),
+                "persisted for let with closures");
 
   arenaReset(test_ast_arena);
   arenaReset(test_temp_arena);
+  arenaReset(test_result_arena);
 }
 
 void conditionalMemory(void) {
-  size_t initial_temp_usage = getArenaMemoryUsage(test_temp_arena);
+  size_t usage = getArenaMemoryUsage(test_result_arena);
 
-  execute("(cond ((= 1 1) 42) 0)");
-  expectEqlSize(getArenaMemoryUsage(test_temp_arena), initial_temp_usage,
-                "cleans arena after conditional");
+  case("inlined values");
+  tryAssert(execute("(cond ((= 1 1) 42) 0)"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena), usage,
+                "not persisted for conditional");
 
-  execute("(cond ((= 1 2) (+ 1 2)) ((= 2 2) (+ 3 4)) (+ 5 6))");
-  expectEqlSize(getArenaMemoryUsage(test_temp_arena), initial_temp_usage,
-                "cleans arena after multiple conditions");
+  tryAssert(execute("(cond ((= 1 2) (+ 1 2)) ((= 2 2) (+ 3 4)) (+ 5 6))"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena), usage,
+                "not persisted for multiple conditions");
 
-  execute("(cond ((= 1 1) (let ((x 10)) x)) 0)");
-  expectEqlSize(getArenaMemoryUsage(test_temp_arena), initial_temp_usage,
-                "cleans arena after conditional with let");
+  tryAssert(execute("(cond ((= 1 1) (let ((x 10)) x)) 0)"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena), usage,
+                "not persisted for conditional with let");
+  
+  case("allocated values");
+  tryAssert(execute("(cond ((= 1 1) (42)) 0)"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena),
+                usage + sizeof(List(value_t)) + (sizeof(value_t)),
+                "persisted for conditional");
+  usage = getArenaMemoryUsage(test_result_arena);
+
+  tryAssert(execute("(cond ((= 1 2) (1 2)) ((= 2 2) (3 4)) (5 6))"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena),
+                usage + sizeof(List(value_t)) + (sizeof(value_t) * 2),
+                "persisted for multiple conditions");
+  usage = getArenaMemoryUsage(test_result_arena);
+
+  tryAssert(execute("(cond ((= 1 1) (let ((x 10)) (x))) (0))"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena),
+                usage + sizeof(List(value_t)) + (sizeof(value_t)),
+                "persisted for conditional with let");
 
   arenaReset(test_ast_arena);
   arenaReset(test_temp_arena);
+  arenaReset(test_result_arena);
 }
 
 void closureMemory(void) {
-  size_t initial_temp_usage = getArenaMemoryUsage(test_temp_arena);
+  size_t usage = getArenaMemoryUsage(test_result_arena);
 
-  execute("(def! multiply (fn (a b) (* a b)))");
-  size_t after_def_temp = getArenaMemoryUsage(test_temp_arena);
+  case("inlined values");
+  tryAssert(execute("(def! multiply (fn (a b) (* a b)))"));
+  size_t after_def_temp = getArenaMemoryUsage(test_result_arena);
 
-  execute("(multiply 5 6)");
-  expectEqlSize(getArenaMemoryUsage(test_temp_arena), after_def_temp,
-                "cleans arena after closure invocation");
+  tryAssert(execute("(multiply 5 6)"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena), after_def_temp,
+                "not persisted for closure invocation");
 
-  execute("(multiply 1 2)");
-  execute("(multiply 3 4)");
-  expectEqlSize(getArenaMemoryUsage(test_temp_arena), after_def_temp,
-                "cleans arena after multiple closure invocations");
+  tryAssert(execute("(multiply 1 2)"));
+  tryAssert(execute("(multiply 3 4)"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena), after_def_temp,
+                "not persisted for multiple closure invocations");
 
-  execute("(def! complex (fn (x) (let ((y (+ x 1))) (cond ((= y 5) y) x))))");
-  execute("(complex 4)");
-  expectEqlSize(getArenaMemoryUsage(test_temp_arena), initial_temp_usage,
-                "cleans arena after complex closure");
+  tryAssert(execute("(def! complex (fn (x) (let ((y (+ x 1))) (cond ((= y 5) y) x))))"));
+  tryAssert(execute("(complex 4)"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena), usage,
+                "not persisted for complex closure");
+
+  case("allocated values");
+  tryAssert(execute("(fn (a) a)"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena),
+                usage 
+                  + sizeof(node_t) // form
+                  + (sizeof(char)*8) // form symbol
+                  + sizeof(List(node_t)) + (sizeof(node_t) * 2) // arguments 
+                  + (sizeof(char)*8), // argument symbol
+                "persisted closure");
+  usage = getArenaMemoryUsage(test_result_arena);
+
+  tryAssert(execute("((fn (a) a) (1 2))"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena),
+                usage 
+                + sizeof(List(value_t)) + (sizeof(value_t) * 2),
+                "only persists returned value on immediate invocations");
+  usage = getArenaMemoryUsage(test_result_arena);
+
+  tryAssert(execute(
+    "(def! complex2 (fn (x) (let ((y (+ x 1))) (cond ((= y 5) (y)) (x)))))"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena),
+                usage,
+                "not persisted for definitions");
+
+  usage = getArenaMemoryUsage(test_result_arena);
+  tryAssert(execute("(complex2 4)"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena),
+                usage 
+                + sizeof(List(value_t)) + (sizeof(value_t)),
+                "only persists returned value on persistent invocations");
+
+  arenaReset(test_ast_arena);
+  arenaReset(test_temp_arena);
+  arenaReset(test_result_arena);
 }
 
 void recursiveMemory(void) {
-  size_t initial_temp_usage = getArenaMemoryUsage(test_temp_arena);
+  size_t usage = getArenaMemoryUsage(test_result_arena);
 
-  execute("(def! countdown (fn (n) (cond ((= n 0) 0) (countdown (- n 1)))))");
-  execute("(countdown 5)");
-  expectEqlSize(getArenaMemoryUsage(test_temp_arena), initial_temp_usage,
-                "cleans arena after recursive calls");
+  case("inlined values");
+  tryAssert(execute("(def! count (fn (n) (cond ((= n 0) 0) (count (- n 1)))))"));
+  tryAssert(execute("(count 20)"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena), usage,
+                "no persistence for recursion");
 
-  execute("(countdown 20)");
-  expectEqlSize(getArenaMemoryUsage(test_temp_arena), initial_temp_usage,
-                "cleans arena after deep recursion");
+  case("allocated values");
+  tryAssert(execute("(def! count2 (fn (n) (cond ((= n 0) (0)) (count2 (- n 1)))))"));
+  tryAssert(execute("(count2 20)"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena), 
+                usage
+                + sizeof(List(value_t)) + (sizeof(value_t)),
+                "only persists returned value");
+  
+  arenaReset(test_ast_arena);
+  arenaReset(test_temp_arena);
+  arenaReset(test_result_arena);
 }
 
 void errorHandlingMemory(void) {
-  size_t initial_temp_usage = getArenaMemoryUsage(test_temp_arena);
+  size_t usage = getArenaMemoryUsage(test_result_arena);
   size_t initial_safe_alloc = getTotalAllocatedBytes();
 
-  execute("(def! add2 (fn (a b) (+ a b)))");
-  execute("(add2 1)");
-  expectEqlSize(getArenaMemoryUsage(test_temp_arena), initial_temp_usage,
+  tryAssert(execute("(def! add2 (fn (a b) (+ a b)))"));
+  tryFail(execute("(add2 1)"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena), usage,
                 "cleans arena after arity error");
   expectEqlSize(getTotalAllocatedBytes(), initial_safe_alloc,
                 "no memory leaks from arity error");
 
-  execute("undefined");
-  expectEqlSize(getArenaMemoryUsage(test_temp_arena), initial_temp_usage,
+  tryFail(execute("undefined"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena), usage,
                 "cleans arena after undefined symbol error");
   expectEqlSize(getTotalAllocatedBytes(), initial_safe_alloc,
                 "no memory leaks from undefined symbol error");
 
-  execute("((fn (1) a) 1)");
-  expectEqlSize(getArenaMemoryUsage(test_temp_arena), initial_temp_usage,
+  tryFail(execute("((fn (1) a) 1)"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena), usage,
                 "cleans arena after invalid closure invocation");
   expectEqlSize(getTotalAllocatedBytes(), initial_safe_alloc,
                 "no memory leaks from invalid closure");
 
-  execute("(let ((x undefined_var)) x)");
-  expectEqlSize(getArenaMemoryUsage(test_temp_arena), initial_temp_usage,
+  tryFail(execute("(let ((x undefined_var)) x)"));
+  expectEqlSize(getArenaMemoryUsage(test_result_arena), usage,
                 "cleans arena after let binding error");
   expectEqlSize(getTotalAllocatedBytes(), initial_safe_alloc,
                 "no memory leaks from let binding error");
+  
+  arenaReset(test_ast_arena);
+  arenaReset(test_temp_arena);
+  arenaReset(test_result_arena);
 }
 
 void danglingArenas(void) {
-  execute("((fn (a) a) 1 2)");
-  expectEqlSize(getUsedArenas(), 3, "no dangling arena on failure");
+  tryFail(execute("((fn (a) a) 1 2)"));
+  expectEqlSize(getUsedArenas(), 4, "no dangling arena on failure");
 
-  execute("(def! rec (fn (a) (cond ((= a 0) 1) (rec (- a 1)))))\n(rec 10)");
-  expectEqlSize(getUsedArenas(), 3, "no dangling arena on recursive calls");
+  tryAssert(execute("(def! rec (fn (a) (cond ((= a 0) 1) (rec (- a 1)))))\n(rec 10)"));
+  expectEqlSize(getUsedArenas(), 4, "no dangling arena on recursive calls");
 
-  execute("(def! rec (fn (a) (cond ((= a 0) 1) (lol (- a 1)))))\n(rec 10)");
-  expectEqlSize(getUsedArenas(), 3, "no dangling arena on nested errors");
+  tryFail(execute("(def! rec (fn (a) (cond ((= a 0) 1) (lol (- a 1)))))\n(rec 10)"));
+  expectEqlSize(getUsedArenas(), 4, "no dangling arena on nested errors");
 }
 
 int main(void) {
-  tryAssert(arenaCreate((size_t)(1024 * 1024)), test_ast_arena);
-  tryAssert(arenaCreate((size_t)(1024 * 1024)), test_temp_arena);
+  tryAssert(arenaCreate((size_t)(128 * 1024)), test_ast_arena);
+  tryAssert(arenaCreate((size_t)(64 * 1024)), test_temp_arena);
+  tryAssert(arenaCreate((size_t)(64 * 1024)), test_result_arena);
   tryAssert(vmInit(), global);
 
   profileInit();

@@ -9,7 +9,8 @@
 #include <stddef.h>
 
 static arena_t *ast_arena;
-static arena_t *temp_arena;
+static arena_t *scratch_arena;
+static arena_t *result_arena;
 
 void execute(value_t *result, const char *input) {
   char input_copy[1024];
@@ -22,7 +23,7 @@ void execute(value_t *result, const char *input) {
 
   while (line != NULL) {
     arenaReset(ast_arena);
-    arenaReset(temp_arena);
+    arenaReset(result_arena);
     token_list_t *tokens = nullptr;
     tryAssert(tokenize(ast_arena, line), tokens);
 
@@ -32,7 +33,9 @@ void execute(value_t *result, const char *input) {
     tryAssert(parse(ast_arena, tokens, &offset, &depth), ast);
 
     value_t res;
-    auto reduction = evaluate(&res, temp_arena, ast, global_environment);
+    auto reduction =
+        evaluate(&res, result_arena, scratch_arena, ast, global_environment);
+    arenaReset(scratch_arena);
     if (reduction.code != RESULT_OK) {
       printf("Reduction error: %s\n", reduction.message);
       assert(reduction.code == RESULT_OK);
@@ -46,8 +49,9 @@ void execute(value_t *result, const char *input) {
 }
 
 int main() {
-  tryAssert(arenaCreate((size_t)(1024 * 1024)), ast_arena);
-  tryAssert(arenaCreate((size_t)(1024 * 1024)), temp_arena);
+  tryAssert(arenaCreate((size_t)(64 * 1024)), ast_arena);
+  tryAssert(arenaCreate((size_t)(32 * 1024)), scratch_arena);
+  tryAssert(arenaCreate((size_t)(32 * 1024)), result_arena);
 
   case("number");
   value_t number;
@@ -68,6 +72,20 @@ int main() {
   value_t second = listGet(value_t, &list.value.list, 1);
   expectEqlDouble(second.value.number, 2, "correct second item");
   
+  case("nested list");
+  value_t nested_list;
+  execute(&nested_list, "((1) 2)");
+  expectEqlUint(nested_list.type, VALUE_TYPE_LIST, "returns a list");
+  expectEqlUint(nested_list.value.list.data[0].type, VALUE_TYPE_LIST, "with nested list");
+  expectEqlUint(nested_list.value.list.data[0].value.list.data->type, VALUE_TYPE_NUMBER, "with correct type");
+
+  case("immediate invocation");
+  value_t immediate_invocation;
+  execute(&immediate_invocation, "((fn (a b) (list.from a b)) 2 3)");
+  expectEqlUint(immediate_invocation.type, VALUE_TYPE_LIST, "returns a list");
+  expectTrue((immediate_invocation.value.list.data[0].value.number == 2 && 
+    immediate_invocation.value.list.data[1].value.number == 3) != 0, "with correct value");
+
   case("simple form");
   value_t simple;
   execute(&simple, "(+ 1 2)");
@@ -84,6 +102,11 @@ int main() {
   expectEqlUint(fun.type, VALUE_TYPE_NUMBER, "returns correct type");
   expectEqlDouble(fun.value.number, 3, "returns correct value");
   
+  case("functions with non-inline types");
+  value_t fun2;
+  execute(&fun2, "(def! comma (fn (s) (str.join \", \" s)))\n(comma (\"1\" \"2\"))");
+  expectEqlUint(fun2.type, VALUE_TYPE_STRING, "returns correct type");
+
   case("let");
   value_t let;
   execute(&let, "(let ((plus (fn (x y) (+ x y))) (a 1)) (plus a 1))");
@@ -113,6 +136,8 @@ int main() {
   expectEqlUint((unsigned int)empty_list.value.list.count, 0, "empty list has zero elements");
 
   arenaDestroy(&ast_arena);
-  arenaDestroy(&temp_arena);
+  arenaDestroy(&scratch_arena);
+  arenaDestroy(&result_arena);
+
   return report();
 }

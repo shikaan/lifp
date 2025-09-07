@@ -19,7 +19,7 @@
 static Map(value_t) * builtins;
 static Map(value_t) * specials;
 
-constexpr size_t ENVIRONMENT_MAX_SIZE = (long)32 * 1024;
+constexpr size_t ENVIRONMENT_MAX_SIZE = (long)64 * 1024;
 
 result_ref_t vmInit() {
   environment_t *global_environment = nullptr;

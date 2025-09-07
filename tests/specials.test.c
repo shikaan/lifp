@@ -19,7 +19,8 @@ result_void_t execute(value_t *result, const char *input) {
   size_t depth = 0;
   node_t *ast;
   tryAssert(parse(test_arena, tokens, &offset, &depth), ast);
-  tryWithMeta(result_void_t, evaluate(result, test_arena, ast, environment),
+  tryWithMeta(result_void_t,
+              evaluate(result, test_arena, test_arena, ast, environment),
               nullptr);
   return ok(result_void_t);
 }
@@ -106,12 +107,10 @@ void fnSpecialForm() {
   expectIncludeString(exec.message, "shadows a value",
                       "prevents shadowing globals");
 
-  tryAssert(execute(&result, "(def! cond 1)"));
   tryFail(execute(&result, "(fn (cond) (+ cond 1))"), exec);
   expectIncludeString(exec.message, "shadows a value",
                       "prevents shadowing specials");
 
-  tryAssert(execute(&result, "(def! and 1)"));
   tryFail(execute(&result, "(fn (and) (+ and 1))"), exec);
   expectIncludeString(exec.message, "shadows a value",
                       "prevents shadowing builtins");

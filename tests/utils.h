@@ -3,9 +3,9 @@
 #include "../lib/string.h"
 #include "../lifp/token.h"
 #include "../lifp/value.h"
-#include <assert.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define arraySize(array) (sizeof(array) / sizeof((array)[0]))
@@ -13,25 +13,23 @@
 #define _concat_detail(x, y) x##y
 #define _concat(x, y) _concat_detail(x, y)
 
-// Prevent unused value warnings when built in RELEASE mode
-#ifdef NODEBUG
 #define tryAssert(Action, ...)                                                 \
   auto _concat(result, __LINE__) = (Action);                                   \
-  assert(_concat(result, __LINE__).code == RESULT_OK);                         \
+  if (_concat(result, __LINE__).code != RESULT_OK) {                           \
+    printf("Error: %s\n", _concat(result, __LINE__).message);                  \
+    printf("    at: %s:%d\n", __FILE__, __LINE__);                             \
+    abort();                                                                   \
+  }                                                                            \
   __VA_OPT__(__VA_ARGS__ = _concat(result, __LINE__).value);
-#else
-#define tryAssert(Action, ...)                                                 \
-  __VA_OPT__(__VA_ARGS__ =)(Action) __VA_OPT__(.value);
-#endif
 
-#ifdef NODEBUG
 #define tryFail(Action, ...)                                                   \
   auto _concat(result, __LINE__) = (Action);                                   \
-  assert(_concat(result, __LINE__).code != RESULT_OK);                         \
+  if (_concat(result, __LINE__).code == RESULT_OK) {                           \
+    printf("Error: did not fail\n");                                           \
+    printf("    at: %s:%d\n", __FILE__, __LINE__);                             \
+    abort();                                                                   \
+  }                                                                            \
   __VA_OPT__(__VA_ARGS__ = _concat(result, __LINE__))
-#else
-#define tryFail(Action, ...) __VA_OPT__(__VA_ARGS__ =)(Action);
-#endif
 
 static inline token_list_t *
 makeTokenList(arena_t *arena, const token_t *elements, size_t capacity) {
