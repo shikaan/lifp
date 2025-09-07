@@ -137,6 +137,7 @@ int run(const run_opts_t OPTIONS) {
   profileReport();
 
   environmentDestroy(&global_environment);
+  arenaDestroy(&result_arena);
   arenaDestroy(&scratch_arena);
   arenaDestroy(&ast_arena);
   return 0;
