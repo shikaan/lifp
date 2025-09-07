@@ -20,7 +20,6 @@ FEATURES
   * [ ] imports `(import! my-module "./my-module.lifp")
   * [ ] Type Declaration comments `;; (number, number) -> number`
   * [ ] Max Call Stack size
-  * [ ] Run should skip comments and allow top-level atoms
 
 REFACTORING
 ---

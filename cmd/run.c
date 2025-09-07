@@ -32,41 +32,34 @@ typedef struct {
   }                                                                            \
   __VA_OPT__(__VA_ARGS__ = _concat(result, __LINE__).value;)
 
-static void readLine(ssize_t size, char line_buffer[static size],
-                     const char input_buffer[static size], ssize_t *offset) {
+static void readStatement(ssize_t size, char line_buffer[static size],
+                          const char input_buffer[static size],
+                          ssize_t *offset) {
   size_t line_buffer_offset = 0;
-  bool skip_current_line = false;
   int depth = 0;
 
   for (; *offset < size; (*offset)++) {
     const char current = input_buffer[(*offset)];
 
-    // FIXME: the lexer should know about comments, instead of hanling it here
-    if (current == ';') {
-      skip_current_line = true;
-      continue;
+    // end of an atom statement
+    if (current == '\n' && depth == 0) {
+      (*offset)++;
+      return;
     }
-
-    if (current == '\n') {
-      skip_current_line = false;
-      continue;
-    }
-
-    if (skip_current_line)
-      continue;
 
     line_buffer[line_buffer_offset++] = current;
 
-    if (current == LPAREN) {
-      depth++;
-    } else if (current == RPAREN) {
+    // end of a list statement
+    if (current == RPAREN) {
+      if (depth == 1) {
+        (*offset)++;
+        return;
+      }
       depth--;
     }
 
-    // FIXME: this does not allow having top-level atoms
-    if (depth == 0) {
-      (*offset)++;
-      return;
+    if (current == LPAREN) {
+      depth++;
     }
   }
 }
@@ -78,23 +71,20 @@ int run(const run_opts_t OPTIONS) {
     return 1;
   }
 
-  char *file_buffer = malloc(sizeof(char) * OPTIONS.file_size);
-  if (!file_buffer) {
-    error("cannot allocate file buffer");
-    return 1;
-  }
-  ssize_t len = read(file_descriptor, file_buffer, OPTIONS.file_size);
-  if (len == 0) {
+  char *file_buffer;
+  tryCLI(allocSafe(OPTIONS.file_size), file_buffer,
+         "cannot allocate file buffer");
+
+  ssize_t file_offset = 0;
+  ssize_t file_length = read(file_descriptor, file_buffer, OPTIONS.file_size);
+  if (file_length == 0) {
     error("provided file is empty");
     return 1;
   }
 
-  ssize_t file_offset = 0;
-  char *line_buffer = malloc(sizeof(char) * OPTIONS.file_size);
-  if (!line_buffer) {
-    error("cannot allocate file buffer");
-    return 1;
-  }
+  char *statement_buffer;
+  tryCLI(allocSafe(OPTIONS.file_size), statement_buffer,
+         "cannot allocate file buffer");
 
   profileInit();
   arena_t *ast_arena = nullptr;
@@ -113,28 +103,33 @@ int run(const run_opts_t OPTIONS) {
   tryCLI(vmInit(), global_environment, "unable to initialize virtual machine");
 
   do {
-    memset(line_buffer, 0, (size_t)len);
+    memset(statement_buffer, 0, (size_t)file_length);
     arenaReset(ast_arena);
     arenaReset(scratch_arena);
-    readLine(len, line_buffer, file_buffer, &file_offset);
+    readStatement(file_length, statement_buffer, file_buffer, &file_offset);
 
-    if (strlen(line_buffer) == 0)
+    if (strlen(statement_buffer) == 0)
       continue;
 
     token_list_t *tokens = nullptr;
-    tryRun(tokenize(ast_arena, line_buffer), tokens);
+    tryRun(tokenize(ast_arena, statement_buffer), tokens);
 
     size_t line_offset = 0;
     size_t depth = 0;
     node_t *syntax_tree = nullptr;
     tryRun(parse(ast_arena, tokens, &line_offset, &depth), syntax_tree);
 
-    value_t reduced;
-    tryRun(evaluate(&reduced, result_arena, scratch_arena, syntax_tree,
-                    global_environment));
-  } while (strlen(line_buffer) > 0);
+    if (syntax_tree) {
+      value_t reduced;
+      tryRun(evaluate(&reduced, result_arena, scratch_arena, syntax_tree,
+                      global_environment));
+    }
+  } while (file_offset < file_length);
 
   profileReport();
+
+  free(statement_buffer);
+  free(file_buffer);
 
   environmentDestroy(&global_environment);
   arenaDestroy(&result_arena);
