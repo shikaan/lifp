@@ -20,13 +20,13 @@ void formatRootUsage(size_t size, char buffer[static size]) {
            "  %s <command> [flags] [args]\n"
            "\n"
            "Commands:\n"
-           "  run     file.lifp          run a file with lifp\n"
-           "  repl                       start a REPL session\n"
-           "  help    command            show help for command\n"
+           "  run     file.lifp            run a file with lifp\n"
+           "  repl                         start a REPL session\n"
+           "  help    command              show help for command\n"
            "\n"
            "Flags:\n"
-           "  -h, --help                 print this help and exit\n"
-           "  -v, --version              print lifp version and exit\n"
+           "  -h, --help                   print this help and exit\n"
+           "  -v, --version                print lifp version and exit\n"
            "\n"
            "Learn more about lifp at https://github.com/shikaan/lifp",
            NAME);
@@ -38,11 +38,13 @@ void formatRunUsage(size_t size, char buffer[static size]) {
            "  %s %s [flags] file.lifp\n"
            "\n"
            "Flags:\n"
-           "  -f, --file-size   int      max size of source file (in KB)\n"
-           "  -a, --ast-memory  int      max parsing memory size (in KB)\n"
-           "  -t, --temp-memory int      max scratch memory size (in KB)\n"
-           "  -h, --help                 print this help and exit\n"
-           "  -v, --version              print version and exit\n"
+           "  -f, --file-size         int    max size of source file (in KB)\n"
+           "  -a, --ast-memory        int    max parsing memory size (in KB)\n"
+           "  -t, --temp-memory       int    max scratch memory size (in KB)\n"
+           "  -s, --call-stack-size   int    max call stack size\n"
+           "  -e, --environment-size  int    max environment size (in KB)\n"
+           "  -h, --help                     print this help and exit\n"
+           "  -v, --version                  print version and exit\n"
            "\n"
            "Learn more about lifp at https://github.com/shikaan/lifp",
            NAME, RUN);
@@ -54,11 +56,13 @@ void formatReplUsage(size_t size, char buffer[static size]) {
            "  %s %s [flags]\n"
            "\n"
            "Flags:\n"
-           "  -o, --output-size int      max length of the output buffer\n"
-           "  -a, --ast-memory  int      max parsing memory size (in KB)\n"
-           "  -t, --temp-memory int      max scratch memory size (in KB)\n"
-           "  -h, --help                 print this help and exit\n"
-           "  -v, --version              print version and exit\n"
+           "  -o, --output-size       int    max length of the output buffer\n"
+           "  -a, --ast-memory        int    max parsing memory size (in KB)\n"
+           "  -t, --temp-memory       int    max scratch memory size (in KB)\n"
+           "  -s, --call-stack-size   int    max call stack size\n"
+           "  -e, --environment-size  int    max environment size (in KB)\n"
+           "  -h, --help                     print this help and exit\n"
+           "  -v, --version                  print version and exit\n"
            "\n"
            "Learn more about lifp at https://github.com/shikaan/lifp",
            NAME, REPL);
@@ -76,6 +80,9 @@ int runCallback(char *name, ArgParser *parser) {
   opts.temp_memory = (size_t)ap_get_int_value(parser, "temp-memory") * KILOBYTE;
   opts.file_size = (size_t)ap_get_int_value(parser, "file-size") * KILOBYTE;
   opts.filename = ap_get_arg_at_index(parser, 0);
+  opts.call_stack_size = (size_t)ap_get_int_value(parser, "call-stack-size");
+  opts.environment_size =
+      (size_t)ap_get_int_value(parser, "environment-size") * KILOBYTE;
 
   return run(opts);
 }
@@ -86,6 +93,9 @@ int replCallback(char *name, ArgParser *parser) {
   opts.ast_memory = (size_t)ap_get_int_value(parser, "ast-memory") * KILOBYTE;
   opts.temp_memory = (size_t)ap_get_int_value(parser, "temp-memory") * KILOBYTE;
   opts.output_size = (size_t)ap_get_int_value(parser, "output-size");
+  opts.call_stack_size = (size_t)ap_get_int_value(parser, "call-stack-size");
+  opts.environment_size =
+      (size_t)ap_get_int_value(parser, "environment-size") * KILOBYTE;
 
   return repl(opts);
 }
@@ -125,6 +135,8 @@ int main(int argc, char **argv) {
   ap_add_int_opt(run_parser, "file-size f", 1024);
   ap_add_int_opt(run_parser, "ast-memory a", 128);
   ap_add_int_opt(run_parser, "temp-memory t", 128);
+  ap_add_int_opt(run_parser, "call-stack-size s", 512);
+  ap_add_int_opt(run_parser, "environment-size e", 64);
 
   ap_set_cmd_callback(run_parser, runCallback);
 
@@ -140,6 +152,8 @@ int main(int argc, char **argv) {
   ap_add_int_opt(repl_parser, "output-size o", 4096);
   ap_add_int_opt(repl_parser, "ast-memory a", 128);
   ap_add_int_opt(repl_parser, "temp-memory t", 128);
+  ap_add_int_opt(repl_parser, "call-stack-size s", 512);
+  ap_add_int_opt(repl_parser, "environment-size e", 64);
 
   ap_set_cmd_callback(repl_parser, replCallback);
 

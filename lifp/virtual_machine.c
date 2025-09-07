@@ -1,7 +1,9 @@
 // This is for the CI compiler
 #define _POSIX_C_SOURCE 200809L
-
 #include "virtual_machine.h"
+#include "error.h"
+#include "specials.h"
+#include "value.h"
 
 // NOLINTBEGIN - intentionally including .c files
 #include "std/core.c"
@@ -12,16 +14,18 @@
 #include "std/str.c"
 // NOLINTEND
 
-#include "specials.h"
-#include "value.h"
 #include <assert.h>
+#include <stddef.h>
 
 static Map(value_t) * builtins;
 static Map(value_t) * specials;
 
-constexpr size_t ENVIRONMENT_MAX_SIZE = (long)64 * 1024;
+static vm_opts_t options;
+static size_t environment_count = 0;
 
-result_ref_t vmInit() {
+result_ref_t vmInit(vm_opts_t opts) {
+  options = opts;
+
   environment_t *global_environment = nullptr;
   try(result_ref_t, environmentCreate(nullptr), global_environment);
 
@@ -82,8 +86,13 @@ result_ref_t vmInit() {
 }
 
 result_ref_t environmentCreate(environment_t *parent) {
+  if (environment_count >= options.max_call_stack_size) {
+    throw(result_ref_t, ERROR_CODE_MAX_CALL_STACK_SIZE, nullptr,
+          "Max call stack size (%lu) reached.", options.max_call_stack_size);
+  }
+
   arena_t *arena = nullptr;
-  try(result_ref_t, arenaCreate(ENVIRONMENT_MAX_SIZE), arena);
+  try(result_ref_t, arenaCreate(options.environment_size), arena);
 
   environment_t *environment = nullptr;
   try(result_ref_t, arenaAllocate(arena, sizeof(environment_t)), environment);
@@ -93,6 +102,7 @@ result_ref_t environmentCreate(environment_t *parent) {
 
   try(result_ref_t, mapCreate(value_t, arena, 32), environment->values);
 
+  environment_count++;
   return ok(result_ref_t, environment);
 }
 
@@ -105,6 +115,7 @@ void environmentDestroy(environment_t **self) {
   arenaDestroy(&arena);
   // Setting the reference to null for good measure
   *(self) = nullptr;
+  environment_count--;
 }
 
 const value_t *environmentResolveSymbol(environment_t *self,

@@ -3,6 +3,7 @@
 #include "../lib/string.h"
 #include "../lifp/token.h"
 #include "../lifp/value.h"
+#include "../lifp/virtual_machine.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -137,3 +138,8 @@ static inline node_t nStr(arena_t *arena, const char *string) {
       .value.list.capacity = (Count),                                          \
       .value.list.data = (Data),                                               \
   }
+
+static vm_opts_t VM_TEST_OPTIONS = {
+    .environment_size = (size_t)(64 * 1024),
+    .max_call_stack_size = 512,
+};

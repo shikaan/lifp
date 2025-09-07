@@ -3,6 +3,7 @@
 #include "../lib/arena.h"
 #include "../lib/map.h"
 #include "value.h"
+#include <stddef.h>
 
 typedef struct environment_t {
   arena_t *arena;
@@ -10,7 +11,12 @@ typedef struct environment_t {
   struct environment_t *parent;
 } environment_t;
 
-result_ref_t vmInit();
+typedef struct {
+  size_t max_call_stack_size;
+  size_t environment_size;
+} vm_opts_t;
+
+result_ref_t vmInit(vm_opts_t opts);
 
 result_ref_t environmentCreate(environment_t *parent);
 void environmentDestroy(environment_t **self_ref);

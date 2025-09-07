@@ -171,6 +171,8 @@ result_void_position_t evaluate(value_t *result, arena_t *result_arena,
     switch (first_value.type) {
     case VALUE_TYPE_SPECIAL: {
       value_t temp;
+      temp.position.column = ast->position.column;
+      temp.position.line = ast->position.line;
       try(result_void_position_t,
           invokeSpecial(&temp, first_value, scratch_arena, env, &list));
       tryWithMeta(result_void_position_t,
@@ -181,6 +183,8 @@ result_void_position_t evaluate(value_t *result, arena_t *result_arena,
       try(result_void_position_t,
           evaluateNodes(scratch_arena, ast, env, &first_value), evaluated);
       value_t temp;
+      temp.position.column = ast->position.column;
+      temp.position.line = ast->position.line;
       try(result_void_position_t,
           invokeBuiltin(&temp, scratch_arena, evaluated, first_value));
       tryWithMeta(result_void_position_t,
@@ -191,6 +195,8 @@ result_void_position_t evaluate(value_t *result, arena_t *result_arena,
       try(result_void_position_t,
           evaluateNodes(scratch_arena, ast, env, &first_value), evaluated);
       value_t temp;
+      temp.position.column = ast->position.column;
+      temp.position.line = ast->position.line;
       try(result_void_position_t,
           invokeClosure(&temp, evaluated, first_value, scratch_arena, env));
       tryWithMeta(result_void_position_t,

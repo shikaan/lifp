@@ -200,7 +200,7 @@ void errors() {
 int main(void) {
   tryAssert(arenaCreate((size_t)(1024 * 1024)), scratch_arena);
   tryAssert(arenaCreate((size_t)(1024 * 1024)), result_arena);
-  tryAssert(vmInit(), environment);
+  tryAssert(vmInit(VM_TEST_OPTIONS), environment);
 
   suite(atoms);
   suite(listOfElements);
