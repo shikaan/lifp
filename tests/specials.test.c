@@ -107,12 +107,10 @@ void fnSpecialForm() {
   expectIncludeString(exec.message, "shadows a value",
                       "prevents shadowing globals");
 
-  tryAssert(execute(&result, "(def! cond 1)"));
   tryFail(execute(&result, "(fn (cond) (+ cond 1))"), exec);
   expectIncludeString(exec.message, "shadows a value",
                       "prevents shadowing specials");
 
-  tryAssert(execute(&result, "(def! and 1)"));
   tryFail(execute(&result, "(fn (and) (+ and 1))"), exec);
   expectIncludeString(exec.message, "shadows a value",
                       "prevents shadowing builtins");
