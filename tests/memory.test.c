@@ -13,7 +13,7 @@
 allocMetricsInit();
 
 static arena_t *test_ast_arena;
-static arena_t *test_temp_arena;
+static arena_t *test_scratch_arena;
 static arena_t *test_result_arena;
 static environment_t *global;
 
@@ -27,7 +27,7 @@ void execute(const char *input) {
 
   while (line != NULL) {
     arenaReset(test_ast_arena);
-    arenaReset(test_temp_arena);
+    arenaReset(test_scratch_arena);
     token_list_t *tokens = nullptr;
     tryAssert(tokenize(test_ast_arena, line), tokens);
 
@@ -37,7 +37,7 @@ void execute(const char *input) {
     tryAssert(parse(test_ast_arena, tokens, &offset, &depth), ast);
 
     value_t result;
-    evaluate(&result, test_result_arena, test_temp_arena, ast, global);
+    evaluate(&result, test_result_arena, test_scratch_arena, ast, global);
 
     line = strtok(nullptr, "\n");
   }
@@ -318,7 +318,7 @@ void danglingArenas(void) {
 
 int main(void) {
   tryAssert(arenaCreate((size_t)(64 * 1024)), test_ast_arena);
-  tryAssert(arenaCreate((size_t)(32 * 1024)), test_temp_arena);
+  tryAssert(arenaCreate((size_t)(32 * 1024)), test_scratch_arena);
   tryAssert(arenaCreate((size_t)(32 * 1024)), test_result_arena);
   tryAssert(vmInit(), global);
 
