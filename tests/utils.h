@@ -14,7 +14,7 @@
 #define _concat(x, y) _concat_detail(x, y)
 
 // Prevent unused value warnings when built in RELEASE mode
-#ifdef NODEBUG
+#ifndef NDEBUG
 #define tryAssert(Action, ...)                                                 \
   auto _concat(result, __LINE__) = (Action);                                   \
   assert(_concat(result, __LINE__).code == RESULT_OK);                         \
@@ -24,7 +24,7 @@
   __VA_OPT__(__VA_ARGS__ =)(Action) __VA_OPT__(.value);
 #endif
 
-#ifdef NODEBUG
+#ifndef NDEBUG
 #define tryFail(Action, ...)                                                   \
   auto _concat(result, __LINE__) = (Action);                                   \
   assert(_concat(result, __LINE__).code != RESULT_OK);                         \
