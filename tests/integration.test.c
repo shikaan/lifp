@@ -102,6 +102,11 @@ int main() {
   expectEqlUint(fun.type, VALUE_TYPE_NUMBER, "returns correct type");
   expectEqlDouble(fun.value.number, 3, "returns correct value");
   
+  case("functions with non-inline types");
+  value_t fun2;
+  execute(&fun2, "(def! comma (fn (s) (str.join \", \" s)))\n(comma (\"1\" \"2\"))");
+  expectEqlUint(fun2.type, VALUE_TYPE_STRING, "returns correct type");
+
   case("let");
   value_t let;
   execute(&let, "(let ((plus (fn (x y) (+ x y))) (a 1)) (plus a 1))");

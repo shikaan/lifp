@@ -45,19 +45,15 @@ result_void_position_t define(value_t *result, arena_t *scratch_arena,
           "%s requires a symbol and a form. %s", DEFINE, DEFINE_EXAMPLE);
   }
 
-  frame_handle_t frame = arenaAllocationFrameStart(scratch_arena);
-
   // Perform reduction in the temporary memory
   value_t reduced;
   node_t value = listGet(node_t, nodes, 2);
-  tryCatch(result_void_position_t,
-           evaluate(&reduced, scratch_arena, scratch_arena, &value, env),
-           arenaAllocationFrameEnd(scratch_arena, frame));
+  try(result_void_position_t,
+      evaluate(&reduced, scratch_arena, scratch_arena, &value, env));
 
   // If reduction is successful, we can move the closure to VM memory
-  tryFinally(result_void_position_t,
-             addToEnvironment(key.value.symbol, &reduced, env, value.position),
-             arenaAllocationFrameEnd(scratch_arena, frame));
+  try(result_void_position_t,
+      addToEnvironment(key.value.symbol, &reduced, env, value.position));
 
   result->type = VALUE_TYPE_NIL;
   result->value.nil = nullptr;
@@ -85,29 +81,25 @@ result_void_position_t function(value_t *result, arena_t *scratch_arena,
 
   node_t form = listGet(node_t, nodes, 2);
 
-  frame_handle_t frame = arenaAllocationFrameStart(scratch_arena);
   tryWithMeta(result_void_position_t,
               valueInit(result, scratch_arena, form.type), result->position);
 
   for (size_t i = 0; i < arguments.value.list.count; i++) {
     node_t argument = listGet(node_t, &arguments.value.list, i);
     if (argument.type != NODE_TYPE_SYMBOL) {
-      arenaAllocationFrameEnd(scratch_arena, frame);
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, argument.position,
             "%s requires a binding list of symbols. %s", FUNCTION,
             FUNCTION_EXAMPLE);
     }
 
     if (environmentResolveSymbol(env, argument.value.symbol)) {
-      arenaAllocationFrameEnd(scratch_arena, frame);
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, argument.position,
             "identifier '%s' shadows a value", argument.value.symbol);
     }
 
-    tryCatchWithMeta(
-        result_void_position_t,
-        listAppend(node_t, &result->value.closure.arguments, &argument),
-        arenaAllocationFrameEnd(scratch_arena, frame), argument.position);
+    tryWithMeta(result_void_position_t,
+                listAppend(node_t, &result->value.closure.arguments, &argument),
+                argument.position);
   }
 
   tryWithMeta(result_void_position_t,
@@ -158,7 +150,6 @@ result_void_position_t let(value_t *result, arena_t *scratch_arena,
     }
 
     node_t body = listGet(node_t, &couple.value.list, 1);
-    frame_handle_t bindings_frame = arenaAllocationFrameStart(scratch_arena);
     value_t evaluated;
     tryCatch(
         result_void_position_t,
@@ -168,7 +159,6 @@ result_void_position_t let(value_t *result, arena_t *scratch_arena,
              addToEnvironment(symbol.value.symbol, &evaluated, local_env,
                               evaluated.position),
              environmentDestroy(&local_env));
-    arenaAllocationFrameEnd(scratch_arena, bindings_frame);
   }
 
   node_t form = listGet(node_t, nodes, 2);
@@ -195,10 +185,8 @@ result_void_position_t cond(value_t *result, arena_t *scratch_arena,
   assert(nodes->count > 0);
 
   for (size_t i = 1; i < nodes->count - 1; i++) {
-    frame_handle_t frame = arenaAllocationFrameStart(scratch_arena);
     node_t node = listGet(node_t, nodes, i);
     if (node.type != NODE_TYPE_LIST || node.value.list.count != 2) {
-      arenaAllocationFrameEnd(scratch_arena, frame);
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, node.position,
             "%s requires a list of condition-form assignments. %s", COND,
             COND_EXAMPLE);
@@ -209,7 +197,6 @@ result_void_position_t cond(value_t *result, arena_t *scratch_arena,
         evaluate(result, scratch_arena, scratch_arena, &condition, env));
 
     if (result->type != VALUE_TYPE_BOOLEAN) {
-      arenaAllocationFrameEnd(scratch_arena, frame);
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, node.position,
             "Conditions should resolve to a boolean. %s", COND_EXAMPLE);
     }
@@ -220,7 +207,6 @@ result_void_position_t cond(value_t *result, arena_t *scratch_arena,
           evaluate(result, scratch_arena, scratch_arena, &form, env));
       return ok(result_void_position_t);
     }
-    arenaAllocationFrameEnd(scratch_arena, frame);
   }
 
   node_t fallback = listGet(node_t, nodes, nodes->count - 1);

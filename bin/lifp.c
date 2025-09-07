@@ -123,8 +123,8 @@ int main(int argc, char **argv) {
   ap_set_helptext(run_parser, run_help);
   ap_set_version(run_parser, version);
   ap_add_int_opt(run_parser, "file-size f", 1024);
-  ap_add_int_opt(run_parser, "ast-memory a", 64);
-  ap_add_int_opt(run_parser, "temp-memory t", 64);
+  ap_add_int_opt(run_parser, "ast-memory a", 128);
+  ap_add_int_opt(run_parser, "temp-memory t", 128);
 
   ap_set_cmd_callback(run_parser, runCallback);
 
@@ -138,8 +138,8 @@ int main(int argc, char **argv) {
   ap_set_helptext(repl_parser, repl_help);
   ap_set_version(repl_parser, version);
   ap_add_int_opt(repl_parser, "output-size o", 4096);
-  ap_add_int_opt(repl_parser, "ast-memory a", 64);
-  ap_add_int_opt(repl_parser, "temp-memory t", 64);
+  ap_add_int_opt(repl_parser, "ast-memory a", 128);
+  ap_add_int_opt(repl_parser, "temp-memory t", 128);
 
   ap_set_cmd_callback(repl_parser, replCallback);
 

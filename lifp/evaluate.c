@@ -50,7 +50,7 @@ invokeClosure(value_t *result, value_list_t *evaluated, value_t closure_value,
   tryWithMeta(result_void_position_t, environmentCreate(parent_environment),
               closure_value.position, local_environment);
 
-  // Populate the closure with the values, skipping the closure symbol
+  // Populate the closure with the values, skipping the closure
   for (size_t i = 1; i < evaluated->count; i++) {
     auto argument = listGet(node_t, &closure.arguments, i - 1);
     auto value = listGet(value_t, evaluated, i);
@@ -162,14 +162,10 @@ result_void_position_t evaluate(value_t *result, arena_t *result_arena,
       return ok(result_void_position_t);
     }
 
-    frame_handle_t scratch_frame = arenaAllocationFrameStart(scratch_arena);
-    frame_handle_t result_frame = arenaAllocationFrameStart(result_arena);
-
     node_t first_node = listGet(node_t, &list, 0);
-
     value_t first_value;
     try(result_void_position_t,
-        evaluate(&first_value, result_arena, scratch_arena, &first_node, env));
+        evaluate(&first_value, scratch_arena, scratch_arena, &first_node, env));
 
     value_list_t *evaluated = nullptr;
     switch (first_value.type) {
@@ -179,7 +175,7 @@ result_void_position_t evaluate(value_t *result, arena_t *result_arena,
           invokeSpecial(&temp, first_value, scratch_arena, env, &list));
       tryWithMeta(result_void_position_t,
                   valueCopy(&temp, result, result_arena), ast->position);
-      goto done;
+      return ok(result_void_position_t);
     }
     case VALUE_TYPE_BUILTIN: {
       try(result_void_position_t,
@@ -189,7 +185,7 @@ result_void_position_t evaluate(value_t *result, arena_t *result_arena,
           invokeBuiltin(&temp, scratch_arena, evaluated, first_value));
       tryWithMeta(result_void_position_t,
                   valueCopy(&temp, result, result_arena), ast->position);
-      goto done;
+      return ok(result_void_position_t);
     }
     case VALUE_TYPE_CLOSURE: {
       try(result_void_position_t,
@@ -197,10 +193,9 @@ result_void_position_t evaluate(value_t *result, arena_t *result_arena,
       value_t temp;
       try(result_void_position_t,
           invokeClosure(&temp, evaluated, first_value, scratch_arena, env));
-      arenaAllocationFrameEnd(result_arena, result_frame);
       tryWithMeta(result_void_position_t,
                   valueCopy(&temp, result, result_arena), ast->position);
-      goto done;
+      return ok(result_void_position_t);
     }
     case VALUE_TYPE_NUMBER:
     case VALUE_TYPE_LIST:
@@ -225,8 +220,6 @@ result_void_position_t evaluate(value_t *result, arena_t *result_arena,
                     listAppend(value_t, &result->value.list, &duplicated),
                     ast->position);
       }
-    done:
-      arenaAllocationFrameEnd(scratch_arena, scratch_frame);
       return ok(result_void_position_t);
     }
   }

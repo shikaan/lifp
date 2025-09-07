@@ -64,11 +64,11 @@ int repl(const repl_opts_t OPTIONS) {
          "unable to allocate interpreter memory");
 
   arena_t *scratch_arena = nullptr;
-  tryCLI(arenaCreate(OPTIONS.temp_memory / 2), scratch_arena,
+  tryCLI(arenaCreate(OPTIONS.temp_memory), scratch_arena,
          "unable to allocate transient memory");
 
   arena_t *result_arena = nullptr;
-  tryCLI(arenaCreate(OPTIONS.temp_memory / 2), result_arena,
+  tryCLI(arenaCreate(OPTIONS.temp_memory), result_arena,
          "unable to allocate transient memory");
 
   environment_t *global_environment = nullptr;
