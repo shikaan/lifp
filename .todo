@@ -19,7 +19,6 @@ FEATURES
   * [ ] Implement `?` in REPL
   * [ ] imports `(import! my-module "./my-module.lifp")
   * [ ] Type Declaration comments `;; (number, number) -> number`
-  * [ ] Max Call Stack size
 
 REFACTORING
 ---

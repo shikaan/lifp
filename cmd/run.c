@@ -20,6 +20,8 @@ typedef struct {
   size_t ast_memory;
   size_t temp_memory;
   size_t file_size;
+  size_t call_stack_size;
+  size_t environment_size;
   const char *filename;
 } run_opts_t;
 
@@ -99,8 +101,13 @@ int run(const run_opts_t OPTIONS) {
   tryCLI(arenaCreate(OPTIONS.temp_memory), result_arena,
          "unable to allocate transient memory");
 
+  vm_opts_t vm_options = {
+      .max_call_stack_size = OPTIONS.call_stack_size,
+      .environment_size = OPTIONS.environment_size,
+  };
   environment_t *global_environment = nullptr;
-  tryCLI(vmInit(), global_environment, "unable to initialize virtual machine");
+  tryCLI(vmInit(vm_options), global_environment,
+         "unable to initialize virtual machine");
 
   do {
     memset(statement_buffer, 0, (size_t)file_length);

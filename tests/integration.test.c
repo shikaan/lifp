@@ -19,7 +19,7 @@ void execute(value_t *result, const char *input) {
   char *line = strtok(input_copy, "\n");
 
   environment_t *global_environment = nullptr;
-  tryAssert(vmInit(), global_environment);
+  tryAssert(vmInit(VM_TEST_OPTIONS), global_environment);
 
   while (line != NULL) {
     arenaReset(ast_arena);

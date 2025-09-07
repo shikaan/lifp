@@ -334,7 +334,7 @@ int main(void) {
   tryAssert(arenaCreate((size_t)(128 * 1024)), test_ast_arena);
   tryAssert(arenaCreate((size_t)(64 * 1024)), test_temp_arena);
   tryAssert(arenaCreate((size_t)(64 * 1024)), test_result_arena);
-  tryAssert(vmInit(), global);
+  tryAssert(vmInit(VM_TEST_OPTIONS), global);
 
   profileInit();
 

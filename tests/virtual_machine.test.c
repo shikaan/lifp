@@ -7,8 +7,8 @@
 static environment_t *global;
 static arena_t *test_arena;
 
-void resolutions() {
-  tryAssert(vmInit(), global);
+void resolutions(void) {
+  tryAssert(vmInit(VM_TEST_OPTIONS), global);
 
   const value_t *builtin = environmentResolveSymbol(global, "+");
   expectNotNull(builtin, "resolves builtin");
@@ -25,12 +25,33 @@ void resolutions() {
   const value_t *custom = environmentResolveSymbol(global, "custom");
   expectNotNull(custom, "resolves custom");
   expectEqlUint(custom->type, VALUE_TYPE_NUMBER, "with correct type");
+
+  environmentDestroy(&global);
+}
+
+void callStack(void) {
+  vm_opts_t options = {
+      .max_call_stack_size = 2,
+      .environment_size = VM_TEST_OPTIONS.environment_size,
+  };
+  tryAssert(vmInit(options), global);
+
+  environment_t *env;
+  tryAssert(environmentCreate(global), env);
+
+  result_ref_t result;
+  tryFail(environmentCreate(global), result);
+  expectIncludeString(result.message, "call stack size",
+                      "throws when exceeding max call stack size");
+
+  environmentDestroy(&env);
+  environmentDestroy(&global);
 }
 
 int main(void) {
   tryAssert(arenaCreate((size_t)1024 * 1024), test_arena);
   suite(resolutions);
+  suite(callStack);
   arenaDestroy(&test_arena);
-  environmentDestroy(&global);
   return report();
 }
