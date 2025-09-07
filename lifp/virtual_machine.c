@@ -88,7 +88,7 @@ result_ref_t vmInit(vm_opts_t opts) {
 result_ref_t environmentCreate(environment_t *parent) {
   if (environment_count >= options.max_call_stack_size) {
     throw(result_ref_t, ERROR_CODE_MAX_CALL_STACK_SIZE, nullptr,
-          "Max call stack size (%lu) reached.", options.max_call_stack_size);
+          "Max call stack size (%zu) reached.", options.max_call_stack_size);
   }
 
   arena_t *arena = nullptr;

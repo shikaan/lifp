@@ -36,13 +36,15 @@ void callStack(void) {
   };
   tryAssert(vmInit(options), global);
 
-  tryAssert(environmentCreate(global));
+  environment_t *env;
+  tryAssert(environmentCreate(global), env);
 
   result_ref_t result;
   tryFail(environmentCreate(global), result);
   expectIncludeString(result.message, "call stack size",
                       "throws when exceeding max call stack size");
 
+  environmentDestroy(&env);
   environmentDestroy(&global);
 }
 
