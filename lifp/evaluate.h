@@ -17,3 +17,14 @@
 result_void_position_t evaluate(value_t *result, arena_t *result_arena,
                                 arena_t *scratch_arena, node_t *ast,
                                 environment_t *env);
+
+// Invokes a closure with the specified arguments and environment.
+//
+// This function executes the given closure, passing in the provided arguments,
+// using the specified scratch arena for temporary allocations, and within the
+// given environment. The result of the closure execution is stored in the
+// location pointed to by `result`.
+result_void_position_t invokeClosure(value_t *result, closure_t closure,
+                                     value_list_t *arguments,
+                                     arena_t *scratch_arena,
+                                     environment_t *environment);

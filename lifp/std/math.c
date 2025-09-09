@@ -8,9 +8,10 @@
 
 // Math max function - returns the maximum value in a list of numbers
 const char *MATH_MAX = "math.max";
-result_void_position_t mathMax(arena_t *arena, value_t *result,
-                               value_list_t *values) {
+result_void_position_t mathMax(value_t *result, const value_list_t *values,
+                               arena_t *arena, environment_t *environment) {
   (void)arena;
+  (void)environment;
   if (values->count != 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 1 argument. Got %zu", MATH_MAX, values->count);
@@ -51,9 +52,10 @@ result_void_position_t mathMax(arena_t *arena, value_t *result,
 
 // Math min function - returns the minimum value in a list of numbers
 const char *MATH_MIN = "math.min";
-result_void_position_t mathMin(arena_t *arena, value_t *result,
-                               value_list_t *values) {
+result_void_position_t mathMin(value_t *result, const value_list_t *values,
+                               arena_t *arena, environment_t *environment) {
   (void)arena;
+  (void)environment;
   if (values->count != 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 1 argument. Got %zu", MATH_MIN, values->count);
@@ -94,9 +96,10 @@ result_void_position_t mathMin(arena_t *arena, value_t *result,
 
 // Math random function - returns a random number between 0 and RAND_MAX
 const char *MATH_RANDOM = "math.random!";
-result_void_position_t mathRandom(arena_t *arena, value_t *result,
-                                  value_list_t *values) {
+result_void_position_t mathRandom(value_t *result, const value_list_t *values,
+                                  arena_t *arena, environment_t *environment) {
   (void)arena;
+  (void)environment;
   if (values->count != 0) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires no arguments. Got %zu", MATH_RANDOM, values->count);
@@ -116,9 +119,10 @@ result_void_position_t mathRandom(arena_t *arena, value_t *result,
 }
 
 const char *MATH_CEIL = "math.ceil";
-result_void_position_t mathCeil(arena_t *arena, value_t *result,
-                                value_list_t *values) {
+result_void_position_t mathCeil(value_t *result, const value_list_t *values,
+                                arena_t *arena, environment_t *environment) {
   (void)arena;
+  (void)environment;
   if (values->count != 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 1 argument. Got %zu", MATH_CEIL, values->count);
@@ -137,9 +141,10 @@ result_void_position_t mathCeil(arena_t *arena, value_t *result,
 }
 
 const char *MATH_FLOOR = "math.floor";
-result_void_position_t mathFloor(arena_t *arena, value_t *result,
-                                 value_list_t *values) {
+result_void_position_t mathFloor(value_t *result, const value_list_t *values,
+                                 arena_t *arena, environment_t *environment) {
   (void)arena;
+  (void)environment;
   if (values->count != 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 1 argument. Got %zu", MATH_FLOOR, values->count);

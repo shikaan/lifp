@@ -4,9 +4,10 @@
 #include "../value.h"
 
 const char *IO_PRINT = "io.print!";
-result_void_position_t ioPrint(arena_t *arena, value_t *result,
-                               value_list_t *values) {
+result_void_position_t ioPrint(value_t *result, const value_list_t *values,
+                               arena_t *arena, environment_t *environment) {
   (void)arena;
+  (void)environment;
   if (values->count != 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires 1 argument. Got %zu", IO_PRINT, values->count);
