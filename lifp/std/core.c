@@ -5,12 +5,13 @@
 #include <stdint.h>
 
 const char *SUM = "+";
-result_void_position_t sum(arena_t *arena, value_t *result,
-                           value_list_t *values) {
+result_void_position_t sum(value_t *result, const value_list_t *arguments,
+                           arena_t *arena, environment_t *environment) {
   (void)arena;
+  (void)environment;
   number_t sum = 0;
-  for (size_t i = 0; i < values->count; i++) {
-    value_t current = listGet(value_t, values, i);
+  for (size_t i = 0; i < arguments->count; i++) {
+    value_t current = listGet(value_t, arguments, i);
     if (current.type != VALUE_TYPE_NUMBER) {
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, current.position,
             "%s requires a list of numbers. Got type %u", SUM, current.type);
@@ -26,15 +27,16 @@ result_void_position_t sum(arena_t *arena, value_t *result,
 }
 
 const char *SUB = "-";
-result_void_position_t subtract(arena_t *arena, value_t *result,
-                                value_list_t *values) {
+result_void_position_t subtract(value_t *result, const value_list_t *arguments,
+                                arena_t *arena, environment_t *environment) {
   (void)arena;
-  if (values->count == 0) {
+  (void)environment;
+  if (arguments->count == 0) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires a non-empty list of numbers", SUB);
   }
 
-  value_t first = listGet(value_t, values, 0);
+  value_t first = listGet(value_t, arguments, 0);
   if (first.type != VALUE_TYPE_NUMBER) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, first.position,
           "%s requires a list numbers. Got type %u", SUB, first.type);
@@ -42,8 +44,8 @@ result_void_position_t subtract(arena_t *arena, value_t *result,
 
   number_t result_value = first.value.number;
 
-  for (size_t i = 1; i < values->count; i++) {
-    value_t current = listGet(value_t, values, i);
+  for (size_t i = 1; i < arguments->count; i++) {
+    value_t current = listGet(value_t, arguments, i);
     if (current.type != VALUE_TYPE_NUMBER) {
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, first.position,
             "%s requires a list numbers. Got type %u", SUB, current.type);
@@ -59,12 +61,13 @@ result_void_position_t subtract(arena_t *arena, value_t *result,
 }
 
 const char *MUL = "*";
-result_void_position_t multiply(arena_t *arena, value_t *result,
-                                value_list_t *values) {
+result_void_position_t multiply(value_t *result, const value_list_t *arguments,
+                                arena_t *arena, environment_t *environment) {
   (void)arena;
+  (void)environment;
   number_t product = 1;
-  for (size_t i = 0; i < values->count; i++) {
-    value_t current = listGet(value_t, values, i);
+  for (size_t i = 0; i < arguments->count; i++) {
+    value_t current = listGet(value_t, arguments, i);
     if (current.type != VALUE_TYPE_NUMBER) {
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, current.position,
             "%s requires a list numbers. Got type %u", MUL, current.type);
@@ -80,15 +83,16 @@ result_void_position_t multiply(arena_t *arena, value_t *result,
 }
 
 const char *DIV = "/";
-result_void_position_t divide(arena_t *arena, value_t *result,
-                              value_list_t *values) {
+result_void_position_t divide(value_t *result, const value_list_t *arguments,
+                              arena_t *arena, environment_t *environment) {
   (void)arena;
-  if (values->count == 0) {
+  (void)environment;
+  if (arguments->count == 0) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires a non-empty list of numbers", DIV);
   }
 
-  value_t first = listGet(value_t, values, 0);
+  value_t first = listGet(value_t, arguments, 0);
   if (first.type != VALUE_TYPE_NUMBER) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, first.position,
           "%s requires a list numbers. Got type %u", DIV, first.type);
@@ -96,8 +100,8 @@ result_void_position_t divide(arena_t *arena, value_t *result,
 
   number_t result_value = first.value.number;
 
-  for (size_t i = 1; i < values->count; i++) {
-    value_t current = listGet(value_t, values, i);
+  for (size_t i = 1; i < arguments->count; i++) {
+    value_t current = listGet(value_t, arguments, i);
     if (current.type != VALUE_TYPE_NUMBER) {
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, current.position,
             "%s requires a list numbers. Got type %u", DIV, current.type);
@@ -118,16 +122,17 @@ result_void_position_t divide(arena_t *arena, value_t *result,
 }
 
 const char *MOD = "%";
-result_void_position_t modulo(arena_t *arena, value_t *result,
-                              value_list_t *values) {
+result_void_position_t modulo(value_t *result, const value_list_t *arguments,
+                              arena_t *arena, environment_t *environment) {
   (void)arena;
-  if (values->count != 2) {
+  (void)environment;
+  if (arguments->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires exactly 2 arguments. Got %zu", MOD, values->count);
+          "%s requires exactly 2 arguments. Got %zu", MOD, arguments->count);
   }
 
-  value_t first = listGet(value_t, values, 0);
-  value_t second = listGet(value_t, values, 1);
+  value_t first = listGet(value_t, arguments, 0);
+  value_t second = listGet(value_t, arguments, 1);
 
   if (first.type != VALUE_TYPE_NUMBER) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, first.position,
@@ -151,16 +156,17 @@ result_void_position_t modulo(arena_t *arena, value_t *result,
 }
 
 const char *EQUAL = "=";
-result_void_position_t equal(arena_t *arena, value_t *result,
-                             value_list_t *values) {
+result_void_position_t equal(value_t *result, const value_list_t *arguments,
+                             arena_t *arena, environment_t *environment) {
   (void)arena;
-  if (values->count != 2) {
+  (void)environment;
+  if (arguments->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires exactly 2 arguments. Got %zu", EQUAL, values->count);
+          "%s requires exactly 2 arguments. Got %zu", EQUAL, arguments->count);
   }
 
-  value_t first = listGet(value_t, values, 0);
-  value_t second = listGet(value_t, values, 1);
+  value_t first = listGet(value_t, arguments, 0);
+  value_t second = listGet(value_t, arguments, 1);
 
   bool are_equal = false;
   if (first.type == second.type) {
@@ -194,16 +200,18 @@ result_void_position_t equal(arena_t *arena, value_t *result,
 }
 
 const char *LESS_THAN = "<";
-result_void_position_t lessThan(arena_t *arena, value_t *result,
-                                value_list_t *values) {
+result_void_position_t lessThan(value_t *result, const value_list_t *arguments,
+                                arena_t *arena, environment_t *environment) {
   (void)arena;
-  if (values->count != 2) {
+  (void)environment;
+  if (arguments->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires exactly 2 arguments. Got %zu", LESS_THAN, values->count);
+          "%s requires exactly 2 arguments. Got %zu", LESS_THAN,
+          arguments->count);
   }
 
-  value_t first = listGet(value_t, values, 0);
-  value_t second = listGet(value_t, values, 1);
+  value_t first = listGet(value_t, arguments, 0);
+  value_t second = listGet(value_t, arguments, 1);
 
   if (first.type != VALUE_TYPE_NUMBER || second.type != VALUE_TYPE_NUMBER) {
     position_t error_pos =
@@ -221,17 +229,19 @@ result_void_position_t lessThan(arena_t *arena, value_t *result,
 }
 
 const char *GREATER_THAN = ">";
-result_void_position_t greaterThan(arena_t *arena, value_t *result,
-                                   value_list_t *values) {
+result_void_position_t greaterThan(value_t *result,
+                                   const value_list_t *arguments,
+                                   arena_t *arena, environment_t *environment) {
   (void)arena;
-  if (values->count != 2) {
+  (void)environment;
+  if (arguments->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 2 arguments. Got %zu", GREATER_THAN,
-          values->count);
+          arguments->count);
   }
 
-  value_t first = listGet(value_t, values, 0);
-  value_t second = listGet(value_t, values, 1);
+  value_t first = listGet(value_t, arguments, 0);
+  value_t second = listGet(value_t, arguments, 1);
 
   if (first.type != VALUE_TYPE_NUMBER || second.type != VALUE_TYPE_NUMBER) {
     position_t error_pos =
@@ -249,16 +259,17 @@ result_void_position_t greaterThan(arena_t *arena, value_t *result,
 }
 
 const char *NEQ = "!=";
-result_void_position_t notEqual(arena_t *arena, value_t *result,
-                                value_list_t *values) {
+result_void_position_t notEqual(value_t *result, const value_list_t *arguments,
+                                arena_t *arena, environment_t *environment) {
   (void)arena;
-  if (values->count != 2) {
+  (void)environment;
+  if (arguments->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires exactly 2 arguments. Got %zu", NEQ, values->count);
+          "%s requires exactly 2 arguments. Got %zu", NEQ, arguments->count);
   }
 
-  value_t first = listGet(value_t, values, 0);
-  value_t second = listGet(value_t, values, 1);
+  value_t first = listGet(value_t, arguments, 0);
+  value_t second = listGet(value_t, arguments, 1);
 
   bool are_equal = false;
   if (first.type == second.type) {
@@ -291,16 +302,17 @@ result_void_position_t notEqual(arena_t *arena, value_t *result,
 }
 
 const char *LEQ = "<=";
-result_void_position_t lessEqual(arena_t *arena, value_t *result,
-                                 value_list_t *values) {
+result_void_position_t lessEqual(value_t *result, const value_list_t *arguments,
+                                 arena_t *arena, environment_t *environment) {
   (void)arena;
-  if (values->count != 2) {
+  (void)environment;
+  if (arguments->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires exactly 2 arguments. Got %zu", LEQ, values->count);
+          "%s requires exactly 2 arguments. Got %zu", LEQ, arguments->count);
   }
 
-  value_t first = listGet(value_t, values, 0);
-  value_t second = listGet(value_t, values, 1);
+  value_t first = listGet(value_t, arguments, 0);
+  value_t second = listGet(value_t, arguments, 1);
 
   if (first.type != VALUE_TYPE_NUMBER || second.type != VALUE_TYPE_NUMBER) {
     position_t error_pos =
@@ -318,16 +330,19 @@ result_void_position_t lessEqual(arena_t *arena, value_t *result,
 }
 
 const char *GEQ = ">=";
-result_void_position_t greaterEqual(arena_t *arena, value_t *result,
-                                    value_list_t *values) {
+result_void_position_t greaterEqual(value_t *result,
+                                    const value_list_t *arguments,
+                                    arena_t *arena,
+                                    environment_t *environment) {
   (void)arena;
-  if (values->count != 2) {
+  (void)environment;
+  if (arguments->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires exactly 2 arguments. Got %zu", GEQ, values->count);
+          "%s requires exactly 2 arguments. Got %zu", GEQ, arguments->count);
   }
 
-  value_t first = listGet(value_t, values, 0);
-  value_t second = listGet(value_t, values, 1);
+  value_t first = listGet(value_t, arguments, 0);
+  value_t second = listGet(value_t, arguments, 1);
 
   if (first.type != VALUE_TYPE_NUMBER || second.type != VALUE_TYPE_NUMBER) {
     position_t error_pos =
@@ -345,17 +360,19 @@ result_void_position_t greaterEqual(arena_t *arena, value_t *result,
 }
 
 const char *LOGICAL_AND = "and";
-result_void_position_t logicalAnd(arena_t *arena, value_t *result,
-                                  value_list_t *values) {
+result_void_position_t logicalAnd(value_t *result,
+                                  const value_list_t *arguments, arena_t *arena,
+                                  environment_t *environment) {
   (void)arena;
-  if (values->count != 2) {
+  (void)environment;
+  if (arguments->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 2 arguments. Got %zu", LOGICAL_AND,
-          values->count);
+          arguments->count);
   }
 
-  value_t first = listGet(value_t, values, 0);
-  value_t second = listGet(value_t, values, 1);
+  value_t first = listGet(value_t, arguments, 0);
+  value_t second = listGet(value_t, arguments, 1);
 
   if (first.type != VALUE_TYPE_BOOLEAN) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, first.position,
@@ -378,17 +395,18 @@ result_void_position_t logicalAnd(arena_t *arena, value_t *result,
 }
 
 const char *LOGICAL_OR = "or";
-result_void_position_t logicalOr(arena_t *arena, value_t *result,
-                                 value_list_t *values) {
+result_void_position_t logicalOr(value_t *result, const value_list_t *arguments,
+                                 arena_t *arena, environment_t *environment) {
   (void)arena;
-  if (values->count != 2) {
+  (void)environment;
+  if (arguments->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 2 arguments. Got %zu", LOGICAL_OR,
-          values->count);
+          arguments->count);
   }
 
-  value_t first = listGet(value_t, values, 0);
-  value_t second = listGet(value_t, values, 1);
+  value_t first = listGet(value_t, arguments, 0);
+  value_t second = listGet(value_t, arguments, 1);
 
   if (first.type != VALUE_TYPE_BOOLEAN) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, first.position,

@@ -30,8 +30,9 @@ static result_void_position_t addToEnvironment(const char *key, value_t *value,
 }
 
 const char *DEFINE_EXAMPLE = "(def! x (+ 1 2))";
-result_void_position_t define(value_t *result, arena_t *scratch_arena,
-                              environment_t *env, const node_list_t *nodes) {
+result_void_position_t define(value_t *result, const node_list_t *nodes,
+                              arena_t *scratch_arena,
+                              environment_t *environment) {
   assert(nodes->count > 0); // def! is always there
   node_t first = listGet(node_t, nodes, 0);
   if (nodes->count != 3) {
@@ -49,11 +50,11 @@ result_void_position_t define(value_t *result, arena_t *scratch_arena,
   value_t reduced;
   node_t value = listGet(node_t, nodes, 2);
   try(result_void_position_t,
-      evaluate(&reduced, scratch_arena, scratch_arena, &value, env));
+      evaluate(&reduced, scratch_arena, scratch_arena, &value, environment));
 
   // If reduction is successful, we can move the closure to VM memory
-  try(result_void_position_t,
-      addToEnvironment(key.value.symbol, &reduced, env, value.position));
+  try(result_void_position_t, addToEnvironment(key.value.symbol, &reduced,
+                                               environment, value.position));
 
   result->type = VALUE_TYPE_NIL;
   result->value.nil = nullptr;
@@ -62,8 +63,9 @@ result_void_position_t define(value_t *result, arena_t *scratch_arena,
 }
 
 const char *FUNCTION_EXAMPLE = "(fn (a b) (+ a b))";
-result_void_position_t function(value_t *result, arena_t *scratch_arena,
-                                environment_t *env, const node_list_t *nodes) {
+result_void_position_t function(value_t *result, const node_list_t *nodes,
+                                arena_t *scratch_arena,
+                                environment_t *environment) {
   assert(nodes->count > 0); // fn is always there
   node_t first = listGet(node_t, nodes, 0);
   if (nodes->count != 3) {
@@ -92,7 +94,7 @@ result_void_position_t function(value_t *result, arena_t *scratch_arena,
             FUNCTION_EXAMPLE);
     }
 
-    if (environmentResolveSymbol(env, argument.value.symbol)) {
+    if (environmentResolveSymbol(environment, argument.value.symbol)) {
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, argument.position,
             "identifier '%s' shadows a value", argument.value.symbol);
     }
@@ -110,8 +112,8 @@ result_void_position_t function(value_t *result, arena_t *scratch_arena,
 }
 
 const char *LET_EXAMPLE = "(let ((a 1) (b 2)) (+ a b))";
-result_void_position_t let(value_t *result, arena_t *scratch_arena,
-                           environment_t *env, const node_list_t *nodes) {
+result_void_position_t let(value_t *result, const node_list_t *nodes,
+                           arena_t *scratch_arena, environment_t *environment) {
   assert(nodes->count > 0); // let is always there
   node_t first = listGet(node_t, nodes, 0);
   if (nodes->count != 3) {
@@ -128,8 +130,8 @@ result_void_position_t let(value_t *result, arena_t *scratch_arena,
   }
 
   environment_t *local_env = nullptr;
-  tryWithMeta(result_void_position_t, environmentCreate(env), couples.position,
-              local_env);
+  tryWithMeta(result_void_position_t, environmentCreate(environment),
+              couples.position, local_env);
 
   for (size_t i = 0; i < couples.value.list.count; i++) {
     node_t couple = listGet(node_t, &couples.value.list, i);
@@ -180,9 +182,10 @@ result_void_position_t let(value_t *result, arena_t *scratch_arena,
 }
 
 const char *COND_EXAMPLE = "\n  (cond\n    ((!= x 0) (/ 10 x))\n    (+ x 10))";
-result_void_position_t cond(value_t *result, arena_t *scratch_arena,
-                            environment_t *env, const node_list_t *nodes) {
-  assert(nodes->count > 0);
+result_void_position_t cond(value_t *result, const node_list_t *nodes,
+                            arena_t *scratch_arena,
+                            environment_t *environment) {
+  assert(nodes->count > 0); // cond is always there
 
   for (size_t i = 1; i < nodes->count - 1; i++) {
     node_t node = listGet(node_t, nodes, i);
@@ -193,24 +196,28 @@ result_void_position_t cond(value_t *result, arena_t *scratch_arena,
     }
 
     node_t condition = listGet(node_t, &node.value.list, 0);
+    value_t condition_value;
+    condition_value.position = condition.position;
     try(result_void_position_t,
-        evaluate(result, scratch_arena, scratch_arena, &condition, env));
+        evaluate(&condition_value, scratch_arena, scratch_arena, &condition,
+                 environment));
 
-    if (result->type != VALUE_TYPE_BOOLEAN) {
+    if (condition_value.type != VALUE_TYPE_BOOLEAN) {
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, node.position,
-            "Conditions should resolve to a boolean. %s", COND_EXAMPLE);
+            "Conditions should resolve to a boolean, got %d. %s",
+            condition_value.type, COND_EXAMPLE);
     }
 
-    if (result->value.boolean) {
+    if (condition_value.value.boolean) {
       node_t form = listGet(node_t, &node.value.list, 1);
       try(result_void_position_t,
-          evaluate(result, scratch_arena, scratch_arena, &form, env));
+          evaluate(result, scratch_arena, scratch_arena, &form, environment));
       return ok(result_void_position_t);
     }
   }
 
   node_t fallback = listGet(node_t, nodes, nodes->count - 1);
   try(result_void_position_t,
-      evaluate(result, scratch_arena, scratch_arena, &fallback, env));
+      evaluate(result, scratch_arena, scratch_arena, &fallback, environment));
   return ok(result_void_position_t);
 }

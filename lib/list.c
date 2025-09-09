@@ -53,20 +53,3 @@ void *genericListGet(const generic_list_t *self, size_t index) {
 
   return (byte_t *)self->data + (self->item_size * index);
 }
-
-result_void_t genericListUnshift(generic_list_t *self) {
-  assert(self);
-
-  if (self->count <= 0) {
-    throw(result_void_t, LIST_ERROR_EMPTY_LIST, nullptr,
-          "Cannot unshift empty list");
-  }
-
-  memmove(self->data, (char *)self->data + self->item_size,
-          self->item_size * (self->count - 1));
-  self->count--;
-
-  return ok(result_void_t);
-}
-
-void genericListClear(generic_list_t *self) { self->count = 0; }

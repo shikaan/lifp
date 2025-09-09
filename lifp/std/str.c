@@ -13,9 +13,10 @@
   memset(Buffer, 0, Length);
 
 const char *STR_LENGTH = "str.length";
-result_void_position_t strLength(arena_t *arena, value_t *result,
-                                 value_list_t *values) {
+result_void_position_t strLength(value_t *result, const value_list_t *values,
+                                 arena_t *arena, environment_t *environment) {
   (void)arena;
+  (void)environment;
   if (values->count != 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 1 argument. Got %zu", STR_LENGTH, values->count);
@@ -35,8 +36,9 @@ result_void_position_t strLength(arena_t *arena, value_t *result,
 }
 
 const char *STR_JOIN = "str.join";
-result_void_position_t strJoin(arena_t *arena, value_t *result,
-                               value_list_t *values) {
+result_void_position_t strJoin(value_t *result, const value_list_t *values,
+                               arena_t *arena, environment_t *environment) {
+  (void)environment;
   if (values->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires 2 arguments. Got %zu", STR_JOIN, values->count);
@@ -99,8 +101,10 @@ result_void_position_t strJoin(arena_t *arena, value_t *result,
 }
 
 const char *STR_SLICE = "str.slice";
-result_void_position_t strSlice(arena_t *arena, value_t *result,
-                                value_list_t *values) {
+result_void_position_t strSlice(value_t *result, const value_list_t *values,
+                                arena_t *arena, environment_t *environment) {
+  (void)environment;
+
   if (values->count < 2 || values->count > 3) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires 2 or 3 arguments. Got %zu", STR_SLICE, values->count);
@@ -162,9 +166,11 @@ result_void_position_t strSlice(arena_t *arena, value_t *result,
 }
 
 const char *STR_INCLUDE = "str.include";
-result_void_position_t strInclude(arena_t *arena, value_t *result,
-                                  value_list_t *values) {
+result_void_position_t strInclude(value_t *result, const value_list_t *values,
+                                  arena_t *arena, environment_t *environment) {
   (void)arena;
+  (void)environment;
+
   if (values->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 2 arguments. Got %zu", STR_INCLUDE,
@@ -197,9 +203,11 @@ result_void_position_t strInclude(arena_t *arena, value_t *result,
 }
 
 const char *STR_TRIM_LEFT = "str.trimLeft";
-result_void_position_t strTrimLeft(arena_t *arena, value_t *result,
-                                   value_list_t *values) {
+result_void_position_t strTrimLeft(value_t *result, const value_list_t *values,
+                                   arena_t *arena, environment_t *environment) {
   (void)arena;
+  (void)environment;
+
   if (values->count != 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 1 argument. Got %zu", STR_TRIM_LEFT,
@@ -230,9 +238,12 @@ result_void_position_t strTrimLeft(arena_t *arena, value_t *result,
 }
 
 const char *STR_TRIM_RIGHT = "str.trimRight";
-result_void_position_t strTrimRight(arena_t *arena, value_t *result,
-                                    value_list_t *values) {
+result_void_position_t strTrimRight(value_t *result, const value_list_t *values,
+                                    arena_t *arena,
+                                    environment_t *environment) {
   (void)arena;
+  (void)environment;
+
   if (values->count != 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 1 argument. Got %zu", STR_TRIM_RIGHT,

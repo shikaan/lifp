@@ -10,15 +10,17 @@
 
 const char *FLOW_SLEEP = "flow.sleep";
 
-result_void_position_t flowSleep(arena_t *arena, value_t *result,
-                                 value_list_t *values) {
+result_void_position_t flowSleep(value_t *result, const value_list_t *arguments,
+                                 arena_t *arena, environment_t *environment) {
   (void)arena;
-  if (values->count != 1) {
+  (void)environment;
+  if (arguments->count != 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires exactly 1 argument. Got %zu", FLOW_SLEEP, values->count);
+          "%s requires exactly 1 argument. Got %zu", FLOW_SLEEP,
+          arguments->count);
   }
 
-  value_t ms_value = listGet(value_t, values, 0);
+  value_t ms_value = listGet(value_t, arguments, 0);
   if (ms_value.type != VALUE_TYPE_NUMBER) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, ms_value.position,
           "%s requires an number. Got type %u", FLOW_SLEEP, ms_value.type);
