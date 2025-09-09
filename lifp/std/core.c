@@ -258,7 +258,7 @@ result_void_position_t greaterThan(value_t *result,
   return ok(result_void_position_t);
 }
 
-const char *NEQ = "!=";
+const char *NEQ = "<>";
 result_void_position_t notEqual(value_t *result, const value_list_t *arguments,
                                 arena_t *arena, environment_t *environment) {
   (void)arena;
