@@ -56,6 +56,7 @@ result_ref_t vmInit(vm_opts_t opts) {
   setBuiltin(LIST_FROM, listFrom);
   setBuiltin(LIST_NTH, listNth);
   setBuiltin(LIST_MAP, listMap);
+  setBuiltin(LIST_EACH, listEach);
   setBuiltin(MATH_MAX, mathMax);
   setBuiltin(MATH_MIN, mathMin);
   setBuiltin(MATH_CEIL, mathCeil);
