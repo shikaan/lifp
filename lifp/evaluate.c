@@ -20,7 +20,7 @@ result_void_position_t invokeClosure(value_t *result, closure_t closure,
     throw(result_void_position_t, ERROR_CODE_TYPE_UNEXPECTED_ARITY,
           result->position,
           "Unexpected arity. Expected %lu arguments, got %lu.",
-          closure.arguments.count, arguments->count - 1);
+          closure.arguments.count, arguments->count);
   }
 
   environment_t *local_environment = nullptr;
