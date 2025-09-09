@@ -169,7 +169,7 @@ result_void_position_t listEach(value_t *result, const value_list_t *arguments,
                                 arena_t *arena, environment_t *environment) {
   if (arguments->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires exactly 2 arguments. Got %zu", LIST_MAP,
+          "%s requires exactly 2 arguments. Got %zu", LIST_EACH,
           arguments->count);
   }
 
@@ -179,13 +179,13 @@ result_void_position_t listEach(value_t *result, const value_list_t *arguments,
   if (closure_value.type != VALUE_TYPE_CLOSURE) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,
           closure_value.position,
-          "%s requires a function as first argument. Got type %u", LIST_MAP,
+          "%s requires a function as first argument. Got type %u", LIST_EACH,
           closure_value.type);
   }
 
   if (list_value.type != VALUE_TYPE_LIST) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, list_value.position,
-          "%s requires a list as second argument. Got type %u", LIST_MAP,
+          "%s requires a list as second argument. Got type %u", LIST_EACH,
           list_value.type);
   }
 
@@ -215,6 +215,80 @@ result_void_position_t listEach(value_t *result, const value_list_t *arguments,
 
   result->type = VALUE_TYPE_NIL;
   result->value.nil = nullptr;
+
+  return ok(result_void_position_t);
+}
+
+const char *LIST_FILTER = "list.filter";
+result_void_position_t listFilter(value_t *result,
+                                  const value_list_t *arguments, arena_t *arena,
+                                  environment_t *environment) {
+  if (arguments->count != 2) {
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
+          "%s requires exactly 2 arguments. Got %zu", LIST_FILTER,
+          arguments->count);
+  }
+
+  value_t closure_value = listGet(value_t, arguments, 0);
+  value_t list_value = listGet(value_t, arguments, 1);
+
+  if (closure_value.type != VALUE_TYPE_CLOSURE) {
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,
+          closure_value.position,
+          "%s requires a function as first argument. Got type %u", LIST_FILTER,
+          closure_value.type);
+  }
+
+  if (list_value.type != VALUE_TYPE_LIST) {
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, list_value.position,
+          "%s requires a list as second argument. Got type %u", LIST_FILTER,
+          list_value.type);
+  }
+
+  value_list_t *input_list = &list_value.value.list;
+  closure_t closure = closure_value.value.closure;
+
+  value_list_t *filtered_list = nullptr;
+  tryWithMeta(result_void_position_t,
+              listCreate(value_t, arena, input_list->count), result->position,
+              filtered_list);
+
+  for (size_t i = 0; i < input_list->count; i++) {
+    value_t input = listGet(value_t, input_list, i);
+
+    value_list_t *closure_args = nullptr;
+    tryWithMeta(result_void_position_t, listCreate(value_t, arena, 2),
+                result->position, closure_args);
+
+    tryWithMeta(result_void_position_t,
+                listAppend(value_t, closure_args, &input), result->position);
+
+    value_t index;
+    tryWithMeta(result_void_position_t, valueInit(&index, arena, (number_t)i),
+                result->position);
+    tryWithMeta(result_void_position_t,
+                listAppend(value_t, closure_args, &index), result->position);
+
+    value_t filtered;
+    try(result_void_position_t,
+        invokeClosure(&filtered, closure, closure_args, arena, environment));
+
+    if (filtered.type != VALUE_TYPE_BOOLEAN) {
+      throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,
+            list_value.position,
+            "%s requires a function returning a boolean as first argument. Got "
+            "return type %u",
+            LIST_FILTER, filtered.type);
+    }
+
+    if (filtered.value.boolean) {
+      tryWithMeta(result_void_position_t,
+                  listAppend(value_t, filtered_list, &input), result->position);
+    }
+  }
+
+  result->type = VALUE_TYPE_LIST;
+  result->value.list = *filtered_list;
 
   return ok(result_void_position_t);
 }
