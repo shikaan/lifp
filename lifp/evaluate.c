@@ -49,7 +49,7 @@ static result_void_position_t
 evaluateNodeList(value_list_t **result, size_t initial_index, node_list_t *list,
                  arena_t *scratch_arena, environment_t *environment,
                  position_t position) {
-  assert(initial_index < list->count);
+  assert(initial_index <= list->count);
   tryWithMeta(result_void_position_t,
               listCreate(value_t, scratch_arena, list->count), position,
               *result);
