@@ -113,6 +113,7 @@ int run(const run_opts_t OPTIONS) {
     memset(statement_buffer, 0, (size_t)file_length);
     arenaReset(ast_arena);
     arenaReset(scratch_arena);
+    arenaReset(result_arena);
     readStatement(file_length, statement_buffer, file_buffer, &file_offset);
 
     if (strlen(statement_buffer) == 0)

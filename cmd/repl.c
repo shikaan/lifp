@@ -93,6 +93,7 @@ int repl(const repl_opts_t OPTIONS) {
     profileReport();
     arenaReset(ast_arena);
     arenaReset(scratch_arena);
+    arenaReset(result_arena);
     char *input = linenoise("> ");
 
     if (!input)
