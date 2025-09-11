@@ -135,6 +135,12 @@ int main() {
   expectEqlUint(empty_list.type, VALUE_TYPE_LIST, "empty list has correct type");
   expectEqlUint((unsigned int)empty_list.value.list.count, 0, "empty list has zero elements");
 
+  case("currying");
+  value_t currying;
+  execute(&currying, "(def! make-add (fn (a) (fn (b) (+ a b))))\n((make-add 4) 1)");
+  expectEqlUint(currying.type, VALUE_TYPE_NUMBER, "returns a number");
+  expectEqlDouble(currying.value.number, 5, "it has correct value");
+
   arenaDestroy(&ast_arena);
   arenaDestroy(&scratch_arena);
   arenaDestroy(&result_arena);
