@@ -135,8 +135,8 @@ int run(const run_opts_t OPTIONS) {
 
   profileReport();
 
-  free(statement_buffer);
-  free(file_buffer);
+  deallocSafe(&statement_buffer);
+  deallocSafe(&file_buffer);
 
   environmentDestroy(&global_environment);
   arenaDestroy(&result_arena);
