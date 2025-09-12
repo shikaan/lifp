@@ -77,9 +77,8 @@ int repl(const repl_opts_t OPTIONS) {
       .max_call_stack_size = OPTIONS.call_stack_size,
       .environment_size = OPTIONS.environment_size,
   };
-  environment_t *global_environment = nullptr;
-  tryCLI(vmInit(vm_options), global_environment,
-         "unable to initialize virtual machine");
+  virtual_machine_t *machine = nullptr;
+  tryCLI(vmInit(vm_options), machine, "unable to initialize virtual machine");
 
   linenoiseSetMultiLine(1);
 
@@ -129,8 +128,8 @@ int repl(const repl_opts_t OPTIONS) {
     tryREPL(parse(ast_arena, tokens, &offset, &depth), ast);
 
     value_t result;
-    tryREPL(evaluate(&result, result_arena, scratch_arena, ast,
-                     global_environment));
+    tryREPL(
+        evaluate(&result, result_arena, scratch_arena, ast, machine->global));
 
     int buffer_offset = 0;
     formatValue(&result, (int)OPTIONS.output_size, buffer, &buffer_offset);
@@ -139,7 +138,6 @@ int repl(const repl_opts_t OPTIONS) {
     memset(buffer, 0, OPTIONS.output_size);
   }
   profileEnd();
-  environmentDestroy(&global_environment);
   arenaDestroy(&result_arena);
   arenaDestroy(&scratch_arena);
   arenaDestroy(&ast_arena);

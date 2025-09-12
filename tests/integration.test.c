@@ -18,8 +18,9 @@ void execute(value_t *result, const char *input) {
 
   char *line = strtok(input_copy, "\n");
 
-  environment_t *global_environment = nullptr;
-  tryAssert(vmInit(VM_TEST_OPTIONS), global_environment);
+  virtual_machine_t *machine;
+  tryAssert(vmInit(VM_TEST_OPTIONS), machine);
+  environment_t *global_environment = machine->global;
 
   while (line != NULL) {
     arenaReset(ast_arena);
@@ -33,19 +34,15 @@ void execute(value_t *result, const char *input) {
     tryAssert(parse(ast_arena, tokens, &offset, &depth), ast);
 
     value_t res;
-    auto reduction =
-        evaluate(&res, result_arena, scratch_arena, ast, global_environment);
+    tryAssert(
+        evaluate(&res, result_arena, scratch_arena, ast, global_environment));
     arenaReset(scratch_arena);
-    if (reduction.code != RESULT_OK) {
-      printf("Reduction error: %s\n", reduction.message);
-      assert(reduction.code == RESULT_OK);
-    }
 
     line = strtok(nullptr, "\n");
     *result = res;
   }
 
-  environmentDestroy(&global_environment);
+  vmStop();
 }
 
 int main() {

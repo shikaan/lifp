@@ -15,7 +15,6 @@ void create() {
   expectTrue(creation.code == 0, "map allocation succeeds");
   generic_map_t *map = creation.value;
 
-  expectEqlSize(map->count, 0, "initial count is 0");
   expectEqlSize(map->capacity, 8, "capacity is set correctly");
   expectEqlSize(map->item_size, sizeof(int), "item size is set correctly");
   arenaReset(test_arena);
@@ -33,7 +32,6 @@ void getSet() {
   int value = 42;
   result_void_t setting = mapSet(int, map, "test", &value);
   expectTrue(setting.code == RESULT_OK, "sets successfully");
-  expectEqlSize(map->count, 1, "count increases");
   int* item = mapGet(int, map, "test");
   expectEqlInt(*item, value, "value is correct");
   arenaReset(test_arena);
@@ -47,13 +45,11 @@ void getSet() {
 
   setting = mapSet(int, map, "test", &value);
   assert(setting.code == RESULT_OK);
-  expectEqlSize(map->count, 1, "count is 1 after first set");
   item = mapGet(int, map, "test");
   expectEqlInt(*item, value, "value is correct");
   
   setting = mapSet(int, map, "test", &value2);
   expectTrue(setting.code == RESULT_OK, "updates the record");
-  expectEqlSize(map->count, 1, "count remains 1 after update");
   item = mapGet(int, map, "test");
   expectEqlInt(*item, value2, "retrieves the updated element");
   arenaReset(test_arena);
@@ -73,7 +69,6 @@ void getSet() {
   setting = mapSet(int, map, key2, &value2);
   assert(setting.code == RESULT_OK);
 
-  expectEqlSize(map->count, 2, "increases count");
   item = mapGet(int, map, key1);
   int* another_item = mapGet(int, map, key2);
   expectNeqInt(*item, *another_item, "values don't overlap");

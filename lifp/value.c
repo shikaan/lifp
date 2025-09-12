@@ -2,6 +2,7 @@
 #include "../lib/string.h"
 #include "node.h"
 #include "types.h"
+#include "virtual_machine.h"
 #include <assert.h>
 #include <stddef.h>
 #include <string.h>
@@ -34,6 +35,8 @@ result_void_t valueInitClosure(value_t *self, arena_t *arena,
   try(result_void_t, nodeCreate(arena, form_type), form);
   try(result_void_t, nodeInit(form, arena));
   self->value.closure.form = *form;
+
+  self->value.closure.parent_environment = nullptr;
 
   return ok(result_void_t);
 }
@@ -85,7 +88,7 @@ result_void_t valueInitString(value_t *self, arena_t *arena,
   return ok(result_void_t);
 }
 
-result_void_t valueCopy(value_t *source, value_t *destination,
+result_void_t valueCopy(const value_t *source, value_t *destination,
                         arena_t *destination_arena) {
   destination->position.line = source->position.line;
   destination->position.column = source->position.column;
@@ -129,6 +132,11 @@ result_void_t valueCopy(value_t *source, value_t *destination,
           listAppend(node_t, &destination->value.closure.arguments,
                      &duplicated));
     }
+
+    try(result_void_t,
+        environmentClone(source->value.closure.parent_environment,
+                         destination_arena),
+        destination->value.closure.parent_environment);
     break;
   case VALUE_TYPE_LIST: {
     try(result_void_t, valueInitList(destination, destination_arena,

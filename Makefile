@@ -39,7 +39,8 @@ tests/specials.test: \
 	lifp/virtual_machine.o lib/map.o lifp/value.o lifp/fmt.o lifp/tokenize.o \
 	lifp/parse.o
 tests/map.test: lib/arena.o lib/map.o
-tests/fmt.test: lifp/fmt.o lifp/node.o lib/arena.o lib/list.o lifp/value.o
+tests/fmt.test: lifp/fmt.o lifp/node.o lib/arena.o lib/list.o lifp/value.o \
+	lifp/virtual_machine.o lib/map.o lifp/specials.o lifp/evaluate.o
 tests/virtual_machine.test: lifp/virtual_machine.o lib/map.o lib/list.o \
 	lib/arena.o lifp/fmt.o lifp/specials.o lifp/evaluate.o lifp/value.o \
 	lifp/node.o

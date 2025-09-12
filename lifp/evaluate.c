@@ -16,6 +16,7 @@ result_void_position_t invokeClosure(value_t *result, closure_t closure,
                                      value_list_t *arguments,
                                      arena_t *scratch_arena,
                                      environment_t *environment) {
+  (void)environment;
   if (arguments->count != closure.arguments.count) {
     throw(result_void_position_t, ERROR_CODE_TYPE_UNEXPECTED_ARITY,
           result->position,
@@ -24,23 +25,22 @@ result_void_position_t invokeClosure(value_t *result, closure_t closure,
   }
 
   environment_t *local_environment = nullptr;
-  tryWithMeta(result_void_position_t, environmentCreate(environment),
+  tryWithMeta(result_void_position_t,
+              environmentCreate(scratch_arena, closure.parent_environment),
               result->position, local_environment);
 
   // Populate the closure with the values, skipping the closure
   for (size_t i = 0; i < arguments->count; i++) {
     auto argument = listGet(node_t, &closure.arguments, i);
     auto value = listGet(value_t, arguments, i);
-    tryCatchWithMeta(result_void_position_t,
-                     mapSet(value_t, local_environment->values,
-                            argument.value.symbol, &value),
-                     environmentDestroy(&local_environment), value.position);
+    tryWithMeta(result_void_position_t,
+                mapSet(value_t, local_environment->values,
+                       argument.value.symbol, &value),
+                value.position);
   }
 
-  tryFinally(result_void_position_t,
-             evaluate(result, scratch_arena, scratch_arena, &closure.form,
-                      local_environment),
-             environmentDestroy(&local_environment));
+  try(result_void_position_t, evaluate(result, scratch_arena, scratch_arena,
+                                       &closure.form, local_environment));
 
   return ok(result_void_position_t);
 }

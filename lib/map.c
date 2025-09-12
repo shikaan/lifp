@@ -32,7 +32,6 @@ result_ref_t genericMapCreate(arena_t *arena, size_t capacity,
   generic_map_t *map = nullptr;
   try(result_ref_t, arenaAllocate(arena, sizeof(generic_map_t)), map);
 
-  map->count = 0;
   map->capacity = capacity;
   map->item_size = item_size;
   map->arena = arena;
@@ -112,15 +111,12 @@ result_void_t genericMapSet(generic_map_t *self, const char *key, void *value) {
   strncpy(self->keys[index], key, MAX_KEY_LENGTH - 1);
   self->keys[index][MAX_KEY_LENGTH - 1] = 0;
   rawValueSet(self, index, value);
-  self->count++;
 
   return ok(result_void_t);
 }
 
 void *genericMapGet(generic_map_t *self, const char *key) {
   assert(self);
-  if (self->count == 0)
-    return nullptr;
 
   size_t index = makeKey(self, key);
   size_t count = 0;

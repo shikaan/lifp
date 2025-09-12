@@ -34,6 +34,7 @@ typedef enum {
 typedef struct {
   node_t form;
   node_list_t arguments;
+  environment_t *parent_environment;
 } closure_t;
 
 typedef struct value_t {
@@ -51,7 +52,7 @@ typedef struct value_t {
   } value;
 } value_t;
 
-result_void_t valueCopy(value_t *source, value_t *destination,
+result_void_t valueCopy(const value_t *source, value_t *destination,
                         arena_t *destination_arena);
 result_ref_t valueCreate(arena_t *arena, value_type_t type);
 

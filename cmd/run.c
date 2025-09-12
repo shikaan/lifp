@@ -105,9 +105,9 @@ int run(const run_opts_t OPTIONS) {
       .max_call_stack_size = OPTIONS.call_stack_size,
       .environment_size = OPTIONS.environment_size,
   };
-  environment_t *global_environment = nullptr;
-  tryCLI(vmInit(vm_options), global_environment,
-         "unable to initialize virtual machine");
+
+  virtual_machine_t *machine = nullptr;
+  tryCLI(vmInit(vm_options), machine, "unable to initialize virtual machine");
 
   do {
     memset(statement_buffer, 0, (size_t)file_length);
@@ -130,7 +130,7 @@ int run(const run_opts_t OPTIONS) {
     if (syntax_tree) {
       value_t reduced;
       tryRun(evaluate(&reduced, result_arena, scratch_arena, syntax_tree,
-                      global_environment));
+                      machine->global));
     }
   } while (file_offset < file_length);
 
@@ -139,7 +139,6 @@ int run(const run_opts_t OPTIONS) {
   deallocSafe(&statement_buffer);
   deallocSafe(&file_buffer);
 
-  environmentDestroy(&global_environment);
   arenaDestroy(&result_arena);
   arenaDestroy(&scratch_arena);
   arenaDestroy(&ast_arena);

@@ -200,7 +200,9 @@ void errors() {
 int main(void) {
   tryAssert(arenaCreate((size_t)(1024 * 1024)), scratch_arena);
   tryAssert(arenaCreate((size_t)(1024 * 1024)), result_arena);
-  tryAssert(vmInit(VM_TEST_OPTIONS), environment);
+  virtual_machine_t *machine;
+  tryAssert(vmInit(VM_TEST_OPTIONS), machine);
+  environment = machine->global;
 
   suite(atoms);
   suite(listOfElements);
@@ -210,7 +212,7 @@ int main(void) {
   suite(allocations);
   suite(errors);
 
-  environmentDestroy(&environment);
+  vmStop();
   arenaDestroy(&result_arena);
   arenaDestroy(&scratch_arena);
   return report();

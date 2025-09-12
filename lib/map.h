@@ -63,7 +63,6 @@ typedef enum {
 // NOLINTBEGIN - Type cannot be put in parentheses
 #define Map(Type)                                                              \
   struct {                                                                     \
-    size_t count;                                                              \
     size_t capacity;                                                           \
     size_t item_size;                                                          \
     bool *used;                                                                \
