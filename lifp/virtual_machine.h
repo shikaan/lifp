@@ -18,7 +18,6 @@ typedef struct {
 
 typedef struct {
   vm_options_t options;
-  size_t enviroment_count;
   arena_t *arena;
   environment_t *global;
 } vm_t;
