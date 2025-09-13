@@ -179,7 +179,7 @@ const value_t *environmentResolveSymbol(const environment_t *self,
   return result;
 }
 
-void vmDestoy(vm_t **self) {
+void vmDestroy(vm_t **self) {
   arenaDestroy(&(*self)->arena);
   (*self)->global = nullptr;
   *(self) = nullptr;

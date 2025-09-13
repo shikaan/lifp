@@ -213,7 +213,7 @@ int main(void) {
   suite(allocations);
   suite(errors);
 
-  vmDestoy(&machine);
+  vmDestroy(&machine);
   arenaDestroy(&result_arena);
   arenaDestroy(&scratch_arena);
   return report();

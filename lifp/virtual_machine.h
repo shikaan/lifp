@@ -27,7 +27,7 @@ typedef Result(vm_t *) result_vm_ref_t;
 typedef Result(environment_t *) result_environment_ref_t;
 
 result_vm_ref_t vmCreate(vm_options_t);
-void vmDestoy(vm_t **);
+void vmDestroy(vm_t **);
 
 result_environment_ref_t environmentCreate(arena_t *, environment_t *);
 result_void_t environmentRegisterSymbol(environment_t *, const char *,

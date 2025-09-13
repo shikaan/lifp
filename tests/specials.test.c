@@ -230,22 +230,22 @@ int main(void) {
   tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
   environment = machine->global;
   suite(defSpecialForm);
-  vmDestoy(&machine);
+  vmDestroy(&machine);
 
   tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
   environment = machine->global;
   suite(fnSpecialForm);
-  vmDestoy(&machine);
+  vmDestroy(&machine);
 
   tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
   environment = machine->global;
   suite(letSpecialForm);
-  vmDestoy(&machine);
+  vmDestroy(&machine);
 
   tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
   environment = machine->global;
   suite(condSpecialForm);
-  vmDestoy(&machine);
+  vmDestroy(&machine);
 
   arenaDestroy(&test_arena);
   return report();

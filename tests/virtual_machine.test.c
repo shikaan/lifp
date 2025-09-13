@@ -20,7 +20,7 @@ void createDestroy(void) {
     "sets environment_size correctly");
       
   case("destroy");
-  vmDestoy(&machine);
+  vmDestroy(&machine);
   expectNull(machine, "sets pointer to null");
 }
 
@@ -43,7 +43,7 @@ void cloning(void) {
   expectEqlUint(resolved->type, VALUE_TYPE_NUMBER, "with correct type");
 
   arenaDestroy(&clone_arena);
-  vmDestoy(&machine);
+  vmDestroy(&machine);
 }
 
 void resolutions(void) {
@@ -83,7 +83,7 @@ void resolutions(void) {
   expectEqlUint(child_value->type, VALUE_TYPE_NUMBER, "with correct type");
   expectEqlDouble(child_value->value.number, 12.0, "with correct value");
 
-  vmDestoy(&machine);
+  vmDestroy(&machine);
 }
 
 int main(void) {

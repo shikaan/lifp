@@ -42,7 +42,7 @@ void execute(value_t *result, const char *input) {
     *result = intermediate_result;
   }
 
-  vmDestoy(&machine);
+  vmDestroy(&machine);
 }
 
 int main() {
