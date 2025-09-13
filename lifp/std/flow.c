@@ -11,9 +11,8 @@
 const char *FLOW_SLEEP = "flow.sleep";
 
 result_void_position_t flowSleep(value_t *result, const value_list_t *arguments,
-                                 arena_t *arena, environment_t *environment) {
+                                 arena_t *arena) {
   (void)arena;
-  (void)environment;
   if (arguments->count != 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 1 argument. Got %zu", FLOW_SLEEP,
@@ -37,7 +36,6 @@ result_void_position_t flowSleep(value_t *result, const value_list_t *arguments,
   timespec_val.tv_nsec = (milliseconds % 1000) * 1000000L;
   nanosleep(&timespec_val, nullptr);
 
-  // Return nil value
   result->type = VALUE_TYPE_NIL;
   result->value.nil = nullptr;
 

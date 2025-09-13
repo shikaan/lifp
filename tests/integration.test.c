@@ -18,8 +18,8 @@ void execute(value_t *result, const char *input) {
 
   char *line = strtok(input_copy, "\n");
 
-  virtual_machine_t *machine;
-  tryAssert(vmInit(VM_TEST_OPTIONS), machine);
+  vm_t *machine;
+  tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
   environment_t *global_environment = machine->global;
 
   while (line != NULL) {
@@ -30,19 +30,19 @@ void execute(value_t *result, const char *input) {
 
     size_t offset = 0;
     size_t depth = 0;
-    node_t *ast = nullptr;
-    tryAssert(parse(ast_arena, tokens, &offset, &depth), ast);
+    node_t *node = nullptr;
+    tryAssert(parse(ast_arena, tokens, &offset, &depth), node);
 
-    value_t res;
-    tryAssert(
-        evaluate(&res, result_arena, scratch_arena, ast, global_environment));
+    value_t intermediate_result;
+    tryAssert(evaluate(&intermediate_result, result_arena, scratch_arena, node,
+                       global_environment));
     arenaReset(scratch_arena);
 
     line = strtok(nullptr, "\n");
-    *result = res;
+    *result = intermediate_result;
   }
 
-  vmStop();
+  vmDestoy(&machine);
 }
 
 int main() {

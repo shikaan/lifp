@@ -139,7 +139,7 @@ static inline node_t nStr(arena_t *arena, const char *string) {
       .value.list.data = (Data),                                               \
   }
 
-static vm_opts_t VM_TEST_OPTIONS = {
+static vm_options_t VM_TEST_OPTIONS = {
     .environment_size = (size_t)(64 * 1024),
-    .max_call_stack_size = 512,
+    .vm_size = (size_t)(128 * 1024),
 };

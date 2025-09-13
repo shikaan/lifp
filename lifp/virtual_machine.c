@@ -20,30 +20,24 @@
 static Map(value_t) * builtins;
 static Map(value_t) * specials;
 
-// TODO: this should be injected insted of global
-static virtual_machine_t virtual_machine = {.arena = nullptr};
+result_vm_ref_t vmCreate(vm_options_t opts) {
+  arena_t *arena = nullptr;
+  try(result_vm_ref_t, arenaCreate(opts.vm_size), arena);
 
-result_ref_t vmInit(vm_opts_t opts) {
-  if (!virtual_machine.arena) {
-    // TODO: this should not be hardcoded
-    try(result_ref_t, arenaCreate((size_t)256 * 1024), virtual_machine.arena);
-  } else {
-    arenaReset(virtual_machine.arena);
-  }
+  vm_t *machine = nullptr;
+  try(result_vm_ref_t, arenaAllocate(arena, sizeof(vm_t)), machine);
 
-  virtual_machine.enviroment_count = 0;
-  virtual_machine.global = nullptr;
-  virtual_machine.options = opts;
+  machine->global = nullptr;
+  machine->options = opts;
 
-  try(result_ref_t, environmentCreate(virtual_machine.arena, nullptr),
-      virtual_machine.global);
+  try(result_vm_ref_t, environmentCreate(arena, nullptr), machine->global);
 
-  try(result_ref_t, mapCreate(value_t, virtual_machine.arena, 32), builtins);
+  try(result_vm_ref_t, mapCreate(value_t, arena, 32), builtins);
 
 #define setBuiltin(Label, Builtin)                                             \
   builtin.type = VALUE_TYPE_BUILTIN;                                           \
   builtin.value.builtin = (Builtin);                                           \
-  try(result_ref_t, mapSet(value_t, builtins, (Label), &builtin));
+  try(result_vm_ref_t, mapSet(value_t, builtins, (Label), &builtin));
 
   value_t builtin;
   setBuiltin(SUM, sum);
@@ -80,11 +74,11 @@ result_ref_t vmInit(vm_opts_t opts) {
   setBuiltin(IO_PRINT, ioPrint);
 #undef setBuiltin
 
-  try(result_ref_t, mapCreate(value_t, virtual_machine.arena, 4), specials);
+  try(result_vm_ref_t, mapCreate(value_t, arena, 4), specials);
 #define setSpecial(Label, Special)                                             \
   special.type = VALUE_TYPE_SPECIAL;                                           \
   special.value.special = (Special);                                           \
-  try(result_ref_t, mapSet(value_t, specials, (Label), &special));
+  try(result_vm_ref_t, mapSet(value_t, specials, (Label), &special));
 
   value_t special;
   setSpecial(DEFINE, define);
@@ -93,39 +87,34 @@ result_ref_t vmInit(vm_opts_t opts) {
   setSpecial(FUNCTION, function);
 #undef setSpecial
 
-  return ok(result_ref_t, &virtual_machine);
+  return ok(result_vm_ref_t, machine);
 }
 
-result_ref_t environmentCreate(arena_t *arena, environment_t *parent) {
+result_environment_ref_t environmentCreate(arena_t *arena,
+                                           environment_t *parent) {
   assert(arena);
 
-  if (virtual_machine.enviroment_count >=
-      virtual_machine.options.max_call_stack_size) {
-    throw(result_ref_t, ERROR_CODE_MAX_CALL_STACK_SIZE, nullptr,
-          "Max call stack size (%zu) reached.",
-          virtual_machine.options.max_call_stack_size);
-  }
-
   environment_t *environment = nullptr;
-  try(result_ref_t, arenaAllocate(arena, sizeof(environment_t)), environment);
+  try(result_environment_ref_t, arenaAllocate(arena, sizeof(environment_t)),
+      environment);
 
   environment->arena = arena;
   environment->parent = parent;
 
-  try(result_ref_t, mapCreate(value_t, arena, 4), environment->values);
+  try(result_environment_ref_t, mapCreate(value_t, arena, 4),
+      environment->values);
 
-  virtual_machine.enviroment_count++;
-  return ok(result_ref_t, environment);
+  return ok(result_environment_ref_t, environment);
 }
 
-result_void_t environmentAddSymbol(environment_t *self, const char *key,
-                                   const value_t *value) {
+result_void_t environmentRegisterSymbol(environment_t *self, const char *key,
+                                        const value_t *value) {
   if (!value)
     return ok(result_void_t);
 
   if (environmentResolveSymbol(self, key)) {
-    throw(result_void_t, ERROR_CODE_RUNTIME_ERROR, nullptr,
-          "identifier '%s' has already been declared", key);
+    throw(result_void_t, ERROR_CODE_REFERENCE_SYMBOL_ALREADY_DEFINED, nullptr,
+          "Identifier '%s' has already been declared", key);
   }
 
   value_t copied;
@@ -134,18 +123,38 @@ result_void_t environmentAddSymbol(environment_t *self, const char *key,
   return ok(result_void_t);
 }
 
-result_ref_t environmentClone(const environment_t *source, arena_t *arena) {
+result_void_t environmentUnsafeRegisterSymbol(environment_t *self,
+                                              const char *key,
+                                              const value_t *value) {
+  if (!value) {
+    return ok(result_void_t);
+  }
+
+  value_t copied;
+  try(result_void_t, valueCopy(value, &copied, self->arena));
+  try(result_void_t, mapSet(value_t, self->values, key, &copied));
+  return ok(result_void_t);
+}
+
+result_environment_ref_t environmentClone(const environment_t *source,
+                                          arena_t *arena) {
   environment_t *result;
-  try(result_ref_t, environmentCreate(arena, source->parent), result);
+  try(result_environment_ref_t, environmentCreate(arena, source->parent),
+      result);
 
   for (size_t i = 0; i < source->values->capacity; i++) {
     if (source->values->used[i]) {
-      environmentAddSymbol(result, source->values->keys[i],
-                           &source->values->values[i]);
+      const char *key = source->values->keys[i];
+      const value_t *value = &source->values->values[i];
+
+      if (!environmentResolveSymbol(result, key)) {
+        try(result_environment_ref_t,
+            environmentUnsafeRegisterSymbol(result, key, value));
+      }
     }
   }
 
-  return ok(result_ref_t, result);
+  return ok(result_environment_ref_t, result);
 }
 
 const value_t *environmentResolveSymbol(const environment_t *self,
@@ -170,7 +179,8 @@ const value_t *environmentResolveSymbol(const environment_t *self,
   return result;
 }
 
-void vmStop(void) {
-  arenaDestroy(&virtual_machine.arena);
-  virtual_machine.enviroment_count = 0;
+void vmDestoy(vm_t **self) {
+  arenaDestroy(&(*self)->arena);
+  (*self)->global = nullptr;
+  *(self) = nullptr;
 }

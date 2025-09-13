@@ -10,21 +10,24 @@
 #include <stddef.h>
 #include <string.h>
 
-// TODO: this should have error handling
-static void captureEnvironment(const node_t *node, const environment_t *source,
-                               environment_t *destination) {
+static result_void_t captureEnvironment(const node_t *node,
+                                        const environment_t *source,
+                                        environment_t *destination) {
   if (node->type == NODE_TYPE_SYMBOL) {
     const value_t *value = environmentResolveSymbol(source, node->value.symbol);
     if (value && (value->type != VALUE_TYPE_SPECIAL &&
                   value->type != VALUE_TYPE_BUILTIN)) {
-      environmentAddSymbol(destination, node->value.symbol, value);
+      try(result_void_t, environmentUnsafeRegisterSymbol(
+                             destination, node->value.symbol, value));
     }
   } else if (node->type == NODE_TYPE_LIST) {
     for (size_t i = 0; i < node->value.list.count; i++) {
       const node_t sub_node = listGet(node_t, &node->value.list, i);
-      captureEnvironment(&sub_node, source, destination);
+      try(result_void_t, captureEnvironment(&sub_node, source, destination));
     }
   }
+
+  return ok(result_void_t);
 }
 
 const char *DEFINE_EXAMPLE = "(def! x (+ 1 2))";
@@ -51,9 +54,10 @@ result_void_position_t define(value_t *result, const node_list_t *nodes,
       evaluate(&reduced, scratch_arena, scratch_arena, &value, environment));
 
   // If reduction is successful, we can move the closure to VM memory
-  tryWithMeta(result_void_position_t,
-              environmentAddSymbol(environment, key.value.symbol, &reduced),
-              value.position);
+  tryWithMeta(
+      result_void_position_t,
+      environmentRegisterSymbol(environment, key.value.symbol, &reduced),
+      value.position);
 
   result->type = VALUE_TYPE_NIL;
   result->value.nil = nullptr;
@@ -94,8 +98,9 @@ result_void_position_t function(value_t *result, const node_list_t *nodes,
     }
 
     if (environmentResolveSymbol(environment, argument.value.symbol)) {
-      throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, argument.position,
-            "identifier '%s' shadows a value", argument.value.symbol);
+      throw(result_void_position_t, ERROR_CODE_REFERENCE_SYMBOL_SHADOWED,
+            argument.position, "Identifier '%s' shadows a value",
+            argument.value.symbol);
     }
 
     tryWithMeta(result_void_position_t,
@@ -112,8 +117,9 @@ result_void_position_t function(value_t *result, const node_list_t *nodes,
               environmentCreate(scratch_arena, environment), form.position,
               captured);
 
-  captureEnvironment(&form, environment, captured);
-  result->value.closure.parent_environment = captured;
+  tryWithMeta(result_void_position_t,
+              captureEnvironment(&form, environment, captured), form.position);
+  result->value.closure.captured_environment = captured;
 
   return ok(result_void_position_t);
 }
@@ -163,7 +169,7 @@ result_void_position_t let(value_t *result, const node_list_t *nodes,
         evaluate(&evaluated, scratch_arena, scratch_arena, &body, local_env));
     tryWithMeta(
         result_void_position_t,
-        environmentAddSymbol(local_env, symbol.value.symbol, &evaluated),
+        environmentRegisterSymbol(local_env, symbol.value.symbol, &evaluated),
         evaluated.position);
   }
 

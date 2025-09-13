@@ -7,9 +7,8 @@
 // List count function - counts elements in a list
 const char *LIST_COUNT = "list.count";
 result_void_position_t listCount(value_t *result, const value_list_t *arguments,
-                                 arena_t *arena, environment_t *environment) {
+                                 arena_t *arena) {
   (void)arena;
-  (void)environment;
   if (arguments->count != 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 1 argument. Got %zu", LIST_COUNT,
@@ -31,8 +30,7 @@ result_void_position_t listCount(value_t *result, const value_list_t *arguments,
 // List from function - creates a list from the given arguments
 const char *LIST_FROM = "list.from";
 result_void_position_t listFrom(value_t *result, const value_list_t *arguments,
-                                arena_t *arena, environment_t *environment) {
-  (void)environment;
+                                arena_t *arena) {
   result->type = VALUE_TYPE_LIST;
 
   value_list_t *new_list = nullptr;
@@ -63,9 +61,8 @@ result_void_position_t listFrom(value_t *result, const value_list_t *arguments,
 // bounds
 const char *LIST_NTH = "list.nth";
 result_void_position_t listNth(value_t *result, const value_list_t *arguments,
-                               arena_t *arena, environment_t *environment) {
+                               arena_t *arena) {
   (void)arena;
-  (void)environment;
 
   if (arguments->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
@@ -103,7 +100,7 @@ result_void_position_t listNth(value_t *result, const value_list_t *arguments,
 
 const char *LIST_MAP = "list.map";
 result_void_position_t listMap(value_t *result, const value_list_t *arguments,
-                               arena_t *arena, environment_t *environment) {
+                               arena_t *arena) {
   if (arguments->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 2 arguments. Got %zu", LIST_MAP,
@@ -152,7 +149,7 @@ result_void_position_t listMap(value_t *result, const value_list_t *arguments,
 
     value_t mapped;
     try(result_void_position_t,
-        invokeClosure(&mapped, closure, closure_args, arena, environment));
+        invokeClosure(&mapped, closure, closure_args, arena));
 
     tryWithMeta(result_void_position_t,
                 listAppend(value_t, mapped_list, &mapped), result->position);
@@ -166,7 +163,7 @@ result_void_position_t listMap(value_t *result, const value_list_t *arguments,
 
 const char *LIST_EACH = "list.each";
 result_void_position_t listEach(value_t *result, const value_list_t *arguments,
-                                arena_t *arena, environment_t *environment) {
+                                arena_t *arena) {
   if (arguments->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 2 arguments. Got %zu", LIST_EACH,
@@ -210,7 +207,7 @@ result_void_position_t listEach(value_t *result, const value_list_t *arguments,
 
     value_t mapped;
     try(result_void_position_t,
-        invokeClosure(&mapped, closure, closure_args, arena, environment));
+        invokeClosure(&mapped, closure, closure_args, arena));
   }
 
   result->type = VALUE_TYPE_NIL;
@@ -220,9 +217,8 @@ result_void_position_t listEach(value_t *result, const value_list_t *arguments,
 }
 
 const char *LIST_FILTER = "list.filter";
-result_void_position_t listFilter(value_t *result,
-                                  const value_list_t *arguments, arena_t *arena,
-                                  environment_t *environment) {
+result_void_position_t
+listFilter(value_t *result, const value_list_t *arguments, arena_t *arena) {
   if (arguments->count != 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires exactly 2 arguments. Got %zu", LIST_FILTER,
@@ -271,7 +267,7 @@ result_void_position_t listFilter(value_t *result,
 
     value_t filtered;
     try(result_void_position_t,
-        invokeClosure(&filtered, closure, closure_args, arena, environment));
+        invokeClosure(&filtered, closure, closure_args, arena));
 
     if (filtered.type != VALUE_TYPE_BOOLEAN) {
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,

@@ -36,7 +36,7 @@ result_void_t valueInitClosure(value_t *self, arena_t *arena,
   try(result_void_t, nodeInit(form, arena));
   self->value.closure.form = *form;
 
-  self->value.closure.parent_environment = nullptr;
+  self->value.closure.captured_environment = nullptr;
 
   return ok(result_void_t);
 }
@@ -134,9 +134,9 @@ result_void_t valueCopy(const value_t *source, value_t *destination,
     }
 
     try(result_void_t,
-        environmentClone(source->value.closure.parent_environment,
+        environmentClone(source->value.closure.captured_environment,
                          destination_arena),
-        destination->value.closure.parent_environment);
+        destination->value.closure.captured_environment);
     break;
   case VALUE_TYPE_LIST: {
     try(result_void_t, valueInitList(destination, destination_arena,

@@ -339,8 +339,8 @@ int main(void) {
   tryAssert(arenaCreate((size_t)(128 * 1024)), test_ast_arena);
   tryAssert(arenaCreate((size_t)(64 * 1024)), test_temp_arena);
   tryAssert(arenaCreate((size_t)(64 * 1024)), test_result_arena);
-  virtual_machine_t *machine;
-  tryAssert(vmInit(VM_TEST_OPTIONS), machine);
+  vm_t *machine;
+  tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
   global = machine->global;
 
   profileInit();

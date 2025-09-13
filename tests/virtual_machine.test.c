@@ -1,12 +1,54 @@
 #include "test.h"
 #include "utils.h"
 
-#include "../lib/map.h"
+#include "../lifp/error.h"
 #include "../lifp/virtual_machine.h"
 
+static arena_t *test_arena;
+
+void createDestroy(void) {
+  vm_t *machine = nullptr;
+
+  case("create");
+  tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
+  expectNotNull(machine, "creates a virtual machine");
+  expectNotNull(machine->global, "machine has global environment");
+  expectEqlSize(machine->options.vm_size, VM_TEST_OPTIONS.vm_size,
+    "sets vm_size correctly");
+  expectEqlSize(machine->options.environment_size,
+    VM_TEST_OPTIONS.environment_size,
+    "sets environment_size correctly");
+      
+  case("destroy");
+  vmDestoy(&machine);
+  expectNull(machine, "sets pointer to null");
+}
+
+void cloning(void) {
+  vm_t *machine;
+  tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
+
+  value_t value;
+  valueInit(&value, machine->arena, 123.0);
+  tryAssert(environmentRegisterSymbol(machine->global, "lol", &value));
+
+  arena_t *clone_arena;
+  tryAssert(arenaCreate((size_t)(1024 * 1024)), clone_arena);
+
+  environment_t *cloned_env;
+  tryAssert(environmentClone(machine->global, clone_arena), cloned_env);
+
+  const value_t *resolved = environmentResolveSymbol(cloned_env, "lol");
+  expectNotNull(resolved, "cloned environment resolves symbol");
+  expectEqlUint(resolved->type, VALUE_TYPE_NUMBER, "with correct type");
+
+  arenaDestroy(&clone_arena);
+  vmDestoy(&machine);
+}
+
 void resolutions(void) {
-  virtual_machine_t *machine;
-  tryAssert(vmInit(VM_TEST_OPTIONS), machine);
+  vm_t *machine;
+  tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
 
   const value_t *builtin = environmentResolveSymbol(machine->global, "+");
   expectNotNull(builtin, "resolves builtin");
@@ -16,36 +58,41 @@ void resolutions(void) {
   expectNotNull(special, "resolves special");
   expectEqlUint(special->type, VALUE_TYPE_SPECIAL, "with correct type");
 
-  value_t custom_value;
-  valueInit(&custom_value, machine->arena, 12.0);
+  value_t value;
+  valueInit(&value, machine->arena, 12.0);
+  tryAssert(environmentRegisterSymbol(machine->global, "twelve", &value));
 
-  mapSet(value_t, machine->global->values, "custom", &custom_value);
-  const value_t *custom = environmentResolveSymbol(machine->global, "custom");
-  expectNotNull(custom, "resolves custom");
+  const value_t *custom = environmentResolveSymbol(machine->global, "twelve");
+  expectNotNull(custom, "allows defining custom symbol");
   expectEqlUint(custom->type, VALUE_TYPE_NUMBER, "with correct type");
-  vmStop();
-}
+  expectEqlDouble(custom->value.number, 12.0, "with correct value");
 
-void callStack(void) {
-  vm_opts_t options = {
-      .max_call_stack_size = 2,
-      .environment_size = VM_TEST_OPTIONS.environment_size,
-  };
-  virtual_machine_t *machine;
-  tryAssert(vmInit(options), machine);
+  result_void_t result;
+  tryFail(environmentRegisterSymbol(machine->global, "twelve", &value), result);
+  expectEqlInt(result.code, ERROR_CODE_REFERENCE_SYMBOL_ALREADY_DEFINED,
+                "prevents redefining symbol");
 
-  environment_t *env;
-  tryAssert(environmentCreate(machine->arena, machine->global), env);
-  (void)env;
+  result = environmentUnsafeRegisterSymbol(machine->global, "twelve", &value);
+  expectEqlInt(result.code, RESULT_OK,
+                "allows redefining symbol with unsafe");
 
-  result_ref_t result;
-  tryFail(environmentCreate(machine->arena, machine->global), result);
-  expectIncludeString(result.message, "call stack size",
-                      "throws when exceeding max call stack size");
+  environment_t* child;
+  tryAssert(environmentCreate(test_arena, machine->global), child);
+  const value_t *child_value = environmentResolveSymbol(child, "twelve");
+  expectNotNull(child_value, "resolves value form parent");
+  expectEqlUint(child_value->type, VALUE_TYPE_NUMBER, "with correct type");
+  expectEqlDouble(child_value->value.number, 12.0, "with correct value");
+
+  vmDestoy(&machine);
 }
 
 int main(void) {
+  tryAssert(arenaCreate((size_t)(1024 * 1024)), test_arena);
+
+  suite(createDestroy);
   suite(resolutions);
-  suite(callStack);
+  suite(cloning);
+
+  arenaDestroy(&test_arena);
   return report();
 }
