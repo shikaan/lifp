@@ -29,6 +29,7 @@ result_vm_ref_t vmCreate(vm_options_t opts) {
 
   machine->global = nullptr;
   machine->options = opts;
+  machine->arena = arena;
 
   try(result_vm_ref_t, environmentCreate(arena, nullptr), machine->global);
 
@@ -180,7 +181,9 @@ const value_t *environmentResolveSymbol(const environment_t *self,
 }
 
 void vmDestroy(vm_t **self) {
-  arenaDestroy(&(*self)->arena);
-  (*self)->global = nullptr;
+  if (!self || !*self)
+    return;
+  arena_t *arena = (*self)->arena;
+  arenaDestroy(&arena);
   *(self) = nullptr;
 }
