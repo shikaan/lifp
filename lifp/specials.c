@@ -1,32 +1,33 @@
 #include "specials.h"
 #include "../lib/list.h"
-#include "../lib/map.h"
 #include "../lib/result.h"
 #include "error.h"
 #include "evaluate.h"
 #include "node.h"
-#include "position.h"
 #include "value.h"
 #include "virtual_machine.h"
 #include <assert.h>
 #include <stddef.h>
 #include <string.h>
 
-static result_void_position_t addToEnvironment(const char *key, value_t *value,
-                                               environment_t *environment,
-                                               position_t position) {
-  if (environmentResolveSymbol(environment, key)) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, position,
-          "identifier '%s' has already been declared", key);
+static result_void_t captureEnvironment(const node_t *node,
+                                        const environment_t *source,
+                                        environment_t *destination) {
+  if (node->type == NODE_TYPE_SYMBOL) {
+    const value_t *value = environmentResolveSymbol(source, node->value.symbol);
+    if (value && (value->type != VALUE_TYPE_SPECIAL &&
+                  value->type != VALUE_TYPE_BUILTIN)) {
+      try(result_void_t, environmentUnsafeRegisterSymbol(
+                             destination, node->value.symbol, value));
+    }
+  } else if (node->type == NODE_TYPE_LIST) {
+    for (size_t i = 0; i < node->value.list.count; i++) {
+      const node_t sub_node = listGet(node_t, &node->value.list, i);
+      try(result_void_t, captureEnvironment(&sub_node, source, destination));
+    }
   }
 
-  // If reduction is successful, we can move the closure to VM memory
-  value_t copied;
-  tryWithMeta(result_void_position_t,
-              valueCopy(value, &copied, environment->arena), position);
-  tryWithMeta(result_void_position_t,
-              mapSet(value_t, environment->values, key, &copied), position);
-  return ok(result_void_position_t);
+  return ok(result_void_t);
 }
 
 const char *DEFINE_EXAMPLE = "(def! x (+ 1 2))";
@@ -53,8 +54,10 @@ result_void_position_t define(value_t *result, const node_list_t *nodes,
       evaluate(&reduced, scratch_arena, scratch_arena, &value, environment));
 
   // If reduction is successful, we can move the closure to VM memory
-  try(result_void_position_t, addToEnvironment(key.value.symbol, &reduced,
-                                               environment, value.position));
+  tryWithMeta(
+      result_void_position_t,
+      environmentRegisterSymbol(environment, key.value.symbol, &reduced),
+      value.position);
 
   result->type = VALUE_TYPE_NIL;
   result->value.nil = nullptr;
@@ -95,8 +98,9 @@ result_void_position_t function(value_t *result, const node_list_t *nodes,
     }
 
     if (environmentResolveSymbol(environment, argument.value.symbol)) {
-      throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, argument.position,
-            "identifier '%s' shadows a value", argument.value.symbol);
+      throw(result_void_position_t, ERROR_CODE_REFERENCE_SYMBOL_SHADOWED,
+            argument.position, "Identifier '%s' shadows a value",
+            argument.value.symbol);
     }
 
     tryWithMeta(result_void_position_t,
@@ -107,6 +111,15 @@ result_void_position_t function(value_t *result, const node_list_t *nodes,
   tryWithMeta(result_void_position_t,
               nodeCopy(&form, &result->value.closure.form, scratch_arena),
               form.position);
+
+  environment_t *captured = nullptr;
+  tryWithMeta(result_void_position_t,
+              environmentCreate(scratch_arena, environment), form.position,
+              captured);
+
+  tryWithMeta(result_void_position_t,
+              captureEnvironment(&form, environment, captured), form.position);
+  result->value.closure.captured_environment = captured;
 
   return ok(result_void_position_t);
 }
@@ -130,14 +143,14 @@ result_void_position_t let(value_t *result, const node_list_t *nodes,
   }
 
   environment_t *local_env = nullptr;
-  tryWithMeta(result_void_position_t, environmentCreate(environment),
-              couples.position, local_env);
+  tryWithMeta(result_void_position_t,
+              environmentCreate(scratch_arena, environment), couples.position,
+              local_env);
 
   for (size_t i = 0; i < couples.value.list.count; i++) {
     node_t couple = listGet(node_t, &couples.value.list, i);
 
     if (couple.type != NODE_TYPE_LIST || couple.value.list.count != 2) {
-      environmentDestroy(&local_env);
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, couple.position,
             "%s requires a list of symbol-form assignments. %s", LET,
             LET_EXAMPLE);
@@ -145,7 +158,6 @@ result_void_position_t let(value_t *result, const node_list_t *nodes,
 
     node_t symbol = listGet(node_t, &couple.value.list, 0);
     if (symbol.type != NODE_TYPE_SYMBOL) {
-      environmentDestroy(&local_env);
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, symbol.position,
             "%s requires a list of symbol-form assignments. %s", LET,
             LET_EXAMPLE);
@@ -153,22 +165,18 @@ result_void_position_t let(value_t *result, const node_list_t *nodes,
 
     node_t body = listGet(node_t, &couple.value.list, 1);
     value_t evaluated;
-    tryCatch(
+    try(result_void_position_t,
+        evaluate(&evaluated, scratch_arena, scratch_arena, &body, local_env));
+    tryWithMeta(
         result_void_position_t,
-        evaluate(&evaluated, scratch_arena, scratch_arena, &body, local_env),
-        environmentDestroy(&local_env));
-    tryCatch(result_void_position_t,
-             addToEnvironment(symbol.value.symbol, &evaluated, local_env,
-                              evaluated.position),
-             environmentDestroy(&local_env));
+        environmentRegisterSymbol(local_env, symbol.value.symbol, &evaluated),
+        evaluated.position);
   }
 
   node_t form = listGet(node_t, nodes, 2);
   value_t temp_result;
-  tryCatch(
-      result_void_position_t,
-      evaluate(&temp_result, scratch_arena, scratch_arena, &form, local_env),
-      environmentDestroy(&local_env));
+  try(result_void_position_t,
+      evaluate(&temp_result, scratch_arena, scratch_arena, &form, local_env));
 
   // The result from the evaluation might be allocated in the local_env's arena,
   // which will be destroyed. We need to copy it to the temp arena to allow
@@ -177,7 +185,6 @@ result_void_position_t let(value_t *result, const node_list_t *nodes,
               valueCopy(&temp_result, result, scratch_arena),
               temp_result.position);
 
-  environmentDestroy(&local_env);
   return ok(result_void_position_t);
 }
 

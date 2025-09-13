@@ -20,7 +20,6 @@ typedef struct {
   size_t ast_memory;
   size_t temp_memory;
   size_t file_size;
-  size_t call_stack_size;
   size_t environment_size;
   const char *filename;
 } run_opts_t;
@@ -94,25 +93,25 @@ int run(const run_opts_t OPTIONS) {
          "unable to allocate interpreter memory");
 
   arena_t *scratch_arena = nullptr;
-  tryCLI(arenaCreate(OPTIONS.temp_memory), scratch_arena,
+  tryCLI(arenaCreate(OPTIONS.temp_memory / 2), scratch_arena,
          "unable to allocate transient memory");
 
   arena_t *result_arena = nullptr;
-  tryCLI(arenaCreate(OPTIONS.temp_memory), result_arena,
+  tryCLI(arenaCreate(OPTIONS.temp_memory / 4), result_arena,
          "unable to allocate transient memory");
 
-  vm_opts_t vm_options = {
-      .max_call_stack_size = OPTIONS.call_stack_size,
+  vm_options_t vm_options = {
       .environment_size = OPTIONS.environment_size,
+      .vm_size = OPTIONS.temp_memory / 4,
   };
-  environment_t *global_environment = nullptr;
-  tryCLI(vmInit(vm_options), global_environment,
-         "unable to initialize virtual machine");
+  vm_t *machine = nullptr;
+  tryCLI(vmCreate(vm_options), machine, "unable to initialize virtual machine");
 
   do {
     memset(statement_buffer, 0, (size_t)file_length);
     arenaReset(ast_arena);
     arenaReset(scratch_arena);
+    arenaReset(result_arena);
     readStatement(file_length, statement_buffer, file_buffer, &file_offset);
 
     if (strlen(statement_buffer) == 0)
@@ -129,16 +128,15 @@ int run(const run_opts_t OPTIONS) {
     if (syntax_tree) {
       value_t reduced;
       tryRun(evaluate(&reduced, result_arena, scratch_arena, syntax_tree,
-                      global_environment));
+                      machine->global));
     }
   } while (file_offset < file_length);
 
   profileReport();
 
-  free(statement_buffer);
-  free(file_buffer);
+  deallocSafe(&statement_buffer);
+  deallocSafe(&file_buffer);
 
-  environmentDestroy(&global_environment);
   arenaDestroy(&result_arena);
   arenaDestroy(&scratch_arena);
   arenaDestroy(&ast_arena);

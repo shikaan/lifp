@@ -17,7 +17,6 @@ typedef struct {
   size_t ast_memory;
   size_t temp_memory;
   size_t output_size;
-  size_t call_stack_size;
   size_t environment_size;
 } repl_opts_t;
 
@@ -66,20 +65,19 @@ int repl(const repl_opts_t OPTIONS) {
          "unable to allocate interpreter memory");
 
   arena_t *scratch_arena = nullptr;
-  tryCLI(arenaCreate(OPTIONS.temp_memory), scratch_arena,
+  tryCLI(arenaCreate(OPTIONS.temp_memory / 2), scratch_arena,
          "unable to allocate transient memory");
 
   arena_t *result_arena = nullptr;
-  tryCLI(arenaCreate(OPTIONS.temp_memory), result_arena,
+  tryCLI(arenaCreate(OPTIONS.temp_memory / 4), result_arena,
          "unable to allocate transient memory");
 
-  vm_opts_t vm_options = {
-      .max_call_stack_size = OPTIONS.call_stack_size,
+  vm_options_t vm_options = {
       .environment_size = OPTIONS.environment_size,
+      .vm_size = OPTIONS.temp_memory / 4,
   };
-  environment_t *global_environment = nullptr;
-  tryCLI(vmInit(vm_options), global_environment,
-         "unable to initialize virtual machine");
+  vm_t *machine = nullptr;
+  tryCLI(vmCreate(vm_options), machine, "unable to initialize virtual machine");
 
   linenoiseSetMultiLine(1);
 
@@ -93,6 +91,7 @@ int repl(const repl_opts_t OPTIONS) {
     profileReport();
     arenaReset(ast_arena);
     arenaReset(scratch_arena);
+    arenaReset(result_arena);
     char *input = linenoise("> ");
 
     if (!input)
@@ -128,8 +127,8 @@ int repl(const repl_opts_t OPTIONS) {
     tryREPL(parse(ast_arena, tokens, &offset, &depth), ast);
 
     value_t result;
-    tryREPL(evaluate(&result, result_arena, scratch_arena, ast,
-                     global_environment));
+    tryREPL(
+        evaluate(&result, result_arena, scratch_arena, ast, machine->global));
 
     int buffer_offset = 0;
     formatValue(&result, (int)OPTIONS.output_size, buffer, &buffer_offset);
@@ -138,7 +137,6 @@ int repl(const repl_opts_t OPTIONS) {
     memset(buffer, 0, OPTIONS.output_size);
   }
   profileEnd();
-  environmentDestroy(&global_environment);
   arenaDestroy(&result_arena);
   arenaDestroy(&scratch_arena);
   arenaDestroy(&ast_arena);

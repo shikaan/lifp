@@ -15,8 +15,8 @@
 // be wiped at the end of each call. No values to be persisted should be stored
 // there.
 result_void_position_t evaluate(value_t *result, arena_t *result_arena,
-                                arena_t *scratch_arena, node_t *ast,
-                                environment_t *env);
+                                arena_t *scratch_arena, node_t *node,
+                                environment_t *environment);
 
 // Invokes a closure with the specified arguments and environment.
 //
@@ -26,5 +26,4 @@ result_void_position_t evaluate(value_t *result, arena_t *result_arena,
 // location pointed to by `result`.
 result_void_position_t invokeClosure(value_t *result, closure_t closure,
                                      value_list_t *arguments,
-                                     arena_t *scratch_arena,
-                                     environment_t *environment);
+                                     arena_t *scratch_arena);

@@ -12,14 +12,26 @@ typedef struct environment_t {
 } environment_t;
 
 typedef struct {
-  size_t max_call_stack_size;
   size_t environment_size;
-} vm_opts_t;
+  size_t vm_size;
+} vm_options_t;
 
-result_ref_t vmInit(vm_opts_t opts);
+typedef struct {
+  vm_options_t options;
+  arena_t *arena;
+  environment_t *global;
+} vm_t;
 
-result_ref_t environmentCreate(environment_t *parent);
-void environmentDestroy(environment_t **self_ref);
-const value_t *environmentResolveSymbol(environment_t *self,
-                                        const char *symbol);
-void environmentReset(environment_t *self);
+typedef Result(vm_t *) result_vm_ref_t;
+typedef Result(environment_t *) result_environment_ref_t;
+
+result_vm_ref_t vmCreate(vm_options_t);
+void vmDestroy(vm_t **);
+
+result_environment_ref_t environmentCreate(arena_t *, environment_t *);
+result_void_t environmentRegisterSymbol(environment_t *, const char *,
+                                        const value_t *);
+result_void_t environmentUnsafeRegisterSymbol(environment_t *, const char *,
+                                              const value_t *);
+const value_t *environmentResolveSymbol(const environment_t *, const char *);
+result_environment_ref_t environmentClone(const environment_t *, arena_t *);

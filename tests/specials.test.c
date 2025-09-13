@@ -225,22 +225,27 @@ void condSpecialForm() {
 
 int main(void) {
   tryAssert(arenaCreate((size_t)(1024 * 1024)), test_arena);
+  vm_t *machine;
 
-  tryAssert(vmInit(VM_TEST_OPTIONS), environment);
+  tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
+  environment = machine->global;
   suite(defSpecialForm);
-  environmentDestroy(&environment);
+  vmDestroy(&machine);
 
-  tryAssert(vmInit(VM_TEST_OPTIONS), environment);
+  tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
+  environment = machine->global;
   suite(fnSpecialForm);
-  environmentDestroy(&environment);
+  vmDestroy(&machine);
 
-  tryAssert(vmInit(VM_TEST_OPTIONS), environment);
+  tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
+  environment = machine->global;
   suite(letSpecialForm);
-  environmentDestroy(&environment);
+  vmDestroy(&machine);
 
-  tryAssert(vmInit(VM_TEST_OPTIONS), environment);
+  tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
+  environment = machine->global;
   suite(condSpecialForm);
-  environmentDestroy(&environment);
+  vmDestroy(&machine);
 
   arenaDestroy(&test_arena);
   return report();

@@ -11,10 +11,10 @@
 
 static arena_t *scratch_arena;
 static arena_t *result_arena;
-static environment_t *environment;
+static environment_t *global;
 
 #define evaluateAndClean(Result, AST)                                          \
-  tryAssert(evaluate(Result, result_arena, scratch_arena, AST, environment));  \
+  tryAssert(evaluate(Result, result_arena, scratch_arena, AST, global));       \
   arenaReset(scratch_arena);
 
 void expectEqlValueType(value_type_t actual, value_type_t expected,
@@ -57,7 +57,7 @@ void atoms() {
   case("symbol");
   value_t symbol;
   tryAssert(valueInit(&symbol, scratch_arena, (number_t)0));
-  mapSet(value_t, environment->values, "value", &symbol);
+  mapSet(value_t, global->values, "value", &symbol);
 
   node_t symbol_node = nSym(scratch_arena, "value");
   evaluateAndClean(&result, &symbol_node);
@@ -112,7 +112,7 @@ void functionCall() {
   expectEqlDouble(result.value.number, 6, "has correct result");
   
   value_t val = { .type = VALUE_TYPE_NUMBER, .value.number = 1};
-  mapSet(value_t, environment->values, "lol", &val);
+  mapSet(value_t, global->values, "lol", &val);
   node_t lol_symbol = nSym(scratch_arena, "lol");
   
   tryAssert(listCreate(node_t, scratch_arena, 4), list);
@@ -178,7 +178,7 @@ void allocations() {
   arenaAllocate(small_arena, 32); // Use up all space
   node_t large_node = nInt(123);
   value_t result;
-  auto reduction = evaluate(&result, result_arena, small_arena, &large_node, environment);
+  auto reduction = evaluate(&result, result_arena, small_arena, &large_node, global);
   expectEqlInt(reduction.code, RESULT_OK, "does not allocate memory on temp arena");
 
   arenaDestroy(&small_arena);
@@ -193,14 +193,17 @@ void errors() {
   tryAssert(listAppend(node_t, list, &sym));
 
   value_t result;
-  auto reduction = evaluate(&result, result_arena, scratch_arena, &sym, environment);
+  auto reduction = evaluate(&result, result_arena, scratch_arena, &sym, global);
   expectEqlInt(reduction.code, ERROR_CODE_REFERENCE_SYMBOL_NOT_FOUND, "with correct symbol");
 }
 
 int main(void) {
   tryAssert(arenaCreate((size_t)(1024 * 1024)), scratch_arena);
   tryAssert(arenaCreate((size_t)(1024 * 1024)), result_arena);
-  tryAssert(vmInit(VM_TEST_OPTIONS), environment);
+  
+  vm_t *machine;
+  tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
+  global = machine->global;
 
   suite(atoms);
   suite(listOfElements);
@@ -210,7 +213,7 @@ int main(void) {
   suite(allocations);
   suite(errors);
 
-  environmentDestroy(&environment);
+  vmDestroy(&machine);
   arenaDestroy(&result_arena);
   arenaDestroy(&scratch_arena);
   return report();

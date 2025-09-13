@@ -5,7 +5,7 @@ BUGS
 FEATURES
 ---
   * [ ] Compile AST to bytecode
-  * [ ] Implement list methods (list.filter)
+  * [ ] Implement methods (list.times, io.printf!)
   * [ ] Decouple validation from execution
   * [ ] Enforce naming conventions for functions
     * [ ] effectful functions should terminate with !
@@ -14,8 +14,6 @@ FEATURES
   * [ ] Tail call optimization
   * [ ] Auto-generated documentation for standard library
   * [ ] Enum to text for error messages
-  * [ ] Currying: `(def! make-adder (fn (x) (fn (y) (+ x y))))\n(make-adder 5)`
-        currently loses context on `x` because of immediate invocation
   * [ ] Implement `?` in REPL
   * [ ] imports `(import! my-module "./my-module.lifp")
   * [ ] Type Declaration comments `;; (number, number) -> number`

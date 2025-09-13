@@ -18,8 +18,9 @@ void execute(value_t *result, const char *input) {
 
   char *line = strtok(input_copy, "\n");
 
-  environment_t *global_environment = nullptr;
-  tryAssert(vmInit(VM_TEST_OPTIONS), global_environment);
+  vm_t *machine;
+  tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
+  environment_t *global_environment = machine->global;
 
   while (line != NULL) {
     arenaReset(ast_arena);
@@ -29,23 +30,19 @@ void execute(value_t *result, const char *input) {
 
     size_t offset = 0;
     size_t depth = 0;
-    node_t *ast = nullptr;
-    tryAssert(parse(ast_arena, tokens, &offset, &depth), ast);
+    node_t *node = nullptr;
+    tryAssert(parse(ast_arena, tokens, &offset, &depth), node);
 
-    value_t res;
-    auto reduction =
-        evaluate(&res, result_arena, scratch_arena, ast, global_environment);
+    value_t intermediate_result;
+    tryAssert(evaluate(&intermediate_result, result_arena, scratch_arena, node,
+                       global_environment));
     arenaReset(scratch_arena);
-    if (reduction.code != RESULT_OK) {
-      printf("Reduction error: %s\n", reduction.message);
-      assert(reduction.code == RESULT_OK);
-    }
 
     line = strtok(nullptr, "\n");
-    *result = res;
+    *result = intermediate_result;
   }
 
-  environmentDestroy(&global_environment);
+  vmDestroy(&machine);
 }
 
 int main() {
@@ -134,6 +131,12 @@ int main() {
   execute(&empty_list, "()");
   expectEqlUint(empty_list.type, VALUE_TYPE_LIST, "empty list has correct type");
   expectEqlUint((unsigned int)empty_list.value.list.count, 0, "empty list has zero elements");
+
+  case("currying");
+  value_t currying;
+  execute(&currying, "(def! make-add (fn (a) (fn (b) (+ a b))))\n((make-add 4) 1)");
+  expectEqlUint(currying.type, VALUE_TYPE_NUMBER, "returns a number");
+  expectEqlDouble(currying.value.number, 5, "it has correct value");
 
   arenaDestroy(&ast_arena);
   arenaDestroy(&scratch_arena);

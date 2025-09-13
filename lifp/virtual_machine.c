@@ -20,22 +20,25 @@
 static Map(value_t) * builtins;
 static Map(value_t) * specials;
 
-static vm_opts_t options;
-static size_t environment_count = 0;
+result_vm_ref_t vmCreate(vm_options_t opts) {
+  arena_t *arena = nullptr;
+  try(result_vm_ref_t, arenaCreate(opts.vm_size), arena);
 
-result_ref_t vmInit(vm_opts_t opts) {
-  options = opts;
+  vm_t *machine = nullptr;
+  try(result_vm_ref_t, arenaAllocate(arena, sizeof(vm_t)), machine);
 
-  environment_t *global_environment = nullptr;
-  try(result_ref_t, environmentCreate(nullptr), global_environment);
+  machine->global = nullptr;
+  machine->options = opts;
+  machine->arena = arena;
 
-  try(result_ref_t, mapCreate(value_t, global_environment->arena, 32),
-      builtins);
+  try(result_vm_ref_t, environmentCreate(arena, nullptr), machine->global);
+
+  try(result_vm_ref_t, mapCreate(value_t, arena, 32), builtins);
 
 #define setBuiltin(Label, Builtin)                                             \
   builtin.type = VALUE_TYPE_BUILTIN;                                           \
   builtin.value.builtin = (Builtin);                                           \
-  try(result_ref_t, mapSet(value_t, builtins, (Label), &builtin));
+  try(result_vm_ref_t, mapSet(value_t, builtins, (Label), &builtin));
 
   value_t builtin;
   setBuiltin(SUM, sum);
@@ -72,11 +75,11 @@ result_ref_t vmInit(vm_opts_t opts) {
   setBuiltin(IO_PRINT, ioPrint);
 #undef setBuiltin
 
-  try(result_ref_t, mapCreate(value_t, global_environment->arena, 4), specials);
+  try(result_vm_ref_t, mapCreate(value_t, arena, 4), specials);
 #define setSpecial(Label, Special)                                             \
   special.type = VALUE_TYPE_SPECIAL;                                           \
   special.value.special = (Special);                                           \
-  try(result_ref_t, mapSet(value_t, specials, (Label), &special));
+  try(result_vm_ref_t, mapSet(value_t, specials, (Label), &special));
 
   value_t special;
   setSpecial(DEFINE, define);
@@ -85,43 +88,77 @@ result_ref_t vmInit(vm_opts_t opts) {
   setSpecial(FUNCTION, function);
 #undef setSpecial
 
-  return ok(result_ref_t, global_environment);
+  return ok(result_vm_ref_t, machine);
 }
 
-result_ref_t environmentCreate(environment_t *parent) {
-  if (environment_count >= options.max_call_stack_size) {
-    throw(result_ref_t, ERROR_CODE_MAX_CALL_STACK_SIZE, nullptr,
-          "Max call stack size (%zu) reached.", options.max_call_stack_size);
-  }
-
-  arena_t *arena = nullptr;
-  try(result_ref_t, arenaCreate(options.environment_size), arena);
+result_environment_ref_t environmentCreate(arena_t *arena,
+                                           environment_t *parent) {
+  assert(arena);
 
   environment_t *environment = nullptr;
-  try(result_ref_t, arenaAllocate(arena, sizeof(environment_t)), environment);
+  try(result_environment_ref_t, arenaAllocate(arena, sizeof(environment_t)),
+      environment);
 
   environment->arena = arena;
   environment->parent = parent;
 
-  try(result_ref_t, mapCreate(value_t, arena, 32), environment->values);
+  try(result_environment_ref_t, mapCreate(value_t, arena, 4),
+      environment->values);
 
-  environment_count++;
-  return ok(result_ref_t, environment);
+  return ok(result_environment_ref_t, environment);
 }
 
-void environmentDestroy(environment_t **self) {
-  if (!self || !*self)
-    return;
+result_void_t environmentRegisterSymbol(environment_t *self, const char *key,
+                                        const value_t *value) {
+  if (!value)
+    return ok(result_void_t);
 
-  arena_t *arena = (*self)->arena;
-  // The environment is allocated on its own arena. This frees all the resources
-  arenaDestroy(&arena);
-  // Setting the reference to null for good measure
-  *(self) = nullptr;
-  environment_count--;
+  if (environmentResolveSymbol(self, key)) {
+    throw(result_void_t, ERROR_CODE_REFERENCE_SYMBOL_ALREADY_DEFINED, nullptr,
+          "Identifier '%s' has already been declared", key);
+  }
+
+  value_t copied;
+  try(result_void_t, valueCopy(value, &copied, self->arena));
+  try(result_void_t, mapSet(value_t, self->values, key, &copied));
+  return ok(result_void_t);
 }
 
-const value_t *environmentResolveSymbol(environment_t *self,
+result_void_t environmentUnsafeRegisterSymbol(environment_t *self,
+                                              const char *key,
+                                              const value_t *value) {
+  if (!value) {
+    return ok(result_void_t);
+  }
+
+  value_t copied;
+  try(result_void_t, valueCopy(value, &copied, self->arena));
+  try(result_void_t, mapSet(value_t, self->values, key, &copied));
+  return ok(result_void_t);
+}
+
+result_environment_ref_t environmentClone(const environment_t *source,
+                                          arena_t *arena) {
+  environment_t *result;
+  try(result_environment_ref_t, environmentCreate(arena, source->parent),
+      result);
+
+  for (size_t i = 0; i < source->values->capacity; i++) {
+    if (source->values->used[i]) {
+      const char *key = source->values->keys[i];
+      const value_t *value = &source->values->values[i];
+
+      if (!environmentResolveSymbol(result, key)) {
+        try(result_environment_ref_t,
+            environmentUnsafeRegisterSymbol(result, key, value));
+      }
+    }
+  }
+
+  return ok(result_environment_ref_t, result);
+}
+
+const value_t *environmentResolveSymbol(const environment_t *self,
                                         const char *symbol) {
   assert(self);
 
@@ -143,8 +180,10 @@ const value_t *environmentResolveSymbol(environment_t *self,
   return result;
 }
 
-void environmentReset(environment_t *self) {
-  assert(self);
-  // The environment is allocated on its own arena. This resets its state
-  arenaReset(self->arena);
+void vmDestroy(vm_t **self) {
+  if (!self || !*self)
+    return;
+  arena_t *arena = (*self)->arena;
+  arenaDestroy(&arena);
+  *(self) = nullptr;
 }

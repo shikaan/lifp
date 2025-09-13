@@ -232,9 +232,14 @@ void closureMemory(void) {
   expectEqlSize(getArenaMemoryUsage(test_result_arena),
                 usage 
                   + sizeof(node_t) // form
-                  + (sizeof(char)*8) // form symbol
+                  + (sizeof(char)*8) // form symbol (+ padding)
                   + sizeof(List(node_t)) + (sizeof(node_t) * 2) // arguments 
-                  + (sizeof(char)*8), // argument symbol
+                  + (sizeof(char)*8) // argument symbol (+ padding)
+                  + (sizeof(environment_t))     // captured environment
+                  + (sizeof(Map(value_t)))      // values in captured env
+                    + (sizeof(bool) * 4 + 4)    // (+ padding) 
+                    + (sizeof(char) * 4 * MAX_KEY_LENGTH) 
+                    + (sizeof(value_t) * 4),
                 "persisted closure");
   usage = getArenaMemoryUsage(test_result_arena);
 
@@ -334,7 +339,9 @@ int main(void) {
   tryAssert(arenaCreate((size_t)(128 * 1024)), test_ast_arena);
   tryAssert(arenaCreate((size_t)(64 * 1024)), test_temp_arena);
   tryAssert(arenaCreate((size_t)(64 * 1024)), test_result_arena);
-  tryAssert(vmInit(VM_TEST_OPTIONS), global);
+  vm_t *machine;
+  tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
+  global = machine->global;
 
   profileInit();
 
