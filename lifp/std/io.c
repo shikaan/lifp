@@ -141,7 +141,7 @@ result_void_position_t ioReadline(value_t *result, const value_list_t *values,
   char buffer[INTERMEDIATE_BUFFER_SIZE];
   if (fgets(buffer, sizeof(buffer), stdin) == nullptr) {
     result->type = VALUE_TYPE_STRING;
-    result->value.string = nullptr;
+    *result->value.string = 0;
     return ok(result_void_position_t);
   }
 

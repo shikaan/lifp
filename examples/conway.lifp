@@ -24,8 +24,8 @@
 (def! print-cell
   ; Prints ALIVE for alive cell, and DEAD for a dead cell
   (fn (cell idx)
-    (io:printf! "{} {}"
-      ((if (alive? cell) ALIVE DEAD)
+    (io:printf! "{} {}" (
+      (if (alive? cell) ALIVE DEAD)
       (if (= (% (+ idx 1) BOARD_WIDTH) 0) "\n" "")))))
 
 (def! print-board
