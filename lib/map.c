@@ -1,10 +1,10 @@
 #include "map.h"
 #include "arena.h"
 #include "result.h"
+#include "string.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdio.h>
-#include <string.h>
 
 uint64_t hash(size_t len, const char key[static len]) {
   uint64_t hash = 14695981039346656037U;
@@ -96,20 +96,21 @@ result_void_t genericMapSet(generic_map_t *self, const char *key, void *value) {
       try(result_void_t, arenaAllocate(self->arena, self->item_size * capacity),
           self->values);
 
+      // This needs to happen _before_ we start setting again, else the hashed
+      // value may not match
+      self->capacity = capacity;
       for (size_t i = 0; i < self->capacity; i++) {
         if (used[i]) {
           byte_t *destination = (byte_t *)values + (i * self->item_size);
-          genericMapSet(self, keys[i], destination);
+          try(result_void_t, genericMapSet(self, keys[i], destination));
         }
       }
-      self->capacity = capacity;
       return genericMapSet(self, key, value);
     }
   }
 
   self->used[index] = true;
-  strncpy(self->keys[index], key, MAX_KEY_LENGTH - 1);
-  self->keys[index][MAX_KEY_LENGTH - 1] = 0;
+  stringCopy(self->keys[index], key, MAX_KEY_LENGTH);
   rawValueSet(self, index, value);
 
   return ok(result_void_t);
