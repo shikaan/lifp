@@ -33,7 +33,7 @@ result_vm_ref_t vmCreate(vm_options_t opts) {
 
   try(result_vm_ref_t, environmentCreate(arena, nullptr), machine->global);
 
-  try(result_vm_ref_t, mapCreate(value_t, arena, 32), builtins);
+  try(result_vm_ref_t, mapCreate(value_t, arena, 64), builtins);
 
 #define setBuiltin(Label, Builtin)                                             \
   builtin.type = VALUE_TYPE_BUILTIN;                                           \
@@ -61,6 +61,7 @@ result_vm_ref_t vmCreate(vm_options_t opts) {
   setBuiltin(LIST_MAP, listMap);
   setBuiltin(LIST_EACH, listEach);
   setBuiltin(LIST_FILTER, listFilter);
+  setBuiltin(LIST_TIMES, listTimes);
   setBuiltin(MATH_MAX, mathMax);
   setBuiltin(MATH_MIN, mathMin);
   setBuiltin(MATH_CEIL, mathCeil);
