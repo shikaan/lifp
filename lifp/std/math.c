@@ -92,7 +92,7 @@ result_void_position_t mathMin(value_t *result, const value_list_t *values,
   return ok(result_void_position_t);
 }
 
-// Math random function - returns a random number between 0 and RAND_MAX
+// Math random function - returns a random number between 0 and 1
 const char *MATH_RANDOM = "math:random!";
 result_void_position_t mathRandom(value_t *result, const value_list_t *values,
                                   arena_t *arena) {
@@ -110,7 +110,7 @@ result_void_position_t mathRandom(value_t *result, const value_list_t *values,
   }
 
   result->type = VALUE_TYPE_NUMBER;
-  result->value.number = rand();
+  result->value.number = (number_t)rand() / RAND_MAX;
 
   return ok(result_void_position_t);
 }
