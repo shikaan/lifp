@@ -322,7 +322,7 @@ void errorHandlingMemory(void) {
 }
 
 void danglingArenas(void) {
-  tryFail(execute("((fn (a) a) 1 2)"));
+  tryFail(execute("((fn (a b c) a) 1 2)"));
   expectEqlSize(getUsedArenas(), 4, "no dangling arena on failure");
 
   tryAssert(execute("(def! rec (fn (a) (cond ((= a 0) 1) (rec (- a 1)))))\n(rec 10)"));
