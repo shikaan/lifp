@@ -163,4 +163,25 @@ void formatValue(const value_t *value, int size,
   }
 }
 
+const char *formatValueType(value_type_t type) {
+  switch (type) {
+  case VALUE_TYPE_BOOLEAN:
+    return "boolean";
+  case VALUE_TYPE_NUMBER:
+    return "number";
+  case VALUE_TYPE_BUILTIN:
+  case VALUE_TYPE_SPECIAL:
+  case VALUE_TYPE_CLOSURE:
+    return "function";
+  case VALUE_TYPE_NIL:
+    return "nil";
+  case VALUE_TYPE_LIST:
+    return "list";
+  case VALUE_TYPE_STRING:
+    return "string";
+  default:
+    unreachable();
+  }
+}
+
 #undef append

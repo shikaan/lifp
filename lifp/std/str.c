@@ -1,6 +1,7 @@
 #include "../../lib/result.h"
 #include "../../lib/string.h"
 #include "../error.h"
+#include "../fmt.h"
 #include "../value.h"
 #include <ctype.h>
 #include <stddef.h>
@@ -16,16 +17,16 @@ const char *STR_LENGTH = "str:length";
 result_void_position_t strLength(value_t *result, const value_list_t *values,
                                  arena_t *arena) {
   (void)arena;
-  if (values->count != 1) {
+  if (values->count < 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires exactly 1 argument. Got %zu", STR_LENGTH, values->count);
+          "%s requires 1 argument. Got %zu", STR_LENGTH, values->count);
   }
 
   value_t string_value = listGet(value_t, values, 0);
   if (string_value.type != VALUE_TYPE_STRING) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,
-          string_value.position, "%s requires a string. Got type %u",
-          STR_LENGTH, string_value.type);
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+          string_value.position, "%s requires a string. Got %s.", STR_LENGTH,
+          formatValueType(string_value.type));
   }
 
   result->type = VALUE_TYPE_NUMBER;
@@ -37,24 +38,25 @@ result_void_position_t strLength(value_t *result, const value_list_t *values,
 const char *STR_JOIN = "str:join";
 result_void_position_t strJoin(value_t *result, const value_list_t *values,
                                arena_t *arena) {
-  if (values->count != 2) {
+  if (values->count < 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires 2 arguments. Got %zu", STR_JOIN, values->count);
   }
 
   value_t separator_value = listGet(value_t, values, 0);
   if (separator_value.type != VALUE_TYPE_STRING) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           separator_value.position,
-          "%s requires a separator as first argument. Got type %u", STR_JOIN,
-          separator_value.type);
+          "%s requires a string as first argument. Got %s.", STR_JOIN,
+          formatValueType(separator_value.type));
   }
 
   value_t list_value = listGet(value_t, values, 1);
   if (list_value.type != VALUE_TYPE_LIST) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, list_value.position,
-          "%s requires a list of strings as second argument. Got type %u",
-          STR_JOIN, list_value.type);
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+          list_value.position,
+          "%s requires a list of strings as second argument. Got %s.", STR_JOIN,
+          formatValueType(list_value.type));
   }
 
   if (list_value.value.list.count == 0) {
@@ -71,9 +73,9 @@ result_void_position_t strJoin(value_t *result, const value_list_t *values,
   for (size_t i = 0; i < list_value.value.list.count; i++) {
     value_t current = listGet(value_t, &list_value.value.list, i);
     if (current.type != VALUE_TYPE_STRING) {
-      throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, current.position,
-            "%s requires a list of strings. Got type %u", STR_JOIN,
-            current.type);
+      throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+            current.position, "%s requires a list of strings. Got %s.",
+            STR_JOIN, formatValueType(current.type));
     }
     total_length += strlen(current.value.string);
   }
@@ -108,18 +110,18 @@ result_void_position_t strSlice(value_t *result, const value_list_t *values,
 
   value_t string_value = listGet(value_t, values, 0);
   if (string_value.type != VALUE_TYPE_STRING) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           string_value.position,
-          "%s requires a string as first argument. Got type %u", STR_SLICE,
-          string_value.type);
+          "%s requires a string as first argument. Got %s.", STR_SLICE,
+          formatValueType(string_value.type));
   }
 
   value_t start_value = listGet(value_t, values, 1);
   if (start_value.type != VALUE_TYPE_NUMBER) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           start_value.position,
-          "%s requires a number as second argument. Got type %u", STR_SLICE,
-          start_value.type);
+          "%s requires a number as second argument. Got %s.", STR_SLICE,
+          formatValueType(start_value.type));
   }
 
   size_t str_len = strlen(string_value.value.string);
@@ -133,10 +135,10 @@ result_void_position_t strSlice(value_t *result, const value_list_t *values,
   if (values->count == 3) {
     value_t end_value = listGet(value_t, values, 2);
     if (end_value.type != VALUE_TYPE_NUMBER) {
-      throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,
+      throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
             end_value.position,
-            "%s requires a number as third argument. Got type %u", STR_SLICE,
-            end_value.type);
+            "%s requires a number as third argument. Got %s.", STR_SLICE,
+            formatValueType(end_value.type));
     }
     number_t end_num = end_value.value.number;
     end =
@@ -166,26 +168,25 @@ result_void_position_t strInclude(value_t *result, const value_list_t *values,
                                   arena_t *arena) {
   (void)arena;
 
-  if (values->count != 2) {
+  if (values->count < 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires exactly 2 arguments. Got %zu", STR_INCLUDE,
-          values->count);
+          "%s requires 2 arguments. Got %zu", STR_INCLUDE, values->count);
   }
 
   value_t string_value = listGet(value_t, values, 0);
   if (string_value.type != VALUE_TYPE_STRING) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           string_value.position,
-          "%s requires a string as first argument. Got type %u", STR_INCLUDE,
-          string_value.type);
+          "%s requires a string as first argument. Got %s.", STR_INCLUDE,
+          formatValueType(string_value.type));
   }
 
   value_t search_value = listGet(value_t, values, 1);
   if (search_value.type != VALUE_TYPE_STRING) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           search_value.position,
-          "%s requires a string as second argument. Got type %u", STR_INCLUDE,
-          search_value.type);
+          "%s requires a string as second argument. Got %s.", STR_INCLUDE,
+          formatValueType(search_value.type));
   }
 
   bool found =
@@ -202,17 +203,16 @@ result_void_position_t strTrimLeft(value_t *result, const value_list_t *values,
                                    arena_t *arena) {
   (void)arena;
 
-  if (values->count != 1) {
+  if (values->count < 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires exactly 1 argument. Got %zu", STR_TRIM_LEFT,
-          values->count);
+          "%s requires 1 argument. Got %zu", STR_TRIM_LEFT, values->count);
   }
 
   value_t string_value = listGet(value_t, values, 0);
   if (string_value.type != VALUE_TYPE_STRING) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,
-          string_value.position, "%s requires a string. Got type %u",
-          STR_TRIM_LEFT, string_value.type);
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+          string_value.position, "%s requires a string. Got %s.", STR_TRIM_LEFT,
+          formatValueType(string_value.type));
   }
 
   char *start = string_value.value.string;
@@ -236,17 +236,16 @@ result_void_position_t strTrimRight(value_t *result, const value_list_t *values,
                                     arena_t *arena) {
   (void)arena;
 
-  if (values->count != 1) {
+  if (values->count < 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires exactly 1 argument. Got %zu", STR_TRIM_RIGHT,
-          values->count);
+          "%s requires 1 argument. Got %zu", STR_TRIM_RIGHT, values->count);
   }
 
   value_t string_value = listGet(value_t, values, 0);
   if (string_value.type != VALUE_TYPE_STRING) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,
-          string_value.position, "%s requires a string. Got type %u",
-          STR_TRIM_RIGHT, string_value.type);
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+          string_value.position, "%s requires a string. Got %s.",
+          STR_TRIM_RIGHT, formatValueType(string_value.type));
   }
 
   size_t len = strlen(string_value.value.string);
