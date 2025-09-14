@@ -15,7 +15,7 @@
 result_void_position_t invokeClosure(value_t *result, closure_t closure,
                                      value_list_t *arguments,
                                      arena_t *scratch_arena) {
-  if (arguments->count != closure.arguments.count) {
+  if (arguments->count > closure.arguments.count) {
     throw(result_void_position_t, ERROR_CODE_TYPE_UNEXPECTED_ARITY,
           result->position,
           "Unexpected arity. Expected %lu arguments, got %lu.",
