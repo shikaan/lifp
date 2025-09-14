@@ -4,19 +4,17 @@ BUGS
 
 FEATURES
 ---
-  * [ ] Compile AST to bytecode
-  * [ ] Implement methods (list.times, io.printf!)
+  * [ ] Enum to text for error messages
+  * [ ] Auto-generated documentation for standard library
+  * [ ] Implement `?` in REPL
+  * [ ] imports `(import! my-module "./my-module.lifp")
   * [ ] Decouple validation from execution
   * [ ] Enforce naming conventions for functions
     * [ ] effectful functions should terminate with !
     * [ ] functions ending in ? should return bool
-  * [ ] Resizable arena, to allow resizable environments
-  * [ ] Tail call optimization
-  * [ ] Auto-generated documentation for standard library
-  * [ ] Enum to text for error messages
-  * [ ] Implement `?` in REPL
-  * [ ] imports `(import! my-module "./my-module.lifp")
   * [ ] Type Declaration comments `;; (number, number) -> number`
+  * [ ] Compile AST to bytecode
+  * [ ] Tail call optimization
 
 REFACTORING
 ---

@@ -1,4 +1,5 @@
 #include "../lifp/evaluate.h"
+#include "../lifp/fmt.h"
 #include "../lifp/parse.h"
 #include "../lifp/tokenize.h"
 #include "../lifp/virtual_machine.h"
@@ -24,10 +25,18 @@ typedef struct {
   const char *filename;
 } run_opts_t;
 
+#define printError(Result, InputBuffer, Size, OutputBuffer)                    \
+  int _concat(offset_, __LINE__) = 0;                                          \
+  formatErrorMessage((Result)->message, (Result)->meta, OPTIONS.filename,      \
+                     InputBuffer, Size, OutputBuffer,                          \
+                     &_concat(offset_, __LINE__));                             \
+  fprintf(stdout, "%s\n", OutputBuffer);
+
 #define tryRun(Action, ...)                                                    \
   auto _concat(result, __LINE__) = Action;                                     \
   if (_concat(result, __LINE__).code != RESULT_OK) {                           \
-    error("%s", _concat(result, __LINE__).message);                            \
+    char buffer[4096] = {0};                                                   \
+    printError(&_concat(result, __LINE__), statement_buffer, 4096, buffer);    \
     profileReport();                                                           \
     return 1;                                                                  \
   }                                                                            \

@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 // List count function - counts elements in a list
-const char *LIST_COUNT = "list.count";
+const char *LIST_COUNT = "list:count";
 result_void_position_t listCount(value_t *result, const value_list_t *arguments,
                                  arena_t *arena) {
   (void)arena;
@@ -28,7 +28,7 @@ result_void_position_t listCount(value_t *result, const value_list_t *arguments,
 }
 
 // List from function - creates a list from the given arguments
-const char *LIST_FROM = "list.from";
+const char *LIST_FROM = "list:from";
 result_void_position_t listFrom(value_t *result, const value_list_t *arguments,
                                 arena_t *arena) {
   result->type = VALUE_TYPE_LIST;
@@ -59,7 +59,7 @@ result_void_position_t listFrom(value_t *result, const value_list_t *arguments,
 
 // List nth function - returns the nth element of a list, or nil if out of
 // bounds
-const char *LIST_NTH = "list.nth";
+const char *LIST_NTH = "list:nth";
 result_void_position_t listNth(value_t *result, const value_list_t *arguments,
                                arena_t *arena) {
   (void)arena;
@@ -98,7 +98,7 @@ result_void_position_t listNth(value_t *result, const value_list_t *arguments,
   return ok(result_void_position_t);
 }
 
-const char *LIST_MAP = "list.map";
+const char *LIST_MAP = "list:map";
 result_void_position_t listMap(value_t *result, const value_list_t *arguments,
                                arena_t *arena) {
   if (arguments->count != 2) {
@@ -161,7 +161,7 @@ result_void_position_t listMap(value_t *result, const value_list_t *arguments,
   return ok(result_void_position_t);
 }
 
-const char *LIST_EACH = "list.each";
+const char *LIST_EACH = "list:each";
 result_void_position_t listEach(value_t *result, const value_list_t *arguments,
                                 arena_t *arena) {
   if (arguments->count != 2) {
@@ -216,7 +216,7 @@ result_void_position_t listEach(value_t *result, const value_list_t *arguments,
   return ok(result_void_position_t);
 }
 
-const char *LIST_FILTER = "list.filter";
+const char *LIST_FILTER = "list:filter";
 result_void_position_t
 listFilter(value_t *result, const value_list_t *arguments, arena_t *arena) {
   if (arguments->count != 2) {
@@ -285,6 +285,64 @@ listFilter(value_t *result, const value_list_t *arguments, arena_t *arena) {
 
   result->type = VALUE_TYPE_LIST;
   result->value.list = *filtered_list;
+
+  return ok(result_void_position_t);
+}
+
+const char *LIST_TIMES = "list:times";
+result_void_position_t listTimes(value_t *result, const value_list_t *arguments,
+                                 arena_t *arena) {
+  if (arguments->count != 2) {
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
+          "%s requires exactly 2 arguments. Got %zu", LIST_TIMES,
+          arguments->count);
+  }
+
+  value_t closure_value = listGet(value_t, arguments, 0);
+  value_t repeats_value = listGet(value_t, arguments, 1);
+
+  if (closure_value.type != VALUE_TYPE_CLOSURE) {
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,
+          closure_value.position,
+          "%s requires a function as first argument. Got type %u", LIST_TIMES,
+          closure_value.type);
+  }
+
+  if (repeats_value.type != VALUE_TYPE_NUMBER) {
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,
+          repeats_value.position,
+          "%s requires a number as second argument. Got type %u", LIST_TIMES,
+          repeats_value.type);
+  }
+
+  size_t repeats = (size_t)repeats_value.value.number;
+  closure_t closure = closure_value.value.closure;
+
+  value_list_t *repeated_list = nullptr;
+  tryWithMeta(result_void_position_t, listCreate(value_t, arena, repeats),
+              result->position, repeated_list);
+
+  for (size_t i = 0; i < repeats; i++) {
+    value_list_t *closure_args = nullptr;
+    tryWithMeta(result_void_position_t, listCreate(value_t, arena, 1),
+                result->position, closure_args);
+
+    value_t index;
+    tryWithMeta(result_void_position_t, valueInit(&index, arena, (number_t)i),
+                result->position);
+    tryWithMeta(result_void_position_t,
+                listAppend(value_t, closure_args, &index), result->position);
+
+    value_t mapped;
+    try(result_void_position_t,
+        invokeClosure(&mapped, closure, closure_args, arena));
+
+    tryWithMeta(result_void_position_t,
+                listAppend(value_t, repeated_list, &mapped), result->position);
+  }
+
+  result->type = VALUE_TYPE_LIST;
+  result->value.list = *repeated_list;
 
   return ok(result_void_position_t);
 }

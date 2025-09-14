@@ -12,7 +12,7 @@
               Buffer);                                                         \
   memset(Buffer, 0, Length);
 
-const char *STR_LENGTH = "str.length";
+const char *STR_LENGTH = "str:length";
 result_void_position_t strLength(value_t *result, const value_list_t *values,
                                  arena_t *arena) {
   (void)arena;
@@ -34,7 +34,7 @@ result_void_position_t strLength(value_t *result, const value_list_t *values,
   return ok(result_void_position_t);
 }
 
-const char *STR_JOIN = "str.join";
+const char *STR_JOIN = "str:join";
 result_void_position_t strJoin(value_t *result, const value_list_t *values,
                                arena_t *arena) {
   if (values->count != 2) {
@@ -98,7 +98,7 @@ result_void_position_t strJoin(value_t *result, const value_list_t *values,
   return ok(result_void_position_t);
 }
 
-const char *STR_SLICE = "str.slice";
+const char *STR_SLICE = "str:slice";
 result_void_position_t strSlice(value_t *result, const value_list_t *values,
                                 arena_t *arena) {
   if (values->count < 2 || values->count > 3) {
@@ -161,7 +161,7 @@ result_void_position_t strSlice(value_t *result, const value_list_t *values,
   return ok(result_void_position_t);
 }
 
-const char *STR_INCLUDE = "str.include";
+const char *STR_INCLUDE = "str:include";
 result_void_position_t strInclude(value_t *result, const value_list_t *values,
                                   arena_t *arena) {
   (void)arena;
@@ -197,7 +197,7 @@ result_void_position_t strInclude(value_t *result, const value_list_t *values,
   return ok(result_void_position_t);
 }
 
-const char *STR_TRIM_LEFT = "str.trimLeft";
+const char *STR_TRIM_LEFT = "str:trimLeft";
 result_void_position_t strTrimLeft(value_t *result, const value_list_t *values,
                                    arena_t *arena) {
   (void)arena;
@@ -231,7 +231,7 @@ result_void_position_t strTrimLeft(value_t *result, const value_list_t *values,
   return ok(result_void_position_t);
 }
 
-const char *STR_TRIM_RIGHT = "str.trimRight";
+const char *STR_TRIM_RIGHT = "str:trimRight";
 result_void_position_t strTrimRight(value_t *result, const value_list_t *values,
                                     arena_t *arena) {
   (void)arena;

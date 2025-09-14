@@ -8,7 +8,7 @@
 #include <time.h>
 #include <unistd.h>
 
-const char *FLOW_SLEEP = "flow.sleep";
+const char *FLOW_SLEEP = "flow:sleep";
 
 result_void_position_t flowSleep(value_t *result, const value_list_t *arguments,
                                  arena_t *arena) {
