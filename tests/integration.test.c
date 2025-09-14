@@ -78,7 +78,7 @@ int main() {
 
   case("immediate invocation");
   value_t immediate_invocation;
-  execute(&immediate_invocation, "((fn (a b) (list.from a b)) 2 3)");
+  execute(&immediate_invocation, "((fn (a b) (list:from a b)) 2 3)");
   expectEqlUint(immediate_invocation.type, VALUE_TYPE_LIST, "returns a list");
   expectTrue((immediate_invocation.value.list.data[0].value.number == 2 && 
     immediate_invocation.value.list.data[1].value.number == 3) != 0, "with correct value");
@@ -101,7 +101,7 @@ int main() {
   
   case("functions with non-inline types");
   value_t fun2;
-  execute(&fun2, "(def! comma (fn (s) (str.join \", \" s)))\n(comma (\"1\" \"2\"))");
+  execute(&fun2, "(def! comma (fn (s) (str:join \", \" s)))\n(comma (\"1\" \"2\"))");
   expectEqlUint(fun2.type, VALUE_TYPE_STRING, "returns correct type");
 
   case("let");

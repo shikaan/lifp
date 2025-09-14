@@ -3,7 +3,7 @@
 #include "../fmt.h"
 #include "../value.h"
 
-const char *IO_PRINT = "io.print!";
+const char *IO_PRINT = "io:print!";
 result_void_position_t ioPrint(value_t *result, const value_list_t *values,
                                arena_t *arena) {
   (void)arena;

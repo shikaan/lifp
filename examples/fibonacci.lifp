@@ -9,6 +9,6 @@
       ((= a 2) 2)
       (+ (fibonacci (- a 1)) (fibonacci (- a 2))))))
 
-(io.print! (fibonacci 8))
+(io:print! (fibonacci 8))
 
 ; vim:ft=lisp

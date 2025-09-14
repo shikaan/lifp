@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 // List count function - counts elements in a list
-const char *LIST_COUNT = "list.count";
+const char *LIST_COUNT = "list:count";
 result_void_position_t listCount(value_t *result, const value_list_t *arguments,
                                  arena_t *arena) {
   (void)arena;
@@ -28,7 +28,7 @@ result_void_position_t listCount(value_t *result, const value_list_t *arguments,
 }
 
 // List from function - creates a list from the given arguments
-const char *LIST_FROM = "list.from";
+const char *LIST_FROM = "list:from";
 result_void_position_t listFrom(value_t *result, const value_list_t *arguments,
                                 arena_t *arena) {
   result->type = VALUE_TYPE_LIST;
@@ -59,7 +59,7 @@ result_void_position_t listFrom(value_t *result, const value_list_t *arguments,
 
 // List nth function - returns the nth element of a list, or nil if out of
 // bounds
-const char *LIST_NTH = "list.nth";
+const char *LIST_NTH = "list:nth";
 result_void_position_t listNth(value_t *result, const value_list_t *arguments,
                                arena_t *arena) {
   (void)arena;
@@ -98,7 +98,7 @@ result_void_position_t listNth(value_t *result, const value_list_t *arguments,
   return ok(result_void_position_t);
 }
 
-const char *LIST_MAP = "list.map";
+const char *LIST_MAP = "list:map";
 result_void_position_t listMap(value_t *result, const value_list_t *arguments,
                                arena_t *arena) {
   if (arguments->count != 2) {
@@ -161,7 +161,7 @@ result_void_position_t listMap(value_t *result, const value_list_t *arguments,
   return ok(result_void_position_t);
 }
 
-const char *LIST_EACH = "list.each";
+const char *LIST_EACH = "list:each";
 result_void_position_t listEach(value_t *result, const value_list_t *arguments,
                                 arena_t *arena) {
   if (arguments->count != 2) {
@@ -216,7 +216,7 @@ result_void_position_t listEach(value_t *result, const value_list_t *arguments,
   return ok(result_void_position_t);
 }
 
-const char *LIST_FILTER = "list.filter";
+const char *LIST_FILTER = "list:filter";
 result_void_position_t
 listFilter(value_t *result, const value_list_t *arguments, arena_t *arena) {
   if (arguments->count != 2) {
@@ -289,7 +289,7 @@ listFilter(value_t *result, const value_list_t *arguments, arena_t *arena) {
   return ok(result_void_position_t);
 }
 
-const char *LIST_TIMES = "list.times";
+const char *LIST_TIMES = "list:times";
 result_void_position_t listTimes(value_t *result, const value_list_t *arguments,
                                  arena_t *arena) {
   if (arguments->count != 2) {

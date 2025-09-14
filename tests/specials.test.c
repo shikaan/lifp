@@ -74,6 +74,10 @@ void defSpecialForm() {
   expectIncludeString(exec.message, "already been declared",
                       "prevents overriding builtins");
 
+  tryFail(execute(&result, "(def! lo:l 2)"), exec);
+  expectIncludeString(exec.message, "Unexpected namespace delimiter",
+                      "bindings cannot include namespace symbol");
+
   tryFail(execute(&result, "(let ((foo 1)) (def! foo 2))"), exec);
   expectIncludeString(exec.message, "already been declared",
                       "prevents overriding locals");
@@ -196,6 +200,10 @@ void letSpecialForm() {
   tryFail(execute(&result, "(let ((y 1)) (let ((y 2)) y))"), exec);
   expectIncludeString(exec.message, "already been declared",
                       "prevents shadowing locals");
+
+  tryFail(execute(&result, "(let ((lo:l 1)) lo:l)"), exec);
+  expectIncludeString(exec.message, "Unexpected namespace delimiter",
+                      "bindings cannot include namespace symbol");
 }
 
 void condSpecialForm() {

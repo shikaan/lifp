@@ -4,6 +4,7 @@
 #include "error.h"
 #include "evaluate.h"
 #include "node.h"
+#include "token.h"
 #include "value.h"
 #include "virtual_machine.h"
 #include <assert.h>
@@ -45,6 +46,13 @@ result_void_position_t define(value_t *result, const node_list_t *nodes,
   if (key.type != NODE_TYPE_SYMBOL) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, first.position,
           "%s requires a symbol and a form. %s", DEFINE, DEFINE_EXAMPLE);
+  }
+
+  if (strchr(key.value.symbol, NAMESPACE_DELIMITER) != NULL) {
+    throw(result_void_position_t, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN,
+          first.position,
+          "Unexpected namespace delimiter '%c' in custom symbol '%s'.",
+          NAMESPACE_DELIMITER, key.value.symbol);
   }
 
   // Perform reduction in the temporary memory
@@ -161,6 +169,13 @@ result_void_position_t let(value_t *result, const node_list_t *nodes,
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, symbol.position,
             "%s requires a list of symbol-form assignments. %s", LET,
             LET_EXAMPLE);
+    }
+
+    if (strchr(symbol.value.symbol, NAMESPACE_DELIMITER) != NULL) {
+      throw(result_void_position_t, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN,
+            first.position,
+            "Unexpected namespace delimiter '%c' in custom symbol '%s'.",
+            NAMESPACE_DELIMITER, symbol.value.symbol);
     }
 
     node_t body = listGet(node_t, &couple.value.list, 1);

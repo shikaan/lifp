@@ -9,6 +9,7 @@ constexpr char LPAREN = '(';
 constexpr char RPAREN = ')';
 constexpr char STRING_DELIMITER = '"';
 constexpr char COMMENT_DELIMITER = ';';
+constexpr char NAMESPACE_DELIMITER = ':';
 constexpr char BOOLEAN_DELIMITER = '?';
 constexpr char EFFECTFUL_DEIMITER = '!';
 

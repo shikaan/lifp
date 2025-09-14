@@ -93,7 +93,7 @@ void transientAllocations(void) {
                 "persisted for simple evaluations");
   usage = getArenaMemoryUsage(test_result_arena);
 
-  tryAssert(execute("(list.from 1 2 3 4 5)"));
+  tryAssert(execute("(list:from 1 2 3 4 5)"));
   expectEqlSize(getArenaMemoryUsage(test_result_arena),
                 usage + (sizeof(value_t) * 5) +
                     sizeof(List(value_t)),
@@ -105,9 +105,6 @@ void transientAllocations(void) {
                 usage + (sizeof(value_t) * 2) + sizeof(List(value_t)),
                 "persisted for closure invocations");
   usage = getArenaMemoryUsage(test_result_arena);
-
-  // TODO: there is no way of nesting builtins for non stack allocated values
-  // yet
 
   arenaReset(test_ast_arena);
   arenaReset(test_temp_arena);
@@ -145,7 +142,7 @@ void letBindingsMemory(void) {
                 "persisted for simple evaluations");
   usage = getArenaMemoryUsage(test_result_arena);
   
-  tryAssert(execute("(let ((x 10) (y 20)) (list.from x y))"));
+  tryAssert(execute("(let ((x 10) (y 20)) (list:from x y))"));
   expectEqlSize(getArenaMemoryUsage(test_result_arena),
                 usage + sizeof(List(value_t)) + (sizeof(value_t) * 2),
                 "persisted for builtin invocations");
@@ -157,7 +154,7 @@ void letBindingsMemory(void) {
                 "persisted for nested let bindings");
   usage = getArenaMemoryUsage(test_result_arena);
 
-  tryAssert(execute("(let ((f (fn (a) (+ a 1)))) (list.from (f 10)))"));
+  tryAssert(execute("(let ((f (fn (a) (+ a 1)))) (list:from (f 10)))"));
   expectEqlSize(getArenaMemoryUsage(test_result_arena),
                 usage + sizeof(List(value_t)) + (sizeof(value_t)),
                 "persisted for let with closures");
