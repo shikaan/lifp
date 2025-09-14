@@ -87,7 +87,7 @@ result_void_position_t ioPrintf(value_t *result, const value_list_t *values,
   if (placeholder_count > inputs.count) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,
           format_value.position,
-          "Cannot have more placholders than values. "
+          "Cannot have more placeholders than values. "
           "Got %lu placeholders and %lu values.",
           placeholder_count, inputs.count);
   }
@@ -166,7 +166,7 @@ result_void_position_t ioClear(value_t *result, const value_list_t *values,
   (void)arena;
   if (values->count != 0) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s takes no arguments. Got %zu", IO_READLINE, values->count);
+          "%s takes no arguments. Got %zu", IO_CLEAR, values->count);
   }
 
   puts("\e[1;1H\e[2J");
