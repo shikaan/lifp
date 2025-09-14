@@ -217,7 +217,7 @@ result_token_list_ref_t tokenize(arena_t *arena, const char *source) {
 
       if (!isValidSymbolName(str->count - 1, str->data)) {
         throw(result_token_list_ref_t, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN,
-              token_pos, "Invalid symbol name");
+              token_pos, "Invalid symbol name: '%s'", str->data);
       }
 
       char *remainder;
