@@ -73,7 +73,11 @@ result_vm_ref_t vmCreate(vm_options_t opts) {
   setBuiltin(STR_INCLUDE, strInclude);
   setBuiltin(STR_TRIM_LEFT, strTrimLeft);
   setBuiltin(STR_TRIM_RIGHT, strTrimRight);
-  setBuiltin(IO_PRINT, ioPrint);
+  setBuiltin(IO_STDOUT, ioStdout);
+  setBuiltin(IO_STDERR, ioStderr);
+  setBuiltin(IO_PRINTF, ioPrintf);
+  setBuiltin(IO_READLINE, ioReadline);
+  setBuiltin(IO_CLEAR, ioClear);
 #undef setBuiltin
 
   try(result_vm_ref_t, mapCreate(value_t, arena, 4), specials);
