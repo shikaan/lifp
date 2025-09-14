@@ -21,7 +21,7 @@ typedef struct {
 } repl_opts_t;
 
 static constexpr char REPL_COMMAND_CLEAR[] = "clear";
-void clean(void) { printf("\e[1;1H\e[2J"); }
+void clean(void) { puts("\e[1;1H\e[2J"); }
 static constexpr char REPL_COMMAND_HELP[] = "help";
 void help(void) {
   printf("lifp is a LISP dialect. Its syntax is made of expressions enclosed "
