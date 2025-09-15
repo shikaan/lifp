@@ -1,3 +1,15 @@
+// Math operators for lifp. Provides mathematical utilities such as min, max,
+// random, ceil, and floor for working with numbers and lists of numbers.
+//
+// ```lisp
+// (math:max (list:from 1 2 3)) ; returns 3
+// (math:min (list:from 1 2 3)) ; returns 1
+// (math:random!) ; returns a random number between 0 and 1
+// (math:ceil 2.3) ; returns 3
+// (math:floor 2.7) ; returns 2
+// ```
+// ___HEADER_END___
+
 #include "../../lib/result.h"
 #include "../error.h"
 #include "../fmt.h"
@@ -7,37 +19,31 @@
 #include <stdlib.h>
 #include <time.h>
 
-// Math max function - returns the maximum value in a list of numbers
+/**
+ * Returns the maximum value in a sequence of numbers.
+ * @name math:max
+ * @param {...number} numbers - The list of numbers.
+ * @returns {number} The maximum value.
+ * @example
+ *   (math:max 1 2 3) ; returns 3
+ */
 const char *MATH_MAX = "math:max";
 result_void_position_t mathMax(value_t *result, const value_list_t *values,
                                arena_t *arena) {
   (void)arena;
-  if (values->count != 1) {
+  if (values->count < 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires 1 argument. Got %zu", MATH_MAX, values->count);
   }
 
-  value_t list_value = listGet(value_t, values, 0);
-  if (list_value.type != VALUE_TYPE_LIST) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
-          list_value.position, "%s requires a list. Got %s.", MATH_MAX,
-          formatValueType(list_value.type));
-  }
-
-  value_list_t *list = &list_value.value.list;
-  if (list->count == 0) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, list_value.position,
-          "%s requires a non-empty list", MATH_MAX);
-  }
-
   // Find the maximum value
   number_t max_value = DBL_MIN;
-  for (size_t i = 0; i < list->count; i++) {
-    value_t current = listGet(value_t, list, i);
+  for (size_t i = 0; i < values->count; i++) {
+    value_t current = listGet(value_t, values, i);
     if (current.type != VALUE_TYPE_NUMBER) {
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
-            current.position, "%s requires a list of numbers. Got %s.",
-            MATH_MAX, formatValueType(current.type));
+            current.position, "%s requires numbers. Got %s.", MATH_MAX,
+            formatValueType(current.type));
     }
 
     if (current.value.number > max_value) {
@@ -51,37 +57,31 @@ result_void_position_t mathMax(value_t *result, const value_list_t *values,
   return ok(result_void_position_t);
 }
 
-// Math min function - returns the minimum value in a list of numbers
+/**
+ * Returns the minimum value in a sequence of numbers.
+ * @name math:min
+ * @param {...number} numbers - The list of numbers.
+ * @returns {number} The minimum value.
+ * @example
+ *   (math:min 1 2 3) ; returns 1
+ */
 const char *MATH_MIN = "math:min";
 result_void_position_t mathMin(value_t *result, const value_list_t *values,
                                arena_t *arena) {
   (void)arena;
-  if (values->count != 1) {
+  if (values->count < 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires 1 argument. Got %zu", MATH_MIN, values->count);
   }
 
-  value_t list_value = listGet(value_t, values, 0);
-  if (list_value.type != VALUE_TYPE_LIST) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
-          list_value.position, "%s requires a list. Got %s.", MATH_MIN,
-          formatValueType(list_value.type));
-  }
-
-  value_list_t *list = &list_value.value.list;
-  if (list->count == 0) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, list_value.position,
-          "%s requires a non-empty list", MATH_MIN);
-  }
-
   // Find the minimum value
   number_t min_value = DBL_MAX;
-  for (size_t i = 0; i < list->count; i++) {
-    value_t current = listGet(value_t, list, i);
+  for (size_t i = 0; i < values->count; i++) {
+    value_t current = listGet(value_t, values, i);
     if (current.type != VALUE_TYPE_NUMBER) {
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
-            current.position, "%s requires a list of numbers. Got %s.",
-            MATH_MIN, formatValueType(current.type));
+            current.position, "%s requires numbers. Got %s.", MATH_MIN,
+            formatValueType(current.type));
     }
 
     if (current.value.number < min_value) {
@@ -95,7 +95,13 @@ result_void_position_t mathMin(value_t *result, const value_list_t *values,
   return ok(result_void_position_t);
 }
 
-// Math random function - returns a random number between 0 and 1
+/**
+ * Returns a random number between 0 and 1.
+ * @name math:random!
+ * @returns {number} A random number in [0, 1].
+ * @example
+ *   (math:random!) ; returns a random number between 0 and 1
+ */
 const char *MATH_RANDOM = "math:random!";
 result_void_position_t mathRandom(value_t *result, const value_list_t *values,
                                   arena_t *arena) {
@@ -118,6 +124,14 @@ result_void_position_t mathRandom(value_t *result, const value_list_t *values,
   return ok(result_void_position_t);
 }
 
+/**
+ * Returns the smallest integer greater than or equal to the given number.
+ * @name math:ceil
+ * @param {number} n - The number to ceil.
+ * @returns {number} The smallest integer >= n.
+ * @example
+ *   (math:ceil 2.3) ; returns 3
+ */
 const char *MATH_CEIL = "math:ceil";
 result_void_position_t mathCeil(value_t *result, const value_list_t *values,
                                 arena_t *arena) {
@@ -140,6 +154,14 @@ result_void_position_t mathCeil(value_t *result, const value_list_t *values,
   return ok(result_void_position_t);
 }
 
+/**
+ * Returns the largest integer less than or equal to the given number.
+ * @name math:floor
+ * @param {number} n - The number to floor.
+ * @returns {number} The largest integer <= n.
+ * @example
+ *   (math:floor 2.7) ; returns 2
+ */
 const char *MATH_FLOOR = "math:floor";
 result_void_position_t mathFloor(value_t *result, const value_list_t *values,
                                  arena_t *arena) {

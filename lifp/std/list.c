@@ -1,11 +1,28 @@
+// List manipulation operators for lifp. These functions provide core list
+// operations such as counting, creating, accessing, mapping, filtering, and
+// iterating over lists.
+//
+// ```lisp
+// (list:count (list:from 1 2 3)) ; returns 3
+// (list:nth 1 (list:from 10 20 30)) ; returns 20
+// (list:map (fn (x i) (* x 2)) (list:from 1 2 3)) ; returns (2 4 6)
+// ```
+// ___HEADER_END___
+
 #include "../../lib/result.h"
 #include "../error.h"
 #include "../evaluate.h"
 #include "../fmt.h"
 #include "../value.h"
-#include <stdint.h>
 
-// List count function - counts elements in a list
+/**
+ * Counts the number of elements in a list.
+ * @name list:count
+ * @param {list} list - The list to count elements of.
+ * @returns {number} The number of elements in the list.
+ * @example
+ *   (list:count (1 2 3)) ; returns 3
+ */
 const char *LIST_COUNT = "list:count";
 result_void_position_t listCount(value_t *result, const value_list_t *arguments,
                                  arena_t *arena) {
@@ -28,7 +45,14 @@ result_void_position_t listCount(value_t *result, const value_list_t *arguments,
   return ok(result_void_position_t);
 }
 
-// List from function - creates a list from the given arguments
+/**
+ * Creates a list from the given arguments.
+ * @name list:from
+ * @param {...any} values - The values to include in the list.
+ * @returns {list} A new list containing the provided values.
+ * @example
+ *   (list:from 1 2 3) ; returns (1 2 3)
+ */
 const char *LIST_FROM = "list:from";
 result_void_position_t listFrom(value_t *result, const value_list_t *arguments,
                                 arena_t *arena) {
@@ -58,8 +82,15 @@ result_void_position_t listFrom(value_t *result, const value_list_t *arguments,
   return ok(result_void_position_t);
 }
 
-// List nth function - returns the nth element of a list, or nil if out of
-// bounds
+/**
+ * Returns the nth element of a list, or nil if out of bounds.
+ * @name list:nth
+ * @param {number} index - The index of the element to retrieve.
+ * @param {list} list - The list to access.
+ * @returns {any} The nth element, or nil if out of bounds.
+ * @example
+ *   (list:nth 1 (10 20 30)) ; returns 20
+ */
 const char *LIST_NTH = "list:nth";
 result_void_position_t listNth(value_t *result, const value_list_t *arguments,
                                arena_t *arena) {
@@ -100,6 +131,16 @@ result_void_position_t listNth(value_t *result, const value_list_t *arguments,
   return ok(result_void_position_t);
 }
 
+/**
+ * Maps a function over a list, returning a new list of results.
+ * The function receives each element and its index.
+ * @name list:map
+ * @param {function} fn - The function to apply (fn element index).
+ * @param {list} list - The list to map over.
+ * @returns {list} A new list with mapped values.
+ * @example
+ *   (list:map (fn (x i) (* x 2)) (1 2 3)) ; returns (2 4 6)
+ */
 const char *LIST_MAP = "list:map";
 result_void_position_t listMap(value_t *result, const value_list_t *arguments,
                                arena_t *arena) {
@@ -162,6 +203,16 @@ result_void_position_t listMap(value_t *result, const value_list_t *arguments,
   return ok(result_void_position_t);
 }
 
+/**
+ * Applies a function to each element of a list for side effects.
+ * The function receives each element and its index.
+ * @name list:each
+ * @param {function} fn - The function to apply (fn element index).
+ * @param {list} list - The list to iterate over.
+ * @returns {nil} Always returns nil.
+ * @example
+ *   (list:each (fn (x i) (print x)) (1 2 3))
+ */
 const char *LIST_EACH = "list:each";
 result_void_position_t listEach(value_t *result, const value_list_t *arguments,
                                 arena_t *arena) {
@@ -216,6 +267,18 @@ result_void_position_t listEach(value_t *result, const value_list_t *arguments,
   return ok(result_void_position_t);
 }
 
+/**
+ * Filters a list using a predicate function.
+ * The function receives each element and its index, and should return a
+ * boolean.
+ * @name list:filter
+ * @param {function} fn - The predicate function (fn element index).
+ * @param {list} list - The list to filter.
+ * @returns {list} A new list with elements for which the predicate returned
+ * true.
+ * @example
+ *   (list:filter (fn (x i) (> x 1)) (1 2 3)) ; returns (2 3)
+ */
 const char *LIST_FILTER = "list:filter";
 result_void_position_t
 listFilter(value_t *result, const value_list_t *arguments, arena_t *arena) {
@@ -288,6 +351,16 @@ listFilter(value_t *result, const value_list_t *arguments, arena_t *arena) {
   return ok(result_void_position_t);
 }
 
+/**
+ * Calls a function a given number of times, collecting the results in a list.
+ * The function receives the current index.
+ * @name list:times
+ * @param {function} fn - The function to call (fn index).
+ * @param {number} count - The number of times to call the function.
+ * @returns {list} A new list with the results.
+ * @example
+ *   (list:times (fn (i) (* i 2)) 3) ; returns (0 2 4)
+ */
 const char *LIST_TIMES = "list:times";
 result_void_position_t listTimes(value_t *result, const value_list_t *arguments,
                                  arena_t *arena) {
