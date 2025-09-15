@@ -1,3 +1,11 @@
+// Flow control utilities for lifp. These functions provide basic control over
+// program execution, such as pausing execution for a specified duration.
+//
+// ```lisp
+// (flow:sleep! 1000) ; pauses execution for ~1 second
+// ```
+// ___HEADER_END___
+
 #include "../../lib/result.h"
 #include "../error.h"
 #include "../fmt.h"
@@ -9,7 +17,15 @@
 #include <time.h>
 #include <unistd.h>
 
-const char *FLOW_SLEEP = "flow:sleep";
+/**
+ * Suspends execution for a given number of milliseconds.
+ * @name flow:sleep!
+ * @param {number} milliseconds - The number of milliseconds to sleep.
+ * @returns {nil} Returns nil after sleeping for the specified duration.
+ * @example
+ *   (flow:sleep! 1000) ; pauses for ~1 second
+ */
+const char *FLOW_SLEEP = "flow:sleep!";
 
 result_void_position_t flowSleep(value_t *result, const value_list_t *arguments,
                                  arena_t *arena) {

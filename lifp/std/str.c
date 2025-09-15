@@ -1,3 +1,15 @@
+// String manipulation functions for lifp.
+//
+// ```lisp
+// (str:length "hello") ; returns 5
+// (str:join "," ("a" "b" "c")) ; returns "a,b,c"
+// (str:slice "abcdef" 1 4) ; returns "bcde"
+// (str:include "hello world" "world") ; returns true
+// (str:trimLeft "   foo") ; returns "foo"
+// (str:trimRight "foo   ") ; returns "foo"
+// ```
+// ___HEADER_END___
+
 #include "../../lib/result.h"
 #include "../../lib/string.h"
 #include "../error.h"
@@ -13,6 +25,14 @@
               Buffer);                                                         \
   memset(Buffer, 0, Length);
 
+/**
+ * Returns the length of a string.
+ * @name str:length
+ * @param {string} str - The string to measure.
+ * @returns {number} The length of the string.
+ * @example
+ *   (str:length "hello") ; returns 5
+ */
 const char *STR_LENGTH = "str:length";
 result_void_position_t strLength(value_t *result, const value_list_t *values,
                                  arena_t *arena) {
@@ -35,6 +55,15 @@ result_void_position_t strLength(value_t *result, const value_list_t *values,
   return ok(result_void_position_t);
 }
 
+/**
+ * Joins a list of strings using a separator.
+ * @name str:join
+ * @param {string} separator - The separator string.
+ * @param {list} strings - The list of strings to join.
+ * @returns {string} The joined string.
+ * @example
+ *   (str:join "," ("a" "b" "c")) ; returns "a,b,c"
+ */
 const char *STR_JOIN = "str:join";
 result_void_position_t strJoin(value_t *result, const value_list_t *values,
                                arena_t *arena) {
@@ -100,6 +129,18 @@ result_void_position_t strJoin(value_t *result, const value_list_t *values,
   return ok(result_void_position_t);
 }
 
+/**
+ * Returns a substring from start to end (end not inclusive).
+ * Negative indices count from the end of the string.
+ * @name str:slice
+ * @param {string} str - The string to slice.
+ * @param {number} start - The start index.
+ * @param {number} [end] - The end index (optional).
+ * @returns {string} The sliced substring.
+ * @example
+ *   (str:slice "abcdef" 1 4) ; returns "bcde"
+ *   (str:slice "abcdef" 2) ; returns "cdef"
+ */
 const char *STR_SLICE = "str:slice";
 result_void_position_t strSlice(value_t *result, const value_list_t *values,
                                 arena_t *arena) {
@@ -163,6 +204,15 @@ result_void_position_t strSlice(value_t *result, const value_list_t *values,
   return ok(result_void_position_t);
 }
 
+/**
+ * Checks if a string contains a substring.
+ * @name str:include
+ * @param {string} str - The string to search in.
+ * @param {string} search - The substring to search for.
+ * @returns {boolean} True if the substring is found, false otherwise.
+ * @example
+ *   (str:include "hello world" "world") ; returns true
+ */
 const char *STR_INCLUDE = "str:include";
 result_void_position_t strInclude(value_t *result, const value_list_t *values,
                                   arena_t *arena) {
@@ -198,6 +248,14 @@ result_void_position_t strInclude(value_t *result, const value_list_t *values,
   return ok(result_void_position_t);
 }
 
+/**
+ * Removes whitespace from the start of a string.
+ * @name str:trimLeft
+ * @param {string} str - The string to trim.
+ * @returns {string} The trimmed string.
+ * @example
+ *   (str:trimLeft "   foo") ; returns "foo"
+ */
 const char *STR_TRIM_LEFT = "str:trimLeft";
 result_void_position_t strTrimLeft(value_t *result, const value_list_t *values,
                                    arena_t *arena) {
@@ -231,6 +289,14 @@ result_void_position_t strTrimLeft(value_t *result, const value_list_t *values,
   return ok(result_void_position_t);
 }
 
+/**
+ * Removes whitespace from the end of a string.
+ * @name str:trimRight
+ * @param {string} str - The string to trim.
+ * @returns {string} The trimmed string.
+ * @example
+ *   (str:trimRight "foo   ") ; returns "foo"
+ */
 const char *STR_TRIM_RIGHT = "str:trimRight";
 result_void_position_t strTrimRight(value_t *result, const value_list_t *values,
                                     arena_t *arena) {

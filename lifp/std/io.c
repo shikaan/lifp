@@ -1,3 +1,14 @@
+// Input/output utilities for lifp. These functions provide basic console IO.
+//
+// ```lisp
+// (io:stdout! "hello") ; prints to stdout
+// (io:stderr! "error") ; prints to stderr
+// (io:printf! "Hello, {}!" ["world"]) ; prints formatted string
+// (io:readline! "Enter your name: ") ; reads a line from stdin
+// (io:clear!) ; clears the terminal
+// ```
+// ___HEADER_END___
+
 #include "../../lib/result.h"
 #include "../../lib/string.h"
 #include "../error.h"
@@ -17,6 +28,14 @@ static void streamPrint(FILE *stream, value_t *value) {
   fprintf(stream, "%s\n", buffer);
 }
 
+/**
+ * Prints a value to standard output.
+ * @name io:stdout!
+ * @param {any} value - The value to print.
+ * @returns {nil} Returns nil.
+ * @example
+ *   (io:stdout! "hello")
+ */
 const char *IO_STDOUT = "io:stdout!";
 result_void_position_t ioStdout(value_t *result, const value_list_t *values,
                                 arena_t *arena) {
@@ -35,6 +54,14 @@ result_void_position_t ioStdout(value_t *result, const value_list_t *values,
   return ok(result_void_position_t);
 }
 
+/**
+ * Prints a value to standard error.
+ * @name io:stderr!
+ * @param {any} value - The value to print.
+ * @returns {nil} Returns nil.
+ * @example
+ *   (io:stderr! "error")
+ */
 const char *IO_STDERR = "io:stderr!";
 result_void_position_t ioStderr(value_t *result, const value_list_t *values,
                                 arena_t *arena) {
@@ -54,6 +81,16 @@ result_void_position_t ioStderr(value_t *result, const value_list_t *values,
   return ok(result_void_position_t);
 }
 
+/**
+ * Prints a formatted string to standard output, replacing each '{}' in the
+ * format string with the corresponding value from the list.
+ * @name io:printf!
+ * @param {string} format - The format string containing '{}' placeholders.
+ * @param {list} values - The list of values to insert into the format string.
+ * @returns {nil} Returns nil.
+ * @example
+ *   (io:printf! "Hello, {}!" ("world")) ; prints "Hello, world!"
+ */
 const char *IO_PRINTF = "io:printf!";
 result_void_position_t ioPrintf(value_t *result, const value_list_t *values,
                                 arena_t *arena) {
@@ -121,6 +158,14 @@ result_void_position_t ioPrintf(value_t *result, const value_list_t *values,
   return ok(result_void_position_t);
 }
 
+/**
+ * Prints a prompt and returns the answer as a string.
+ * @name io:readline!
+ * @param {string} prompt - The prompt to the question
+ * @returns {string} Returns the user-input string.
+ * @example
+ *   (io:readline! "What's your name?") ; returns user input
+ */
 const char *IO_READLINE = "io:readline!";
 result_void_position_t ioReadline(value_t *result, const value_list_t *values,
                                   arena_t *arena) {
@@ -161,6 +206,13 @@ result_void_position_t ioReadline(value_t *result, const value_list_t *values,
   return ok(result_void_position_t);
 }
 
+/**
+ * Clears the terminal screen.
+ * @name io:clear!
+ * @returns {nil} Returns nil.
+ * @example
+ *   (io:clear!)
+ */
 const char *IO_CLEAR = "io:clear!";
 result_void_position_t ioClear(value_t *result, const value_list_t *values,
                                arena_t *arena) {
