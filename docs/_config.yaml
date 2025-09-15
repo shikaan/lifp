@@ -1,0 +1,5 @@
+theme: jekyll-theme-minimal
+
+markdown: GFM
+
+highlighter: rouge
