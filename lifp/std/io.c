@@ -39,7 +39,7 @@ const char *IO_STDERR = "io:stderr!";
 result_void_position_t ioStderr(value_t *result, const value_list_t *values,
                                 arena_t *arena) {
   (void)arena;
-  if (values->count != 1) {
+  if (values->count < 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires 1 argument. Got %zu", IO_STDERR, values->count);
   }
@@ -58,7 +58,7 @@ const char *IO_PRINTF = "io:printf!";
 result_void_position_t ioPrintf(value_t *result, const value_list_t *values,
                                 arena_t *arena) {
   (void)arena;
-  if (values->count != 2) {
+  if (values->count < 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires two arguments. Got %zu", IO_PRINTF, values->count);
   }
