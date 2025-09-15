@@ -14,7 +14,7 @@ result_void_position_t sum(value_t *result, const value_list_t *arguments,
     value_t current = listGet(value_t, arguments, i);
     if (current.type != VALUE_TYPE_NUMBER) {
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
-            current.position, "%s requires a list of numbers. Got %s.", SUM,
+            current.position, "%s requires numbers. Got %s.", SUM,
             formatValueType(current.type));
     }
 
@@ -39,7 +39,7 @@ result_void_position_t subtract(value_t *result, const value_list_t *arguments,
   value_t first = listGet(value_t, arguments, 0);
   if (first.type != VALUE_TYPE_NUMBER) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
-          first.position, "%s requires a list of numbers. Got %s.", SUB,
+          first.position, "%s requires numbers. Got %s.", SUB,
           formatValueType(first.type));
   }
 
@@ -49,7 +49,7 @@ result_void_position_t subtract(value_t *result, const value_list_t *arguments,
     value_t current = listGet(value_t, arguments, i);
     if (current.type != VALUE_TYPE_NUMBER) {
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
-            current.position, "%s requires a list of numbers. Got %s.", SUB,
+            current.position, "%s requires numbers. Got %s.", SUB,
             formatValueType(current.type));
     }
 
@@ -71,7 +71,7 @@ result_void_position_t multiply(value_t *result, const value_list_t *arguments,
     value_t current = listGet(value_t, arguments, i);
     if (current.type != VALUE_TYPE_NUMBER) {
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
-            current.position, "%s requires a list of numbers. Got %s.", MUL,
+            current.position, "%s requires numbers. Got %s.", MUL,
             formatValueType(current.type));
     }
 
@@ -90,13 +90,13 @@ result_void_position_t divide(value_t *result, const value_list_t *arguments,
   (void)arena;
   if (arguments->count == 0) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires a non-empty list of numbers", DIV);
+          "%s requires at least 1 number.", DIV);
   }
 
   value_t first = listGet(value_t, arguments, 0);
   if (first.type != VALUE_TYPE_NUMBER) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
-          first.position, "%s requires a list of numbers. Got %s.", DIV,
+          first.position, "%s requires numbers. Got %s.", DIV,
           formatValueType(first.type));
   }
 
@@ -106,7 +106,7 @@ result_void_position_t divide(value_t *result, const value_list_t *arguments,
     value_t current = listGet(value_t, arguments, i);
     if (current.type != VALUE_TYPE_NUMBER) {
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
-            current.position, "%s requires a list of numbers. Got %s.", DIV,
+            current.position, "%s requires numbers. Got %s.", DIV,
             formatValueType(current.type));
     }
 
@@ -138,13 +138,13 @@ result_void_position_t modulo(value_t *result, const value_list_t *arguments,
 
   if (first.type != VALUE_TYPE_NUMBER) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
-          first.position, "%s requires a list of numbers. Got %s.", MOD,
+          first.position, "%s requires numbers. Got %s.", MOD,
           formatValueType(first.type));
   }
 
   if (second.type != VALUE_TYPE_NUMBER) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
-          second.position, "%s requires a list of numbers. Got %s.", MOD,
+          second.position, "%s requires numbers. Got %s.", MOD,
           formatValueType(second.type));
   }
 
@@ -220,7 +220,7 @@ result_void_position_t lessThan(value_t *result, const value_list_t *arguments,
     value_type_t error_type =
         first.type != VALUE_TYPE_NUMBER ? first.type : second.type;
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
-          error_pos, "%s requires a list of numbers. Got %s.", LESS_THAN,
+          error_pos, "%s requires numbers. Got %s.", LESS_THAN,
           formatValueType(error_type));
   }
 
@@ -248,7 +248,7 @@ greaterThan(value_t *result, const value_list_t *arguments, arena_t *arena) {
     value_type_t error_type =
         first.type != VALUE_TYPE_NUMBER ? first.type : second.type;
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
-          error_pos, "%s requires a list of numbers. Got %s.", GREATER_THAN,
+          error_pos, "%s requires numbers. Got %s.", GREATER_THAN,
           formatValueType(error_type));
   }
 
@@ -318,7 +318,7 @@ result_void_position_t lessEqual(value_t *result, const value_list_t *arguments,
     value_type_t error_type =
         first.type != VALUE_TYPE_NUMBER ? first.type : second.type;
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
-          error_pos, "%s requires a list of numbers. Got %s.", LEQ,
+          error_pos, "%s requires numbers. Got %s.", LEQ,
           formatValueType(error_type));
   }
 
@@ -346,7 +346,7 @@ greaterEqual(value_t *result, const value_list_t *arguments, arena_t *arena) {
     value_type_t error_type =
         first.type != VALUE_TYPE_NUMBER ? first.type : second.type;
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
-          error_pos, "%s requires a list of numbers. Got %s.", GEQ,
+          error_pos, "%s requires numbers. Got %s.", GEQ,
           formatValueType(error_type));
   }
 
@@ -370,14 +370,14 @@ logicalAnd(value_t *result, const value_list_t *arguments, arena_t *arena) {
 
   if (first.type != VALUE_TYPE_BOOLEAN) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
-          first.position, "%s requires a list of booleans. Got %s.",
-          LOGICAL_AND, formatValueType(first.type));
+          first.position, "%s requires booleans. Got %s.", LOGICAL_AND,
+          formatValueType(first.type));
   }
 
   if (second.type != VALUE_TYPE_BOOLEAN) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
-          second.position, "%s requires a list of booleans. Got %s.",
-          LOGICAL_AND, formatValueType(second.type));
+          second.position, "%s requires booleans. Got %s.", LOGICAL_AND,
+          formatValueType(second.type));
   }
 
   result->type = VALUE_TYPE_BOOLEAN;
