@@ -21,9 +21,9 @@ const char *IO_STDOUT = "io:stdout!";
 result_void_position_t ioStdout(value_t *result, const value_list_t *values,
                                 arena_t *arena) {
   (void)arena;
-  if (values->count != 1) {
+  if (values->count < 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires an argument. Got %zu", IO_STDOUT, values->count);
+          "%s requires 1 argument. Got %zu", IO_STDOUT, values->count);
   }
 
   value_t value = listGet(value_t, values, 0);
@@ -39,9 +39,9 @@ const char *IO_STDERR = "io:stderr!";
 result_void_position_t ioStderr(value_t *result, const value_list_t *values,
                                 arena_t *arena) {
   (void)arena;
-  if (values->count != 1) {
+  if (values->count < 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires an argument. Got %zu", IO_STDERR, values->count);
+          "%s requires 1 argument. Got %zu", IO_STDERR, values->count);
   }
 
   value_t value = listGet(value_t, values, 0);
@@ -58,7 +58,7 @@ const char *IO_PRINTF = "io:printf!";
 result_void_position_t ioPrintf(value_t *result, const value_list_t *values,
                                 arena_t *arena) {
   (void)arena;
-  if (values->count != 2) {
+  if (values->count < 2) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
           "%s requires two arguments. Got %zu", IO_PRINTF, values->count);
   }
@@ -68,10 +68,11 @@ result_void_position_t ioPrintf(value_t *result, const value_list_t *values,
 
   if (format_value.type != VALUE_TYPE_STRING ||
       inputs_value.type != VALUE_TYPE_LIST) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires a format string and a list of arguments. "
-          "Got types %u and %u.",
-          IO_PRINTF, format_value.type, inputs_value.type);
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+          result->position,
+          "%s requires a format string and a list of arguments. Got %s and %s.",
+          IO_PRINTF, formatValueType(format_value.type),
+          formatValueType(inputs_value.type));
   }
 
   value_list_t inputs = inputs_value.value.list;
@@ -123,17 +124,17 @@ result_void_position_t ioPrintf(value_t *result, const value_list_t *values,
 const char *IO_READLINE = "io:readline!";
 result_void_position_t ioReadline(value_t *result, const value_list_t *values,
                                   arena_t *arena) {
-  if (values->count != 1) {
+  if (values->count < 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires an argument. Got %zu", IO_READLINE, values->count);
+          "%s requires 1 argument. Got %zu.", IO_READLINE, values->count);
   }
 
   value_t question_value = listGet(value_t, values, 0);
 
   if (question_value.type != VALUE_TYPE_STRING) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires a string as a question. Got %u", IO_READLINE,
-          question_value.type);
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+          result->position, "%s requires a string. Got %s.", IO_READLINE,
+          formatValueType(question_value.type));
   }
 
   printf("%s", question_value.value.string);
@@ -164,11 +165,7 @@ const char *IO_CLEAR = "io:clear!";
 result_void_position_t ioClear(value_t *result, const value_list_t *values,
                                arena_t *arena) {
   (void)arena;
-  if (values->count != 0) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s takes no arguments. Got %zu", IO_CLEAR, values->count);
-  }
-
+  (void)values;
   puts("\e[1;1H\e[2J");
 
   result->type = VALUE_TYPE_NIL;

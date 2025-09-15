@@ -61,7 +61,7 @@ bin/lifp: \
 	lib/arena.o lifp/virtual_machine.o lib/map.o lib/profile.o lifp/fmt.o \
 	lifp/value.o lifp/specials.o linenoise.o args.o
 
-.PHONY: run
+.PHONY: repl
 repl: bin/lifp
 	@bin/lifp repl
 

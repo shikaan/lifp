@@ -69,7 +69,7 @@ void formatReplUsage(size_t size, char buffer[static size]) {
 int runCallback(char *name, ArgParser *parser) {
   int count = ap_count_args(parser);
   if (count != 1) {
-    error("%s requires exactly one argument", name);
+    error("%s requires 1 argument", name);
     return 1;
   }
 

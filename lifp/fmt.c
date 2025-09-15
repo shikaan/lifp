@@ -25,18 +25,22 @@ static void formatCurrentLine(position_t caret, const char *input_buffer,
   char *ctx = nullptr;
   char *line = nullptr;
   char *copy = strdup(input_buffer);
-  size_t current_line = 1;
+  size_t current_line = 0;
 
   for (line = strtok_r(copy, separator, &ctx); line;
        line = strtok_r(nullptr, separator, &ctx)) {
+    current_line++;
     if (caret.line == current_line)
       break;
   }
 
-  const char *indent = "  ";
-  append(size, output_buffer, offset, "\n\n%s%s", indent, line);
+  append(size, output_buffer, offset, "\n\n");
+  int identation = *offset;
+  append(size, output_buffer, offset, "%lu | ", caret.line);
+  identation = *offset - identation;
+  append(size, output_buffer, offset, "%s", line);
   append(size, output_buffer, offset, "\n%*c^\n",
-         (int)caret.column - 1 + (int)strlen(indent), ' ');
+         (int)caret.column - 1 + identation, ' ');
   deallocSafe(&copy);
 }
 
@@ -160,6 +164,27 @@ void formatValue(const value_t *value, int size,
     formatNode(&value->value.closure.form, size, output_buffer, offset);
     append(size, output_buffer, offset, ")");
   default:
+  }
+}
+
+const char *formatValueType(value_type_t type) {
+  switch (type) {
+  case VALUE_TYPE_BOOLEAN:
+    return "boolean";
+  case VALUE_TYPE_NUMBER:
+    return "number";
+  case VALUE_TYPE_BUILTIN:
+  case VALUE_TYPE_SPECIAL:
+  case VALUE_TYPE_CLOSURE:
+    return "function";
+  case VALUE_TYPE_NIL:
+    return "nil";
+  case VALUE_TYPE_LIST:
+    return "list";
+  case VALUE_TYPE_STRING:
+    return "string";
+  default:
+    unreachable();
   }
 }
 

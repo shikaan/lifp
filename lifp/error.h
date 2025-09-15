@@ -19,4 +19,5 @@ typedef enum {
 
   // Runtime Error
   ERROR_CODE_RUNTIME_ERROR,
+  ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
 } error_code_t;

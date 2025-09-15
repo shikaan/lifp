@@ -1,5 +1,6 @@
 #include "../../lib/result.h"
 #include "../error.h"
+#include "../fmt.h"
 #include "../value.h"
 #include <float.h>
 #include <math.h>
@@ -13,13 +14,14 @@ result_void_position_t mathMax(value_t *result, const value_list_t *values,
   (void)arena;
   if (values->count != 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires exactly 1 argument. Got %zu", MATH_MAX, values->count);
+          "%s requires 1 argument. Got %zu", MATH_MAX, values->count);
   }
 
   value_t list_value = listGet(value_t, values, 0);
   if (list_value.type != VALUE_TYPE_LIST) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, list_value.position,
-          "%s requires a list. Got type %u", MATH_MAX, list_value.type);
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+          list_value.position, "%s requires a list. Got %s.", MATH_MAX,
+          formatValueType(list_value.type));
   }
 
   value_list_t *list = &list_value.value.list;
@@ -33,9 +35,9 @@ result_void_position_t mathMax(value_t *result, const value_list_t *values,
   for (size_t i = 0; i < list->count; i++) {
     value_t current = listGet(value_t, list, i);
     if (current.type != VALUE_TYPE_NUMBER) {
-      throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, current.position,
-            "%s requires a list of numbers. Got type %u", MATH_MAX,
-            current.type);
+      throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+            current.position, "%s requires a list of numbers. Got %s.",
+            MATH_MAX, formatValueType(current.type));
     }
 
     if (current.value.number > max_value) {
@@ -56,13 +58,14 @@ result_void_position_t mathMin(value_t *result, const value_list_t *values,
   (void)arena;
   if (values->count != 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires exactly 1 argument. Got %zu", MATH_MIN, values->count);
+          "%s requires 1 argument. Got %zu", MATH_MIN, values->count);
   }
 
   value_t list_value = listGet(value_t, values, 0);
   if (list_value.type != VALUE_TYPE_LIST) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, list_value.position,
-          "%s requires a list. Got type %u", MATH_MIN, list_value.type);
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+          list_value.position, "%s requires a list. Got %s.", MATH_MIN,
+          formatValueType(list_value.type));
   }
 
   value_list_t *list = &list_value.value.list;
@@ -76,9 +79,9 @@ result_void_position_t mathMin(value_t *result, const value_list_t *values,
   for (size_t i = 0; i < list->count; i++) {
     value_t current = listGet(value_t, list, i);
     if (current.type != VALUE_TYPE_NUMBER) {
-      throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, current.position,
-            "%s requires a list of numbers. Got type %u", MATH_MIN,
-            current.type);
+      throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+            current.position, "%s requires a list of numbers. Got %s.",
+            MATH_MIN, formatValueType(current.type));
     }
 
     if (current.value.number < min_value) {
@@ -121,13 +124,14 @@ result_void_position_t mathCeil(value_t *result, const value_list_t *values,
   (void)arena;
   if (values->count != 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires exactly 1 argument. Got %zu", MATH_CEIL, values->count);
+          "%s requires 1 argument. Got %zu", MATH_CEIL, values->count);
   }
 
   value_t number = listGet(value_t, values, 0);
   if (number.type != VALUE_TYPE_NUMBER) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, number.position,
-          "%s requires a number. Got type %u", MATH_CEIL, number.type);
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+          number.position, "%s requires a number. Got %s.", MATH_CEIL,
+          formatValueType(number.type));
   }
 
   result->type = VALUE_TYPE_NUMBER;
@@ -142,13 +146,14 @@ result_void_position_t mathFloor(value_t *result, const value_list_t *values,
   (void)arena;
   if (values->count != 1) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires exactly 1 argument. Got %zu", MATH_FLOOR, values->count);
+          "%s requires 1 argument. Got %zu", MATH_FLOOR, values->count);
   }
 
   value_t number = listGet(value_t, values, 0);
   if (number.type != VALUE_TYPE_NUMBER) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, number.position,
-          "%s requires a number. Got type %u", MATH_FLOOR, number.type);
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+          number.position, "%s requires a number. Got %s.", MATH_FLOOR,
+          formatValueType(number.type));
   }
 
   result->type = VALUE_TYPE_NUMBER;

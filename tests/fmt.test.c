@@ -92,10 +92,10 @@ void errors() {
   expectEqlString(buffer,
                   "Error: message\n"
                   "\n"
-                  "  (1 2 3 4 not-found 10)\n"
-                  "           ^\n"
+                  "1 | (1 2 3 4 not-found 10)\n"
+                  "             ^\n"
                   "  at file.lifp:1:10",
-                  95, "puts caret in the right place (list)");
+                  (size_t)offset, "puts caret in the right place (list)");
 
   offset = 0;
   position = (position_t){1, 1};
@@ -105,10 +105,10 @@ void errors() {
   expectEqlString(buffer,
                   "Error: message\n"
                   "\n"
-                  "  not-found\n"
-                  "  ^\n"
+                  "1 | not-found\n"
+                  "    ^\n"
                   "  at file.lifp:1:1",
-                  72, "puts caret in the right place (atom)");
+                  (size_t)offset, "puts caret in the right place (atom)");
   offset = 0;
   position = (position_t){1, 2};
   const char init_list_buffer[12] = "(not-found)";
@@ -117,10 +117,28 @@ void errors() {
   expectEqlString(buffer,
                   "Error: message\n"
                   "\n"
-                  "  (not-found)\n"
-                  "   ^\n"
+                  "1 | (not-found)\n"
+                  "     ^\n"
                   "  at file.lifp:1:2",
-                  72, "puts caret in the right place (init list)");
+                  (size_t)offset, "puts caret in the right place (init list)");
+
+  offset = 0;
+  position = (position_t){3, 14};
+  const char complex_buffer[] = "(def! fun\n"
+                                "; this is a function\n"
+                                "  (fn (a b) (+ a b)))\n"
+                                "\n"
+                                "; invoking the function\n"
+                                "(fun 1 2)";
+  formatErrorMessage(message, position, "file.lifp", complex_buffer, size,
+                     buffer, &offset);
+  expectEqlString(buffer,
+                  "Error: message\n"
+                  "\n"
+                  "3 |   (fn (a b) (+ a b)))\n"
+                  "                 ^\n"
+                  "  at file.lifp:3:14\n",
+                  (size_t)offset, "puts caret in the right place (multiline)");
 }
 
 int main() {

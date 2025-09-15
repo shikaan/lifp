@@ -36,7 +36,7 @@ typedef struct {
   auto _concat(result, __LINE__) = Action;                                     \
   if (_concat(result, __LINE__).code != RESULT_OK) {                           \
     char buffer[4096] = {0};                                                   \
-    printError(&_concat(result, __LINE__), statement_buffer, 4096, buffer);    \
+    printError(&_concat(result, __LINE__), file_buffer, 4096, buffer);         \
     profileReport();                                                           \
     return 1;                                                                  \
   }                                                                            \

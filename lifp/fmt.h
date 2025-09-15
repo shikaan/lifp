@@ -9,3 +9,5 @@ void formatErrorMessage(message_t message, position_t position,
 
 void formatValue(const value_t *value, int size,
                  char output_buffer[static size], int *offset);
+
+const char *formatValueType(value_type_t type);
