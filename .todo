@@ -1,0 +1,38 @@
+BUGS
+---
+  * [ ] `listGet` allows you to go out of bound
+
+FEATURES
+---
+  * [ ] Implement `?` in REPL
+  * [ ] Load a file in REPL and continue execution from there (debug mode)
+  * [ ] imports `(import! my-module "./my-module.lifp")`
+  * [ ] Decouple validation from execution
+  * [ ] Enforce naming conventions for functions
+    * [ ] effectful functions should terminate with !
+    * [ ] functions ending in ? should return bool
+  * [ ] Type Declaration comments `;; (number, number) -> number`
+  * [ ] Compile AST to bytecode
+  * [ ] Tail call optimization
+
+REFACTORING
+---
+  * [ ] Make list methods (and hashmap methods) typesafe (now you can append
+       `node_t` to a `value_list_t` without errors)
+  * [ ] Use [`libuv`](https://libuv.org) for non-blocking io
+  * [ ] Some structs are huge: mostly because we try to colocate most things.
+        Do we need all of that?
+        - The only place where we need flexible lists is the tokenizer and
+          parser. From that point on all the lists have defined length and
+          should be arrays.
+        - Having colocation though helps with copying, listAppend and mapSet,
+          since we don't have to follow pointers.
+  * [ ] Related to the above, we probably want to reintroduce a lightweight
+        approach to arena frames as currently workflows that use strings use an
+        embarrassing amount of memory
+
+OPEN STUFF
+---
+* Should std and core (e.g., keywords) be split to allow using lifp without std?
+
+; vim:ft=markdown tw=80 cc=+1

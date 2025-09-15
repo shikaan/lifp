@@ -1,0 +1,6 @@
+[submodule "vendor/linenoise"]
+	path = vendor/linenoise
+	url = git@github.com:antirez/linenoise.git
+[submodule "vendor/args"]
+	path = vendor/args
+	url = git@github.com:dmulholl/args.git

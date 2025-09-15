@@ -1,0 +1,35 @@
+{
+  "configurations": {
+    "run": {
+      "adapter": "CodeLLDB",
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/bin/lifp",
+        "args": ["run", "examples/fibonacci.lifp"],
+        "cwd": "${workspaceRoot}",
+        "stopAtEntry": true
+      }
+    },
+    "repl": {
+      "adapter": "CodeLLDB",
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/bin/lifp",
+        "args": ["repl"],
+        "cwd": "${workspaceRoot}",
+        "stopAtEntry": true
+      }
+    },
+    "test": {
+      "adapter": "CodeLLDB",
+      "configuration": {
+        "request": "launch",
+        "program":  "${workspaceFolder}/tests/${fileBasenameNoExtension}",
+        "args": [],
+        "cwd": "${workspaceRoot}",
+        "stopAtEntry": true
+      }
+    }
+
+  }
+}

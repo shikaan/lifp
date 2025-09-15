@@ -1,370 +1,406 @@
-lifp - v0.6.0 (e0415ec)
+lifp - v0.2.0 (3796ff8)
 ---
+# Table of Contents
+  * [core](#core)
+  * [flow](#flow)
+  * [io](#io)
+  * [list](#list)
+  * [math](#math)
+  * [str](#str)
 
-## math.floor
+# core
 
-Returns the floor of a number.
+Core lifp operators. For all intents and purposes, these should be thought as
+language keywords.
 
 ```lisp
-(math.floor 1.9) ; 1
+(and true false) ; returns false
+```
+### %
+
+Performs a modulo division.
+
+```lisp
+(% 6 3) ; returns 0
 ```
 
 
+### *
 
-## math.ceil
-
-Returns the ceiling of a number.
+Multiplies a sequence of numbers.
 
 ```lisp
-(math.ceil 1.1) ; 2
+(* 1 2 3) ; returns 6
 ```
 
 
+### +
 
-## math.max
-
-Returns the maximum value in a list of numbers.
+Sums a sequence of numbers.
 
 ```lisp
-(math.max (1 2 3)) ; 3
+(+ 1 2 3) ; returns 6
 ```
 
 
+### -
 
-## math.min
-
-Returns the minimum value in a list of numbers.
+Subtracts a sequence of numbers from the first.
 
 ```lisp
-(math.min (1 2 3)) ; 1
+(- 6 3 2) ; returns 1
 ```
 
 
+### /
 
-## math.random
-
-Returns a random number between 0 (inclusive) and 1 (exclusive).
+Divides the first number by the rest.
 
 ```lisp
-(math.random) ; 0.123456
+(/ 6 3 2) ; returns 1
 ```
 
 
-
-## string.length
-
-Returns the length of a string.
-
-```lisp
-(string.length "hello") ; 5
-```
-
-
-
-## string.join
-
-Joins a list of strings with a separator.
-
-```lisp
-(string.join "," ("foo" "bar")) ; "foo,bar"
-```
-
-
-
-## string.slice
-
-Returns a substring from start to end indices.
-
-```lisp
-(string.slice "hello" 1 4) ; "ell"
-```
-
-
-
-## string.includes
-
-Checks if a string contains a substring.
-
-```lisp
-(string.includes "hello" "ell") ; true
-```
-
-
-
-## string.trim
-
-Trims whitespace from both ends of a string.
-
-```lisp
-(string.trim "  hello  ") ; "hello"
-```
-
-
-
-## flow.sleep
-
-Sleeps for the given number of milliseconds.
-
-```lisp
-(flow.sleep 1000) ; sleeps for ~1 second
-```
-
-
-
-## list.count
-
-Counts elements in a list.
-
-```lisp
-(list.count (1 2)) ; 2
-```
-
-
-
-## list.map
-
-Maps a lambda over a list.
-
-```lisp
-(list.map (fn* (item idx) (+ item idx)) (1 2 3)) ; (1 3 5)
-```
-
-
-
-## list.each
-
-Applies a lambda to each element in a list (for side effects).
-
-```lisp
-(list.each (fn* (item idx) (print item)) (1 2 3)) ; nil
-```
-
-
-
-## list.from
-
-Creates a list from the given arguments.
-
-```lisp
-(list.from 1 2 3) ; (1 2 3)
-```
-
-
-
-## list.times
-
-Creates a list by repeatedly calling a lambda.
-
-
-```lisp
-(list.times (fn* (idx) idx) 3) ; (0 1 2)
-```
-
-
-
-## list.nth
-
-Returns the nth element of a list, or nil if out of bounds.
-
-```lisp
-(list.nth 1 (10 20 30)) ; 20
-```
-
-
-
-## list.filter
-
-Filters a list using a lambda predicate.
-
-```lisp
-(list.filter (fn* (item idx) (> item 0)) (-1 0 1 2)) ; (1 2)
-```
-
-
-
-## +
-
-Adds numbers together.
-
-```lisp
-(+ 1 2 3) ; 6
-```
-
-
-
-## -
-
-Subtracts numbers from the first argument.
-
-```lisp
-(- 5 2 1) ; 2
-```
-
-
-
-## *
-
-Multiplies numbers together.
-
-```lisp
-(* 2 3 4) ; 24
-```
-
-
-
-## /
-
-Divides the first argument by the rest.
-
-```lisp
-(/ 8 2 2) ; 2
-```
-
-
-
-## %
-
-Performs division with modulo.
-
-```lisp
-(% 4 2) ; 0
-```
-
-
-
-## =
-
-Checks if two values are equal.
-
-```lisp
-(= 1 1) ; true
-```
-
-
-
-## <
+### <
 
 Checks if the first value is less than the second.
 
 ```lisp
-(< 1 2) ; true
+(< 1 6) ; returns true
 ```
 
 
-
-## >
-
-Checks if the first value is greater than the second.
-
-```lisp
-(> 2 1) ; true
-```
-
-
-
-## !=
-
-Checks if two values are not equal.
-
-```lisp
-(!= 1 2) ; true
-```
-
-
-
-## <=
+### <=
 
 Checks if the first value is less than or equal to the second.
 
 ```lisp
-(<= 1 2) ; true
+(<= 1 6) ; returns true
 ```
 
 
+### <>
 
-## >=
+Checks if two values are not equal.
+
+```lisp
+(<> 6 6) ; returns false
+```
+
+
+### =
+
+Checks if two values are equal.
+
+```lisp
+(= 6 6) ; returns true
+```
+
+
+### >
+
+Checks if the first value is greater than the second.
+
+```lisp
+(> 1 6) ; returns false
+```
+
+
+### >=
 
 Checks if the first value is greater than or equal to the second.
 
 ```lisp
-(>= 2 1) ; true
+(>= 6 1) ; returns true
 ```
 
 
+### and
 
-## and
-
-Logical AND for two boolean values.
+Logical AND operation on two boolean values.
 
 ```lisp
-(and true false) ; false
+(and true false) ; returns false
 ```
 
 
+### or
 
-## or
-
-Logical OR for two boolean values.
+Logical OR operation on two boolean values.
 
 ```lisp
-(or true false) ; true
+(or true false) ; returns true
 ```
 
 
+# flow
 
-## io.stdout
-
-Stringifies an atom and writes it to stdout. Use `io.print` to format output.
+Flow control utilities for lifp. These functions provide basic control over
+program execution, such as pausing execution for a specified duration.
 
 ```lisp
-(io.stdout "hello")
+(flow:sleep! 1000) ; pauses execution for ~1 second
 ```
+### flow:sleep!
 
-
-
-## io.stderr
-
-Stringifies an atom and writes it to stderr.
+Suspends execution for a given number of milliseconds.
 
 ```lisp
-(io.stderr "error")
+(flow:sleep! 1000) ; pauses for ~1 second
 ```
 
 
+# io
 
-## io.printf
-
-Writes a formatted string to stdout. Specifiers:
- - `%s` for strings
- - `%d` for numbers
- - `%i` casts a string to an integer
- - `%f` casts a string to a float
+Input/output utilities for lifp. These functions provide basic console IO.
 
 ```lisp
-(io.printf "hello %s %d" ("world" 42))
+(io:stdout! "hello") ; prints to stdout
+(io:stderr! "error") ; prints to stderr
+(io:printf! "Hello, {}!" ["world"]) ; prints formatted string
+(io:readline! "Enter your name: ") ; reads a line from stdin
+(io:clear!) ; clears the terminal
 ```
+### io:clear!
 
-
-
-## io.readline
-
-Writes the question on stdout and waits for user input.
-
+Clears the terminal screen.
 
 ```lisp
-(io.readline "What is your favorite food? ") ; "USER_TYPED_CONTENT"
+(io:clear!)
 ```
 
 
+### io:printf!
 
-## io.clear
-
-Clear the console output.
-
+Prints a formatted string to standard output, replacing each '{}' in the format string with the corresponding value from the list.
 
 ```lisp
-(io.clear)
+(io:printf! "Hello, {}!" ("world")) ; prints "Hello, world!"
 ```
 
+
+### io:readline!
+
+Prints a prompt and returns the answer as a string.
+
+```lisp
+(io:readline! "What's your name?") ; returns user input
+```
+
+
+### io:stderr!
+
+Prints a value to standard error.
+
+```lisp
+(io:stderr! "error")
+```
+
+
+### io:stdout!
+
+Prints a value to standard output.
+
+```lisp
+(io:stdout! "hello")
+```
+
+
+# list
+
+List manipulation operators for lifp. These functions provide core list
+operations such as counting, creating, accessing, mapping, filtering, and
+iterating over lists.
+
+```lisp
+(list:count (list:from 1 2 3)) ; returns 3
+(list:nth 1 (list:from 10 20 30)) ; returns 20
+(list:map (fn (x i) (* x 2)) (list:from 1 2 3)) ; returns (2 4 6)
+```
+### list:count
+
+Counts the number of elements in a list.
+
+```lisp
+(list:count (1 2 3)) ; returns 3
+```
+
+
+### list:each
+
+Applies a function to each element of a list for side effects. The function receives each element and its index.
+
+```lisp
+(list:each (fn (x i) (print x)) (1 2 3))
+```
+
+
+### list:filter
+
+Filters a list using a predicate function. The function receives each element and its index, and should return a boolean. true.
+
+```lisp
+(list:filter (fn (x i) (> x 1)) (1 2 3)) ; returns (2 3)
+```
+
+
+### list:from
+
+Creates a list from the given arguments.
+
+```lisp
+(list:from 1 2 3) ; returns (1 2 3)
+```
+
+
+### list:map
+
+Maps a function over a list, returning a new list of results. The function receives each element and its index.
+
+```lisp
+(list:map (fn (x i) (* x 2)) (1 2 3)) ; returns (2 4 6)
+```
+
+
+### list:nth
+
+Returns the nth element of a list, or nil if out of bounds.
+
+```lisp
+(list:nth 1 (10 20 30)) ; returns 20
+```
+
+
+### list:times
+
+Calls a function a given number of times, collecting the results in a list. The function receives the current index.
+
+```lisp
+(list:times (fn (i) (* i 2)) 3) ; returns (0 2 4)
+```
+
+
+# math
+
+Math operators for lifp. Provides mathematical utilities such as min, max,
+random, ceil, and floor for working with numbers and lists of numbers.
+
+```lisp
+(math:max (list:from 1 2 3)) ; returns 3
+(math:min (list:from 1 2 3)) ; returns 1
+(math:random!) ; returns a random number between 0 and 1
+(math:ceil 2.3) ; returns 3
+(math:floor 2.7) ; returns 2
+```
+### math:ceil
+
+Returns the smallest integer greater than or equal to the given number.
+
+```lisp
+(math:ceil 2.3) ; returns 3
+```
+
+
+### math:floor
+
+Returns the largest integer less than or equal to the given number.
+
+```lisp
+(math:floor 2.7) ; returns 2
+```
+
+
+### math:max
+
+Returns the maximum value in a sequence of numbers.
+
+```lisp
+(math:max 1 2 3) ; returns 3
+```
+
+
+### math:min
+
+Returns the minimum value in a sequence of numbers.
+
+```lisp
+(math:min 1 2 3) ; returns 1
+```
+
+
+### math:random!
+
+Returns a random number between 0 and 1.
+
+```lisp
+(math:random!) ; returns a random number between 0 and 1
+```
+
+
+# str
+
+String manipulation functions for lifp.
+
+```lisp
+(str:length "hello") ; returns 5
+(str:join "," ("a" "b" "c")) ; returns "a,b,c"
+(str:slice "abcdef" 1 4) ; returns "bcde"
+(str:include "hello world" "world") ; returns true
+(str:trimLeft "   foo") ; returns "foo"
+(str:trimRight "foo   ") ; returns "foo"
+```
+### str:include
+
+Checks if a string contains a substring.
+
+```lisp
+(str:include "hello world" "world") ; returns true
+```
+
+
+### str:join
+
+Joins a list of strings using a separator.
+
+```lisp
+(str:join "," ("a" "b" "c")) ; returns "a,b,c"
+```
+
+
+### str:length
+
+Returns the length of a string.
+
+```lisp
+(str:length "hello") ; returns 5
+```
+
+
+### str:slice
+
+Returns a substring from start to end (end not inclusive). Negative indices count from the end of the string.
+
+```lisp
+(str:slice "abcdef" 1 4) ; returns "bcde"
+(str:slice "abcdef" 2) ; returns "cdef"
+```
+
+
+### str:trimLeft
+
+Removes whitespace from the start of a string.
+
+```lisp
+(str:trimLeft "   foo") ; returns "foo"
+```
+
+
+### str:trimRight
+
+Removes whitespace from the end of a string.
+
+```lisp
+(str:trimRight "foo   ") ; returns "foo"
+```
 
 

@@ -1,6 +1,14 @@
-node_modules
 .idea
-build/*
-tests/*.lisp
-.todo
-.DS_Store
+.vscode
+compile_commands.json
+.vimspector.session
+
+# build artifacts
+**/*.o
+**/*.dSYM
+*.plist
+.cache
+
+# binaries
+tests/*.test
+bin/lifp

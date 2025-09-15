@@ -34,12 +34,12 @@ Head to the [releases](https://github.com/shikaan/lifp/releases) page and downlo
 
 Launch the executable to start the REPL
 ```shell
-lifp
+lifp repl
 ```
 
 Type `help` for more details.
 
-Once you are ready, you can run your code (e.g.,  `script.lifp`) like this
+Once you are ready, you can run your code (e.g., `script.lifp`) like this
 
 ```shell
 lifp run ./script.lifp
@@ -49,7 +49,7 @@ Checkout the [examples](./examples) folder to see more.
 
 ### API Docs
 
-[API Docs](https://shikaan.github.io/lifp/)
+[API Docs](https://shikaan.github.io/lifp-c/)
 
 ### Syntax Highlighting
 
@@ -67,21 +67,21 @@ Some examples:
 
 ## Development
 
-To build the project from source, you need [Bun](https://bun.sh/) installed.
+This project is written in C23, therefore you need [LLVM](https://releases.llvm.org) 20 or newer.
 
 ```bash
 # Clone the repository
-git clone https://github.com/shikaan/lifp.git
+git clone https://github.com/shikaan/-c.git
 cd lifp
 
-# Install dependencies and pre-commit hooks
-bun install
+# Start the REPL
+make repl
 
-# Run locally
-bun start
+# Run tests
+make test
 
-# Build a development version for the current platform
-bun run build
+# Build the binaries
+make
 ```
 
 The binary will be created in the `build` directory.

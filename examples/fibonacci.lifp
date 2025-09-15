@@ -1,0 +1,14 @@
+; This example is here to show how poorly we handle tail recursion
+; (not at all!)
+
+(def! fibonacci
+  (fn (a)
+    (cond
+      ((< a 1) 0)
+      ((= a 1) 1)
+      ((= a 2) 2)
+      (+ (fibonacci (- a 1)) (fibonacci (- a 2))))))
+
+(io:print! (fibonacci 8))
+
+; vim:ft=lisp

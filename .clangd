@@ -1,0 +1,27 @@
+CompileFlags:
+  CompilationDatabase: compile_commands.json
+  Add: [-x, c, -std=c23]
+Diagnostics:
+  ClangTidy:
+    Add: [modernize-*, bugprone-*, llvm-*, performance-*, readability-*]
+    Remove: [readability-magic-numbers, readability-function-cognitive-complexity, bugprone-easily-swappable-parameters]
+    CheckOptions:
+      readability-identifier-naming.LocalVariableCase: lower_case
+      readability-identifier-naming.LocalConstantCase: lower_case
+      readability-identifier-naming.ConstantMemberCase: lower_case
+      readability-identifier-naming.ConstantCase: UPPER_CASE
+      readability-identifier-naming.ConstexprVariableCase: UPPER_CASE
+      readability-identifier-naming.EnumConstantCase: UPPER_CASE
+      readability-identifier-naming.GlobalConstantCase: UPPER_CASE
+      readability-identifier-naming.StaticConstantCase: UPPER_CASE
+      readability-identifier-naming.EnumCase: lower_case
+      readability-identifier-naming.StructCase: lower_case
+      readability-identifier-naming.TypeAliasCase: lower_case
+      readability-identifier-naming.TypeAliasSuffix: _t
+      readability-identifier-naming.TypedefCase: lower_case
+      readability-identifier-naming.TypedefSuffix: _t
+      readability-identifier-naming.FunctionCase: camelBack
+      readability-identifier-naming.GlobalFunctionCase: camelBack
+      readability-braces-around-statements.ShortStatementLines: 2
+
+  UnusedIncludes: Strict

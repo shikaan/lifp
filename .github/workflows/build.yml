@@ -1,4 +1,4 @@
-name: Build Binaries
+name: Build
 
 on:
   push:
@@ -17,26 +17,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: 1.2.13
-
-      - name: Install dependencies
-        run: bun install
-
       - name: Generate documentation
-        run: >
-          bun \
-            --define __VERSION__="${{ needs.build.outputs.VERSION_STRING }}" \
-            scripts/generate-docs.ts
+        run: |
+          VERSION="${{ needs.build.outputs.VERSION }}" SHA="${{ needs.build.outputs.SHA }}" python3 scripts/docs.py
 
       - name: Commit and push updated docs
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/docs.json docs/index.md
-          git commit -m "chore(docs): update generated documentation for ${{ needs.build.outputs.VERSION_STRING }}"
+          git add docs/index.md
+          git commit -m "chore(docs): update generated documentation for ${{ needs.build.outputs.VERSION }}"
           git push origin HEAD:main
       
       - name: Move release tag to docs commit
@@ -46,82 +36,98 @@ jobs:
           git push --force origin "refs/tags/${GITHUB_REF#refs/tags/}"
 
   build:
-    runs-on: ubuntu-latest
-    outputs:
-      VERSION_STRING: ${{ steps.version.outputs.VERSION_STRING }}
     strategy:
       matrix:
-        build:
-          - target: bun-darwin-x64
-            outfile: lifp-darwin-amd64
-          - target: bun-darwin-arm64
-            outfile: lifp-darwin-arm64
-          - target: bun-linux-x64
-            outfile: lifp-linux-amd64
-          - target: bun-linux-arm64
-            outfile: lifp-linux-arm64
-          - target: bun-windows-x64-modern
-            outfile: lifp-windows-amd64.exe
-    
+        include:
+          - os: ubuntu-22.04
+            platform: linux
+            arch: amd64
+            cc: clang-21
+            setup_cmd: |
+              wget https://apt.llvm.org/llvm.sh
+              chmod +x llvm.sh
+              sudo ./llvm.sh 21
+              sudo apt-get install -y clang-21
+
+          - os: ubuntu-22.04-arm
+            platform: linux
+            arch: arm64
+            cc: clang-21
+            setup_cmd: |
+              wget https://apt.llvm.org/llvm.sh
+              chmod +x llvm.sh
+              sudo ./llvm.sh 21
+              sudo apt-get install -y clang-21
+
+          - os: macos-14
+            platform: darwin
+            arch: arm64
+            cc: /opt/homebrew/opt/llvm/bin/clang
+            setup_cmd: |
+              brew install llvm
+          
+          - os: macos-14
+            platform: darwin
+            arch: amd64
+            cc: /opt/homebrew/opt/llvm/bin/clang -arch x86_64
+            setup_cmd: |
+              brew install llvm
+
+    runs-on: ${{ matrix.os }}
+    outputs:
+      VERSION: ${{ steps.version.outputs.VERSION }}
+      SHA: ${{ steps.version.outputs.SHA }}
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: 1.2.13
+    - name: Install C23-compatible compiler
+      run: ${{ matrix.setup_cmd }}
 
-      - name: Install dependencies
-        run: bun install
+    - name: Compute version string
+      id: version
+      run: |
+        VERSION="${GITHUB_REF#refs/tags/}"
+        [[ "$GITHUB_REF" != refs/tags/* ]] && VERSION="dev"
+        echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+        echo "SHA=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
 
-      - name: Test
-        run: bun test
+    - name: Run tests
+      run: |
+        make CC="${{ matrix.cc }}" clean test
+      env:
+        UNAME_S: ${{ matrix.platform == 'linux' && 'Linux' || 'Darwin' }}
+    
+    - name: Run tests (release)
+      run: |
+        make CC="${{ matrix.cc }}" BUILD_TYPE=release clean test
+      env:
+        UNAME_S: ${{ matrix.platform == 'linux' && 'Linux' || 'Darwin' }}
 
-      - name: Lint
-        run: |
-          chmod +x ./node_modules/@biomejs/cli-linux-x64/biome
-          bun lint
+    - name: Build binary
+      run: |
+        mkdir -p artifacts
+        make CC="${{ matrix.cc }}" BUILD_TYPE=release VERSION="${{ steps.version.outputs.VERSION }}" SHA="${{ steps.version.outputs.SHA }}" clean all
+        cp bin/lifp artifacts/lifp-${{ matrix.platform }}-${{ matrix.arch }}
+      env:
+        UNAME_S: ${{ matrix.platform == 'linux' && 'Linux' || 'Darwin' }}
 
-      - name: Compute version string
-        id: version
-        run: |
-          VERSION="${GITHUB_REF#refs/tags/}"
-          [[ "$GITHUB_REF" != refs/tags/* ]] && VERSION="dev"
-          VERSION_STRING="${VERSION} (${GITHUB_SHA:0:7})"
-          echo "VERSION_STRING=$VERSION_STRING" >> $GITHUB_OUTPUT
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: lifp-${{ matrix.platform }}-${{ matrix.arch }}
+        path: artifacts/
+        retention-days: 7
 
-      - name: Create build directory
-        run: mkdir -p build
-
-      - name: Generate documentation
-        run: >
-          bun \
-            --define __VERSION__="${{ steps.version.outputs.VERSION_STRING }}" \
-            scripts/generate-docs.ts
-
-      - name: Build for ${{ matrix.build.target }}
-        run: >
-          bun build . \
-            --compile \
-            --target=${{ matrix.build.target }} \
-            --outfile=build/${{ matrix.build.outfile }} \
-            --define __VERSION__="${{ steps.version.outputs.VERSION_STRING }}"
-
-      - name: Upload artifact for ${{ matrix.build.target }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.build.outfile }}
-          path: build/
-          retention-days: 7
-      
-      - name: Upload release assets
-        if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            build/lifp-darwin-amd64
-            build/lifp-darwin-arm64
-            build/lifp-linux-amd64
-            build/lifp-linux-arm64
-            build/lifp-windows-amd64.exe
+    - name: Upload release assets
+      if: github.event_name == 'release'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          artifacts/lifp-darwin-amd64
+          artifacts/lifp-darwin-arm64
+          artifacts/lifp-linux-amd64
+          artifacts/lifp-linux-arm64
