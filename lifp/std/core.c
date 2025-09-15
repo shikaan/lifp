@@ -254,6 +254,7 @@ result_void_position_t equal(value_t *result, const value_list_t *arguments,
       break;
     case VALUE_TYPE_STRING:
       are_equal = strcmp(first.value.string, second.value.string) == 0;
+      break;
     case VALUE_TYPE_CLOSURE:
     case VALUE_TYPE_LIST:
     default:
@@ -385,6 +386,7 @@ result_void_position_t notEqual(value_t *result, const value_list_t *arguments,
       break;
     case VALUE_TYPE_STRING:
       are_equal = strcmp(first.value.string, second.value.string) == 0;
+      break;
     case VALUE_TYPE_CLOSURE:
     case VALUE_TYPE_LIST:
     default:
