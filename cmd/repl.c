@@ -32,9 +32,9 @@ static constexpr char REPL_COMMAND_CLEAR[] = "clear";
 void clean(void) { linenoiseClearScreen(); }
 static constexpr char REPL_COMMAND_HELP[] = "help";
 void help(void) {
-  printf("lifp is a LISP dialect. Its syntax is made of expressions enclosed "
-         "in parentheses.\n"
-         "Here's your first program:\n"
+  printf("lifp is practical functional programming language belonging to the "
+         "LISP family. It features a REPL, file execution, a standard library"
+         " and modern conveniences. Here's your first program:\n"
          "\n"
          "    (io:stdout! \"Hello world!\") ; prints \"Hello World\"\n"
          "\n"
