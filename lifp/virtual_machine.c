@@ -17,8 +17,8 @@
 #include <assert.h>
 #include <stddef.h>
 
-static Map(value_t) * builtins;
-static Map(value_t) * specials;
+Map(value_t) * builtins;
+Map(value_t) * specials;
 
 result_vm_ref_t vmCreate(vm_options_t opts) {
   arena_t *arena = nullptr;
