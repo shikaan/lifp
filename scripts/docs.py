@@ -9,12 +9,12 @@ files = sorted(glob.glob('lifp/std/*.c'))
 with open(doc_file, "w") as out:
   version = os.getenv("VERSION") or "v0.0.0"
   sha = os.getenv("SHA") or "dev"
-  out.write(f"lifp - {version} ({sha})\n---\n# Table of Contents\n")
+  out.write(f"lifp - {version} ({sha})\n---\n### Table of Contents\n")
 
   for filename in files:
     module, ext = os.path.splitext(os.path.basename(filename))
     out.write(f"  * [{module}](#{module})\n")
-  
+
   out.write("\n")
 
 
