@@ -4,6 +4,7 @@ import os
 import glob
 
 doc_file = "docs/index.md"
+man_file = "docs/lifp.man"
 files = sorted(glob.glob('lifp/std/*.c'))
 
 with open(doc_file, "w") as out:
@@ -17,6 +18,22 @@ with open(doc_file, "w") as out:
 
   out.write("\n")
 
+with open(man_file, "w") as mf:
+  version = os.getenv("VERSION") or "v0.0.0"
+  sha = os.getenv("SHA") or "dev"
+  mf.write(f".TH lifp 1 \"{version}\" \"{sha}\" \"lifp manual\"\n")
+  mf.write(".SH INTRODUCTION\n")
+
+  mf.write(
+    """
+lifp is practical functional programming language belonging to the LISP family.
+It features a REPL, file execution, a standard library, and modern conveniences.
+
+Here's your first program:
+
+    (io:stdout! \"Hello world!\") ; prints \"Hello World\"
+
+This manual documents its standard library functions and usage examples.\n\n""");
 
 for filename in files:
   module, ext = os.path.splitext(os.path.basename(filename))
@@ -77,3 +94,18 @@ for filename in files:
 
     for method in api_docs:
       out.write(f"### {method['name']}\n\n{method['desc']}\n\n```lisp\n{method['example']}\n```\n\n\n")
+
+  with open(man_file, "a") as mf:
+    mf.write(f".SH {module.upper()}\n")
+    mf.write(f".SH\n")
+    for method in api_docs:
+      mf.write(f".SS {method['name']}\n")  # Subsection for function/macro name
+      mf.write(f"{method['desc']}\n\n")    # Description
+      if method['example']:
+        mf.write(".nf\n")                  # Disable filling for code block
+        mf.write(f"{method['example']}\n") # Example code
+        mf.write(".fi\n\n")                # Re-enable filling
+
+with open(man_file, "a") as mf:
+  github_url = "https://github.com/shikaan/lifp"
+  mf.write(f".SH SEE ALSO\nFor more information, feedback, or bug reports {github_url}\n")
