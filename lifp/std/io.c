@@ -23,9 +23,15 @@ constexpr size_t INTERMEDIATE_BUFFER_SIZE = 1024;
 
 static void streamPrint(FILE *stream, value_t *value) {
   char buffer[INTERMEDIATE_BUFFER_SIZE];
-  int offset = 0;
-  formatValue(value, INTERMEDIATE_BUFFER_SIZE, buffer, &offset);
-  fprintf(stream, "%s\n", buffer);
+
+  if (value->type != VALUE_TYPE_STRING) {
+    int offset = 0;
+    formatValue(value, INTERMEDIATE_BUFFER_SIZE, buffer, &offset);
+    fprintf(stream, "%s\n", buffer);
+  } else {
+    // This prevents printing quotes in the formatted string
+    fprintf(stream, "%s\n", value->value.string);
+  }
 }
 
 /**
