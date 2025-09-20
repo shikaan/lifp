@@ -1,8 +1,6 @@
 BUGS
 ---
   * [ ] `listGet` allows you to go out of bound
-  * [ ] `io:stdout!` does not remove quotes from strings
-        (io:stdout! "lol") -> "lol" instead of lol
 
 FEATURES
 ---
