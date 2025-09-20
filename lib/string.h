@@ -16,3 +16,25 @@ static inline size_t stringCopy(char *dst, const char *src, size_t size) {
   }
   return src_length;
 }
+
+static inline bool stringStartsWith(const char *string, const char *prefix) {
+  const size_t len = strlen(prefix);
+  return strncmp(string, prefix, len) == 0;
+}
+
+static inline void stringConcat(size_t dst_len, char dst[static dst_len],
+                                size_t one_len, const char *one, size_t two_len,
+                                const char *two) {
+  size_t min_len = one_len < dst_len ? one_len : dst_len;
+
+  for (size_t i = 0; i < min_len; i++) {
+    dst[i] = one[i];
+  }
+
+  size_t end_len = min_len + two_len < dst_len ? min_len + two_len : dst_len;
+  for (size_t i = min_len; i < end_len; i++) {
+    dst[i] = two[i - min_len];
+  }
+
+  dst[end_len] = 0;
+}

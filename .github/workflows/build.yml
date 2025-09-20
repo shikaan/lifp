@@ -19,7 +19,7 @@ jobs:
 
       - name: Generate documentation
         run: |
-          VERSION="${{ needs.build.outputs.VERSION }}" SHA="${{ needs.build.outputs.SHA }}" python3 scripts/docs.py
+          make VERSION="${{ needs.build.outputs.VERSION }}" SHA="${{ needs.build.outputs.SHA }}" docs/index.md
 
       - name: Commit and push updated docs
         run: |
@@ -109,7 +109,6 @@ jobs:
 
     - name: Build binary
       run: |
-        mkdir -p artifacts
         make CC="${{ matrix.cc }}" BUILD_TYPE=release VERSION="${{ steps.version.outputs.VERSION }}" SHA="${{ steps.version.outputs.SHA }}" clean all
         cp bin/lifp artifacts/lifp-${{ matrix.platform }}-${{ matrix.arch }}
       env:
@@ -127,6 +126,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: |
+          artifacts/lifp.1
           artifacts/lifp-darwin-amd64
           artifacts/lifp-darwin-arm64
           artifacts/lifp-linux-amd64

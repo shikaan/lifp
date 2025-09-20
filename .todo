@@ -4,7 +4,6 @@ BUGS
 
 FEATURES
 ---
-  * [ ] Implement `?` in REPL
   * [ ] Load a file in REPL and continue execution from there (debug mode)
   * [ ] imports `(import! my-module "./my-module.lifp")`
   * [ ] Decouple validation from execution

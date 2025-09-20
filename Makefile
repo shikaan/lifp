@@ -5,7 +5,7 @@ ifeq ($(PROFILE),1)
 endif
 
 .PHONY: all
-all: clean bin/lifp
+all: artifacts/docs.h artifacts/lifp.1 bin/lifp
 
 linenoise.o: CFLAGS = -Wall -W -Os
 linenoise.o: vendor/linenoise/linenoise.c
@@ -60,6 +60,18 @@ bin/lifp: \
 	lifp/tokenize.o lifp/parse.o lib/list.o lifp/evaluate.o lifp/node.o \
 	lib/arena.o lifp/virtual_machine.o lib/map.o lib/profile.o lifp/fmt.o \
 	lifp/value.o lifp/specials.o linenoise.o args.o
+
+.PHONY: artifacts/docs.h
+artifacts/docs.h:
+	VERSION="$(VERSION)" SHA="$(SHA)" python3 scripts/docs.py repl
+
+.PHONY: artifacts/lifp.1
+artifacts/lifp.1:
+	VERSION="$(VERSION)" SHA="$(SHA)" python3 scripts/docs.py man
+
+.PHONY: docs/index.md
+docs/index.md:
+	VERSION="$(VERSION)" SHA="$(SHA)" python3 scripts/docs.py web
 
 .PHONY: repl
 repl: bin/lifp
