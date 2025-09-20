@@ -3,41 +3,7 @@ import sys
 import os
 import glob
 
-doc_file = "docs/index.md"
-man_file = "docs/lifp.man"
-files = sorted(glob.glob('lifp/std/*.c'))
-
-with open(doc_file, "w") as out:
-  version = os.getenv("VERSION") or "v0.0.0"
-  sha = os.getenv("SHA") or "dev"
-  out.write(f"lifp - {version} ({sha})\n---\n### Table of Contents\n")
-
-  for filename in files:
-    module, ext = os.path.splitext(os.path.basename(filename))
-    out.write(f"  * [{module}](#{module})\n")
-
-  out.write("\n")
-
-with open(man_file, "w") as mf:
-  version = os.getenv("VERSION") or "v0.0.0"
-  sha = os.getenv("SHA") or "dev"
-  mf.write(f".TH lifp 1 \"{version}\" \"{sha}\" \"lifp manual\"\n")
-  mf.write(".SH INTRODUCTION\n")
-
-  mf.write(
-    """
-lifp is practical functional programming language belonging to the LISP family.
-It features a REPL, file execution, a standard library, and modern conveniences.
-
-Here's your first program:
-
-    (io:stdout! \"Hello world!\") ; prints \"Hello World\"
-
-This manual documents its standard library functions and usage examples.\n\n""");
-
-for filename in files:
-  module, ext = os.path.splitext(os.path.basename(filename))
-
+def extract_api_docs(filename):
   with open(filename, "r") as f:
     lines = f.readlines()
 
@@ -53,7 +19,6 @@ for filename in files:
   i = 0
   while i < len(lines):
     if lines[i].strip().startswith("/**"):
-      # Parse docblock
       desc = []
       name = ""
       example = []
@@ -86,26 +51,97 @@ for filename in files:
 
   # Sort api_docs alphabetically by 'name'
   api_docs = sorted(api_docs, key=lambda x: x["name"].lower())
+  return doc_block, api_docs
 
-  with open(doc_file, "a") as out:
-    out.write(f"# {module}\n\n")
-    for l in doc_block:
-      out.write(l + "\n")
+def generate_index_md(doc_file, src_files):
+  version = os.getenv("VERSION") or "v0.0.0"
+  sha = os.getenv("SHA") or "dev"
+  with open(doc_file, "w") as out:
+    out.write(f"lifp - {version} ({sha})\n---\n### Table of Contents\n")
+    for filename in src_files:
+      module, ext = os.path.splitext(os.path.basename(filename))
+      out.write(f"  * [{module}](#{module})\n")
+    out.write("\n")
 
-    for method in api_docs:
-      out.write(f"### {method['name']}\n\n{method['desc']}\n\n```lisp\n{method['example']}\n```\n\n\n")
+    for filename in src_files:
+      module, ext = os.path.splitext(os.path.basename(filename))
+      doc_block, api_docs = extract_api_docs(filename)
+      out.write(f"# {module}\n\n")
+      for l in doc_block:
+        out.write(l + "\n")
+      for method in api_docs:
+        out.write(f"### {method['name']}\n\n{method['desc']}\n\n```lisp\n{method['example']}\n```\n\n\n")
 
-  with open(man_file, "a") as mf:
-    mf.write(f".SH {module.upper()}\n")
-    mf.write(f".SH\n")
-    for method in api_docs:
-      mf.write(f".SS {method['name']}\n")  # Subsection for function/macro name
-      mf.write(f"{method['desc']}\n\n")    # Description
-      if method['example']:
-        mf.write(".nf\n")                  # Disable filling for code block
-        mf.write(f"{method['example']}\n") # Example code
-        mf.write(".fi\n\n")                # Re-enable filling
+def generate_manpage(man_file, src_files):
+  version = os.getenv("VERSION") or "v0.0.0"
+  sha = os.getenv("SHA") or "dev"
+  with open(man_file, "w") as mf:
+    mf.write(f".TH lifp 1 \"{version}\" \"{sha}\" \"lifp manual\"\n")
+    mf.write(".SH INTRODUCTION\n")
+    mf.write(
+      """
+lifp is practical functional programming language belonging to the LISP family.
+It features a REPL, file execution, a standard library, and modern conveniences.
 
-with open(man_file, "a") as mf:
-  github_url = "https://github.com/shikaan/lifp"
-  mf.write(f".SH SEE ALSO\nFor more information, feedback, or bug reports {github_url}\n")
+Here's your first program:
+
+  (io:stdout! \"Hello world!\") ; prints \"Hello World\"
+
+This manual documents its standard library functions and usage examples.\n\n""")
+    for filename in src_files:
+      module, ext = os.path.splitext(os.path.basename(filename))
+      _, api_docs = extract_api_docs(filename)
+      mf.write(f".SH {module.upper()}\n")
+      mf.write(f".SH\n")
+      for method in api_docs:
+        mf.write(f".SS {method['name']}\n")
+        mf.write(f"{method['desc']}\n\n")
+        if method['example']:
+          mf.write(".nf\n")
+          mf.write(f"{method['example']}\n")
+          mf.write(".fi\n\n")
+    github_url = "https://github.com/shikaan/lifp"
+    mf.write(f".SH SEE ALSO\nFor more information, feedback, or bug reports {github_url}\n")
+
+def generate_doc_header(repl_doc, src_files):
+  count = 0
+  with open(repl_doc, "w") as repl:
+    repl.write("// Auto-generated documentation header\n")
+    repl.write("// Do not modify manually\n\n")
+    repl.write("typedef struct {\n")
+    repl.write("  const char *name;\n")
+    repl.write("  const char *description;\n")
+    repl.write("  const char *example;\n")
+    repl.write("} doc_record_t;\n\n")
+    repl.write("static const doc_record_t DOCS[] = {\n")
+    for filename in src_files:
+      _, api_docs = extract_api_docs(filename)
+      count += len(api_docs)
+      for method in api_docs:
+        name = method['name'].replace('"', '\\"')[:32]
+        desc = method['desc'].replace('"', '\\"').replace('\n', ' ')[:128]
+        example = method['example'].replace('"', '\\"').replace('\n', '\\n')[:128]
+        repl.write(f'  {{"{name}", "{desc}", "{example}"}},\n')
+    repl.write("};\n")
+    repl.write(f"static const unsigned int DOCS_COUNT = {count};\n")
+
+if __name__ == "__main__":
+  doc_file = "docs/index.md"
+  man_file = "artifacts/lifp.1"
+  repl_doc = "artifacts/docs.h"
+  src_files = sorted(glob.glob('lifp/std/*.c'))
+
+  if len(sys.argv) < 2:
+    print("Usage: docs.py [web|man|repl]")
+    sys.exit(1)
+
+  mode = sys.argv[1].lower()
+  if mode == "web":
+    generate_index_md(doc_file, src_files)
+  elif mode == "man":
+    generate_manpage(man_file, src_files)
+  elif mode == "repl":
+    generate_doc_header(repl_doc, src_files)
+  else:
+    print("Unknown mode. Use 'web', 'man', or 'repl'.")
+    sys.exit(1)
