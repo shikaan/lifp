@@ -1,3 +1,4 @@
+#include "../artifacts/docs.h"
 #include "../lib/arena.h"
 #include "../lib/profile.h"
 #include "../lib/string.h"
@@ -28,60 +29,59 @@ typedef struct {
   size_t environment_size;
 } repl_opts_t;
 
-static constexpr char REPL_COMMAND_CLEAR[] = "clear";
-void clean(void) { linenoiseClearScreen(); }
-static constexpr char REPL_COMMAND_HELP[] = "help";
-void help(void) {
-  printf("lifp is practical functional programming language belonging to the "
-         "LISP family. It features a REPL, file execution, a standard library"
-         " and modern conveniences. Here's your first program:\n"
-         "\n"
-         "    (io:stdout! \"Hello world!\") ; prints \"Hello World\"\n"
-         "\n"
-         "To learn about the symbols in this environment, use '?':\n"
-         "\n"
-         "    ?           ; lists symbols in this environment\n"
-         "\n"
-         "This REPL supports Tab completion: hit <Tab> for auto-complete.\n"
-         "\n"
-         "For more information, feedback, or bug reports "
-         "https://github.com/shikaan/lifp\n");
-}
-
-static char completions[64][32] = {};
+static constexpr size_t MAX_COMPELTIONS = 64;
+static char completions[MAX_COMPELTIONS][MAX_SYMBOL_LENGTH] = {};
 static size_t completions_count = 0;
+
+static void sort(size_t len, char array[static len][MAX_SYMBOL_LENGTH]) {
+  char aux[MAX_SYMBOL_LENGTH] = {};
+  for (size_t i = 1; i < len; i++) {
+    for (size_t j = i; j > 0; j--) {
+      if (strcmp(array[j], array[j - 1]) < 0) {
+        stringCopy(aux, array[j], MAX_SYMBOL_LENGTH);
+        stringCopy(array[j], array[j - 1], MAX_SYMBOL_LENGTH);
+        stringCopy(array[j - 1], aux, MAX_SYMBOL_LENGTH);
+      }
+    }
+  }
+}
 
 static void fillCompletions(environment_t *env) {
   completions_count = 0;
   for (size_t i = 0; i < env->values->capacity; i++) {
     if (env->values->used[i]) {
-      memset(completions[completions_count], 0, 32);
-      stringCopy(completions[completions_count], env->values->keys[i], 32);
+      memset(completions[completions_count], 0, MAX_SYMBOL_LENGTH);
+      stringCopy(completions[completions_count], env->values->keys[i],
+                 MAX_SYMBOL_LENGTH);
       completions_count++;
-      if (completions_count == 64)
-        return;
+      if (completions_count == MAX_COMPELTIONS)
+        goto done;
     }
   }
 
   for (size_t i = 0; i < builtins->capacity; i++) {
     if (builtins->used[i]) {
-      memset(completions[completions_count], 0, 32);
-      stringCopy(completions[completions_count], builtins->keys[i], 32);
+      memset(completions[completions_count], 0, MAX_SYMBOL_LENGTH);
+      stringCopy(completions[completions_count], builtins->keys[i],
+                 MAX_SYMBOL_LENGTH);
       completions_count++;
-      if (completions_count == 64)
-        return;
+      if (completions_count == MAX_COMPELTIONS)
+        goto done;
     }
   }
 
   for (size_t i = 0; i < specials->capacity; i++) {
     if (specials->used[i]) {
-      memset(completions[completions_count], 0, 32);
-      stringCopy(completions[completions_count], specials->keys[i], 32);
+      memset(completions[completions_count], 0, MAX_SYMBOL_LENGTH);
+      stringCopy(completions[completions_count], specials->keys[i],
+                 MAX_SYMBOL_LENGTH);
       completions_count++;
-      if (completions_count == 64)
-        return;
+      if (completions_count == MAX_COMPELTIONS)
+        goto done;
     }
   }
+done:
+  sort(completions_count, completions);
 }
 
 char completion_buffer[2048] = {};
@@ -126,23 +126,76 @@ static void setCompletions(const char *input, linenoiseCompletions *lnc) {
   }
 }
 
+static constexpr char REPL_COMMAND_CLEAR[] = "clear";
+void clean(void) { linenoiseClearScreen(); }
+
+static constexpr char REPL_COMMAND_HELP[] = "help";
+void help(void) {
+  printf("lifp is practical functional programming language belonging to the "
+         "LISP family. It features a REPL, file execution, a standard library"
+         " and modern conveniences. Here's your first program:\n"
+         "\n"
+         "    (io:stdout! \"Hello world!\") ; prints \"Hello World\"\n"
+         "\n"
+         "To learn about the symbols in this environment, use '?':\n"
+         "\n"
+         "    ?            ; lists symbols in this environment\n"
+         "    ? io:stdout! ; shows documentation about io:stdout!\n"
+         "\n"
+         "This REPL supports Tab completion: hit <Tab> for auto-complete.\n"
+         "\n"
+         "For more information, feedback, or bug reports "
+         "https://github.com/shikaan/lifp\n");
+}
+
+static char format_buffer[1024] = {0};
 static constexpr char REPL_COMMAND_MORE[] = "?";
-void more(const char *input) {
-  (void)input;
-  size_t term_width = 64;
-  struct winsize winsize;
-  if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsize) == 0) {
-    term_width = winsize.ws_col;
+void more(const char *input, environment_t *env) {
+  if (strlen(input) <= 2) {
+    size_t term_width = 64;
+    struct winsize winsize;
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsize) == 0) {
+      term_width = winsize.ws_col;
+    }
+
+    size_t divider = term_width / MAX_SYMBOL_LENGTH;
+
+    for (size_t i = 0; i < completions_count; i++) {
+      if (i % divider == 0)
+        printf("\n");
+      printf("%-*s ", (int)MAX_SYMBOL_LENGTH, completions[i]);
+    }
+    printf("\n");
+    return;
   }
 
-  size_t divider = term_width / 33U;
-
-  for (size_t i = 0; i < completions_count; i++) {
-    if (i % divider == 0)
-      printf("\n");
-    printf("%-32s ", completions[i]);
+  if (input[1] != ' ') {
+    printf("Error: invalid whitespace separator. Usage: '? symbol-name'.\n");
+    return;
   }
-  printf("\n");
+
+  const char *symbol = &input[2];
+
+  for (size_t i = 0; i < DOCS_COUNT; i++) {
+    doc_record_t record = DOCS[i];
+    if (strcmp(symbol, record.name) == 0) {
+      printf("  %s\n\n  Example:\n    %s\n\n", record.description,
+             record.example);
+      return;
+    }
+  }
+
+  const value_t *value = environmentResolveSymbol(env, symbol);
+  if (value) {
+    int offset = 0;
+    formatValue(value, 1024, format_buffer, &offset);
+    printf("%s :: (%s) ~> %s\n", symbol, formatValueType(value->type),
+           format_buffer);
+  } else {
+    printf("Error: symbol '%s' not found. Use '?' to see all symbols in "
+           "current environment.\n",
+           symbol);
+  }
 }
 
 #define printError(Result, InputBuffer, Size, OutputBuffer)                    \
@@ -218,7 +271,7 @@ int repl(const repl_opts_t OPTIONS) {
     }
 
     if (strstr(input, REPL_COMMAND_MORE) != nullptr && input[0] == '?') {
-      more(input);
+      more(input, machine->global);
       continue;
     }
 
