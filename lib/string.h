@@ -35,4 +35,6 @@ static inline void stringConcat(size_t dst_len, char dst[static dst_len],
   for (size_t i = min_len; i < end_len; i++) {
     dst[i] = two[i - min_len];
   }
+
+  dst[end_len] = 0;
 }
