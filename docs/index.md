@@ -1,6 +1,6 @@
-lifp - v0.1.0 (08bbf3b)
+lifp - v0.2.0 (2a724c7)
 ---
-# Table of Contents
+### Table of Contents
   * [core](#core)
   * [flow](#flow)
   * [io](#io)
