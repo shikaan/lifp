@@ -121,11 +121,8 @@ result_void_position_t evaluate(value_t *result, arena_t *result_arena,
     const auto list = node->value.list;
 
     if (list.count == 0) {
-      result->type = VALUE_TYPE_LIST;
-      result->value.list.count = 0;
-      result->value.list.capacity = 0;
-      result->value.list.data = nullptr;
-      result->value.list.arena = result_arena;
+      tryWithMeta(result_void_position_t,
+                  valueInitList(result, result_arena, 0U), node->position);
       return ok(result_void_position_t);
     }
 
@@ -202,7 +199,7 @@ result_void_position_t evaluate(value_t *result, arena_t *result_arena,
                     valueCopy(&value, &duplicated, result_arena),
                     value.position);
         tryWithMeta(result_void_position_t,
-                    listAppend(value_t, &result->value.list, &duplicated),
+                    listAppend(value_t, result->value.list, &duplicated),
                     value.position);
       }
       return ok(result_void_position_t);

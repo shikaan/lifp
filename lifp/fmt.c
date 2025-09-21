@@ -130,16 +130,16 @@ void formatValue(const value_t *value, int size,
   }
   case VALUE_TYPE_LIST: {
     append(size, output_buffer, offset, "(");
-    value_list_t list = value->value.list;
+    value_list_t *list = value->value.list;
 
-    if (list.count > 0) {
-      for (size_t i = 0; i < list.count - 1; i++) {
-        value_t sub_value = listGet(value_t, &list, i);
+    if (list->count > 0) {
+      for (size_t i = 0; i < list->count - 1; i++) {
+        value_t sub_value = listGet(value_t, list, i);
         formatValue(&sub_value, size, output_buffer, offset);
         append(size, output_buffer, offset, " ");
       }
 
-      value_t sub_value = listGet(value_t, &list, list.count - 1);
+      value_t sub_value = listGet(value_t, list, list->count - 1);
       formatValue(&sub_value, size, output_buffer, offset);
     }
     append(size, output_buffer, offset, ")");

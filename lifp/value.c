@@ -18,9 +18,7 @@ result_ref_t valueCreate(arena_t *arena, value_type_t type) {
 
 result_void_t valueInitList(value_t *self, arena_t *arena, size_t size) {
   self->type = VALUE_TYPE_LIST;
-  value_list_t *list = nullptr;
-  try(result_void_t, listCreate(value_t, arena, size), list);
-  memcpy(&self->value.list, list, sizeof(value_list_t));
+  try(result_void_t, listCreate(value_t, arena, size), self->value.list);
   return ok(result_void_t);
 }
 
@@ -136,14 +134,14 @@ result_void_t valueCopy(const value_t *source, value_t *destination,
         destination->value.closure.captured_environment);
     break;
   case VALUE_TYPE_LIST: {
-    try(result_void_t, valueInitList(destination, destination_arena,
-                                     source->value.list.count));
-    for (size_t i = 0; i < source->value.list.count; i++) {
-      value_t value = listGet(value_t, &source->value.list, i);
+    try(result_void_t,
+        valueInit(destination, destination_arena, source->value.list->count));
+    for (size_t i = 0; i < source->value.list->count; i++) {
+      value_t value = listGet(value_t, source->value.list, i);
       value_t duplicated;
       try(result_void_t, valueCopy(&value, &duplicated, destination_arena));
       try(result_void_t,
-          listAppend(value_t, &destination->value.list, &duplicated));
+          listAppend(value_t, destination->value.list, &duplicated));
     }
     break;
   }

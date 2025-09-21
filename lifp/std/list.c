@@ -40,7 +40,7 @@ result_void_position_t listCount(value_t *result, const value_list_t *arguments,
   }
 
   result->type = VALUE_TYPE_NUMBER;
-  result->value.number = (number_t)list_value.value.list.count;
+  result->value.number = (number_t)list_value.value.list->count;
 
   return ok(result_void_position_t);
 }
@@ -62,7 +62,7 @@ result_void_position_t listFrom(value_t *result, const value_list_t *arguments,
   tryWithMeta(result_void_position_t,
               listCreate(value_t, arena, arguments->count), result->position,
               new_list);
-  result->value.list = *new_list;
+  result->value.list = new_list;
 
   if (arguments->count > 0) {
     // Copy all arguments to the new list
@@ -72,7 +72,7 @@ result_void_position_t listFrom(value_t *result, const value_list_t *arguments,
       tryWithMeta(result_void_position_t,
                   valueCopy(&source, &duplicated, arena), result->position);
       tryWithMeta(result_void_position_t,
-                  listAppend(value_t, &result->value.list, &duplicated),
+                  listAppend(value_t, result->value.list, &duplicated),
                   source.position);
     }
   } else {
@@ -118,7 +118,7 @@ result_void_position_t listNth(value_t *result, const value_list_t *arguments,
   }
 
   number_t index = index_value.value.number;
-  value_list_t *list = &list_value.value.list;
+  value_list_t *list = list_value.value.list;
 
   if (index < 0 || (size_t)index >= list->count ||
       index != (number_t)(size_t)index) {
@@ -165,7 +165,7 @@ result_void_position_t listMap(value_t *result, const value_list_t *arguments,
           LIST_MAP, formatValueType(list_value.type));
   }
 
-  value_list_t *input_list = &list_value.value.list;
+  value_list_t *input_list = list_value.value.list;
   closure_t closure = closure_value.value.closure;
 
   value_list_t *mapped_list = nullptr;
@@ -198,7 +198,7 @@ result_void_position_t listMap(value_t *result, const value_list_t *arguments,
   }
 
   result->type = VALUE_TYPE_LIST;
-  result->value.list = *mapped_list;
+  result->value.list = mapped_list;
 
   return ok(result_void_position_t);
 }
@@ -237,7 +237,7 @@ result_void_position_t listEach(value_t *result, const value_list_t *arguments,
           LIST_EACH, formatValueType(list_value.type));
   }
 
-  value_list_t *input_list = &list_value.value.list;
+  value_list_t *input_list = list_value.value.list;
   closure_t closure = closure_value.value.closure;
 
   for (size_t i = 0; i < input_list->count; i++) {
@@ -303,7 +303,7 @@ listFilter(value_t *result, const value_list_t *arguments, arena_t *arena) {
           LIST_FILTER, formatValueType(list_value.type));
   }
 
-  value_list_t *input_list = &list_value.value.list;
+  value_list_t *input_list = list_value.value.list;
   closure_t closure = closure_value.value.closure;
 
   value_list_t *filtered_list = nullptr;
@@ -346,7 +346,7 @@ listFilter(value_t *result, const value_list_t *arguments, arena_t *arena) {
   }
 
   result->type = VALUE_TYPE_LIST;
-  result->value.list = *filtered_list;
+  result->value.list = filtered_list;
 
   return ok(result_void_position_t);
 }
@@ -413,7 +413,7 @@ result_void_position_t listTimes(value_t *result, const value_list_t *arguments,
   }
 
   result->type = VALUE_TYPE_LIST;
-  result->value.list = *repeated_list;
+  result->value.list = repeated_list;
 
   return ok(result_void_position_t);
 }

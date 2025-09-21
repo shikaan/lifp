@@ -47,9 +47,9 @@ void defSpecialForm() {
 
   tryAssert(execute(&result, "(def! list (1 2))"));
   value = mapGet(value_t, environment->values, "list");
-  expectTrue((value->value.list.count == 2 &&
-              value->value.list.data[0].value.number == 1 &&
-              value->value.list.data[1].value.number == 2) != 0,
+  expectTrue((value->value.list->count == 2 &&
+              value->value.list->data[0].value.number == 1 &&
+              value->value.list->data[1].value.number == 2) != 0,
              "defines list");
 
   tryAssert(execute(&result, "(def! fun (fn (a b) (+ a b)))"));
@@ -144,9 +144,9 @@ void letSpecialForm() {
   expectEqlUint(result.type, VALUE_TYPE_NIL, "defines null");
 
   tryAssert(execute(&result, "(let ((l (1 \"2\"))) l)"));
-  expectTrue((result.value.list.count == 2 &&
-              result.value.list.data[0].value.number == 1 &&
-              strcmp(result.value.list.data[1].value.string, "2") == 0) != 0,
+  expectTrue((result.value.list->count == 2 &&
+              result.value.list->data[0].value.number == 1 &&
+              strcmp(result.value.list->data[1].value.string, "2") == 0) != 0,
              "defines lists");
 
   tryAssert(execute(&result, "(let ((f (fn (x y) (+ x y)))) f)"));

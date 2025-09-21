@@ -46,7 +46,7 @@ typedef struct value_t {
     closure_t closure;
     builtin_t builtin;
     nullptr_t nil;
-    value_list_t list;
+    value_list_t *list;
     special_form_t special;
     string_t string;
   } value;

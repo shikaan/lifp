@@ -56,8 +56,8 @@ void values() {
   arenaReset(test_arena);
   value_t list_value;
   tryAssert(valueInit(&list_value, test_arena, (size_t)2));
-  tryAssert(listAppend(value_t, &list_value.value.list, &number));
-  tryAssert(listAppend(value_t, &list_value.value.list, &nil));
+  tryAssert(listAppend(value_t, list_value.value.list, &number));
+  tryAssert(listAppend(value_t, list_value.value.list, &nil));
 
   formatValue(&list_value, size, buffer, &offset);
   expectEqlString(buffer, "(123 nil)", 10, "formats lists");
