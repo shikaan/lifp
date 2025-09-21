@@ -138,6 +138,20 @@ int main() {
   expectEqlUint(currying.type, VALUE_TYPE_NUMBER, "returns a number");
   expectEqlDouble(currying.value.number, 5, "it has correct value");
 
+  case("expanding environment");
+  value_t environment;
+  execute(&environment, 
+      "(def! aa 1)\n"
+      "(def! ab 1)\n"
+      "(def! ac 1)\n"
+      "(def! ad 1)\n"
+      "(def! ae 1)\n"
+      "(def! af 1)\n"
+      "(def! ag 1)\n"
+      "(def! ah 1)\n"
+      "(def! ai 1)\n");
+  expectEqlUint(environment.type, VALUE_TYPE_NIL, "allows environment growth");
+
   arenaDestroy(&ast_arena);
   arenaDestroy(&scratch_arena);
   arenaDestroy(&result_arena);
