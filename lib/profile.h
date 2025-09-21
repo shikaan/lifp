@@ -45,11 +45,19 @@
 //
 
 #ifdef MEMORY_PROFILE
+
+// Upate these values for finer reports
+#define MEMORY_PROFILE_SAFE_ALLOC 0
+#define MEMORY_PROFILE_ARENA_ALLOCATIONS 0
+#define MEMORY_PROFILE_ARENA_ALLOCATIONS_SUMMARY 1
+#define MEMORY_PROFILE_ARENA_SATURATION 0
+
 #include "arena.h"
 #include "result.h"
 
 constexpr size_t MAX_SUBSPAN = 16;
 constexpr size_t SPAN_LABEL_LEN = 16;
+constexpr size_t MAX_SUMMARY_SPANS = 16;
 
 typedef struct span_t {
   char label[SPAN_LABEL_LEN];
