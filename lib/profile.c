@@ -182,18 +182,18 @@ void makeSpanSummary(const span_t *root, size_t *len, span_t *summary) {
   }
 
   if (!found) {
-    span_t *new_item = &summary[*len];
-    strcpy(new_item->label, root->label);
-    new_item->hits = root->hits;
-    new_item->total = root->total;
-    (*len)++;
-
     if (*len == MAX_SUMMARY_SPANS) {
       printf(
           "Profiling error: Maximum number (%lu) of summary spans reached.\n",
           MAX_SUMMARY_SPANS);
       return;
     }
+
+    span_t *new_item = &summary[*len];
+    strcpy(new_item->label, root->label);
+    new_item->hits = root->hits;
+    new_item->total = root->total;
+    (*len)++;
   }
 
   for (unsigned long i = 0; i < root->subspans_count; i++) {
@@ -206,10 +206,14 @@ void printSpanSummary(const span_t *root) {
   size_t count = 0;
   makeSpanSummary(root, &count, summary);
 
+  size_t total = 0;
   for (size_t i = 0; i < count; i++) {
     span_t span = summary[i];
+    total += span.total;
     printf(" %16s: %12lu bytes %6lu hits\n", span.label, span.total, span.hits);
   }
+  printf(" %16s\n", "---");
+  printf(" %16s: %12lu bytes\n", "Total", total);
 }
 
 void printArenas(void) {
