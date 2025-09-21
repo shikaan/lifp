@@ -147,6 +147,7 @@ const char *LET_EXAMPLE = "(let ((a 1) (b 2)) (+ a b))";
 result_void_position_t let(value_t *result, const node_list_t *nodes,
                            arena_t *scratch_arena, environment_t *environment,
                            trampoline_t *trampoline) {
+  (void)result;
   profileArena(scratch_arena);
   assert(nodes->count > 0); // let is always there
   node_t first = listGet(node_t, nodes, 0);
@@ -201,19 +202,9 @@ result_void_position_t let(value_t *result, const node_list_t *nodes,
         evaluated.position);
   }
 
-  node_t form = listGet(node_t, nodes, 2);
-  value_t temp_result;
-  try(result_void_position_t,
-      evaluate(&temp_result, scratch_arena, scratch_arena, &form, local_env));
-
-  // The result from the evaluation might be allocated in the local_env's arena,
-  // which will be destroyed. We need to copy it to the temp arena to allow
-  // expressions like `(let ((l (1 2))) l)` where values can escape the env
-  tryWithMeta(result_void_position_t,
-              valueCopy(&temp_result, result, scratch_arena),
-              temp_result.position);
-
-  trampoline->more = false;
+  trampoline->more = true;
+  trampoline->environment = local_env;
+  trampoline->node = &nodes->data[2];
   return ok(result_void_position_t);
 }
 
