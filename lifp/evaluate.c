@@ -14,7 +14,8 @@
 
 result_void_position_t invokeClosure(value_t *result, closure_t closure,
                                      value_list_t *arguments,
-                                     arena_t *scratch_arena) {
+                                     arena_t *scratch_arena,
+                                     trampoline_t *trampoline) {
   profileArena(scratch_arena);
   if (arguments->count < closure.arguments->count) {
     throw(result_void_position_t, ERROR_CODE_TYPE_UNEXPECTED_ARITY,
@@ -38,8 +39,14 @@ result_void_position_t invokeClosure(value_t *result, closure_t closure,
                 value.position);
   }
 
-  try(result_void_position_t, evaluate(result, scratch_arena, scratch_arena,
-                                       closure.form, local_environment));
+  if (trampoline) {
+    trampoline->more = true;
+    trampoline->environment = local_environment;
+    trampoline->node = closure.form;
+  } else {
+    try(result_void_position_t, evaluate(result, scratch_arena, scratch_arena,
+                                         closure.form, local_environment));
+  }
 
   return ok(result_void_position_t);
 }
@@ -72,6 +79,8 @@ result_void_position_t evaluate(value_t *result, arena_t *result_arena,
 
   result->position.column = node->position.column;
   result->position.line = node->position.line;
+
+  bool tco = false;
 
   while (true) {
     switch (node->type) {
@@ -116,6 +125,15 @@ result_void_position_t evaluate(value_t *result, arena_t *result_arena,
 
       result->type = resolved_value->type;
       result->value = resolved_value->value;
+
+      // Calls coming from tco will use a scratch environment as environment.
+      // We cannot just return the values, we need to copy them
+      if (tco) {
+        tryWithMeta(result_void_position_t,
+                    valueCopy(resolved_value, result, result_arena),
+                    result->position);
+      }
+
       return ok(result_void_position_t);
     }
     case NODE_TYPE_LIST: {
@@ -152,6 +170,7 @@ result_void_position_t evaluate(value_t *result, arena_t *result_arena,
         if (trampoline.more) {
           environment = trampoline.environment;
           node = trampoline.node;
+          tco = true;
           continue;
         }
 
@@ -180,12 +199,16 @@ result_void_position_t evaluate(value_t *result, arena_t *result_arena,
                              environment, node->position));
 
         closure_t closure = first_value.value.closure;
+        trampoline_t trampoline;
         try(result_void_position_t,
-            invokeClosure(&scratch_result, closure, arguments, scratch_arena));
-        tryWithMeta(result_void_position_t,
-                    valueCopy(&scratch_result, result, result_arena),
-                    node->position);
-        return ok(result_void_position_t);
+            invokeClosure(&scratch_result, closure, arguments, scratch_arena,
+                          &trampoline));
+
+        assert(trampoline.more);
+        environment = trampoline.environment;
+        node = trampoline.node;
+        tco = true;
+        continue;
       }
       case VALUE_TYPE_NUMBER:
       case VALUE_TYPE_LIST:

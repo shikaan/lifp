@@ -191,7 +191,7 @@ result_void_position_t listMap(value_t *result, const value_list_t *arguments,
 
     value_t mapped;
     try(result_void_position_t,
-        invokeClosure(&mapped, closure, closure_args, arena));
+        invokeClosure(&mapped, closure, closure_args, arena, nullptr));
 
     tryWithMeta(result_void_position_t,
                 listAppend(value_t, mapped_list, &mapped), result->position);
@@ -258,7 +258,7 @@ result_void_position_t listEach(value_t *result, const value_list_t *arguments,
 
     value_t mapped;
     try(result_void_position_t,
-        invokeClosure(&mapped, closure, closure_args, arena));
+        invokeClosure(&mapped, closure, closure_args, arena, nullptr));
   }
 
   result->type = VALUE_TYPE_NIL;
@@ -329,7 +329,7 @@ listFilter(value_t *result, const value_list_t *arguments, arena_t *arena) {
 
     value_t filtered;
     try(result_void_position_t,
-        invokeClosure(&filtered, closure, closure_args, arena));
+        invokeClosure(&filtered, closure, closure_args, arena, nullptr));
 
     if (filtered.type != VALUE_TYPE_BOOLEAN) {
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
@@ -406,7 +406,7 @@ result_void_position_t listTimes(value_t *result, const value_list_t *arguments,
 
     value_t mapped;
     try(result_void_position_t,
-        invokeClosure(&mapped, closure, closure_args, arena));
+        invokeClosure(&mapped, closure, closure_args, arena, nullptr));
 
     tryWithMeta(result_void_position_t,
                 listAppend(value_t, repeated_list, &mapped), result->position);
