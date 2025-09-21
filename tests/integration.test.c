@@ -110,6 +110,12 @@ int main() {
   expectEqlUint(let.type, VALUE_TYPE_NUMBER, "returns correct type");
   expectEqlDouble(let.value.number, 2, "returns correct value");
 
+  case("let with escape");
+  value_t let_with_escape;
+  execute(&let_with_escape, "(+ 1 (let ((l 1)) l))");
+  expectEqlUint(let_with_escape.type, VALUE_TYPE_NUMBER, "returns correct type");
+  expectEqlDouble(let_with_escape.value.number, 2, "returns correct value");
+
   case("conditional - cond special form");
   value_t cond_test;
   execute(&cond_test, "(cond ((< 5 3) 1) ((> 5 3) 2) (3))");
