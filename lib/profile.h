@@ -46,7 +46,7 @@
 
 #ifdef MEMORY_PROFILE
 
-// Upate these values for finer reports
+// Update these values for finer reports
 #define MEMORY_PROFILE_SAFE_ALLOC 0
 #define MEMORY_PROFILE_ARENA_ALLOCATIONS 0
 #define MEMORY_PROFILE_ARENA_ALLOCATIONS_SUMMARY 1

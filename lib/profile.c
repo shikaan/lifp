@@ -251,7 +251,7 @@ void profileReport(void) {
 #endif
 
 #if MEMORY_PROFILE_ARENA_ALLOCATIONS_SUMMARY == 1
-    printf("\n === Memory Metrics: Arena Allocationn Summary ===\n");
+    printf("\n === Memory Metrics: Arena Allocation Summary ===\n");
     printSpanSummary(ROOT_ARENA_SPAN);
 #endif
 

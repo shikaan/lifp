@@ -163,16 +163,15 @@ result_void_position_t evaluate(value_t *result, arena_t *result_arena,
         try(result_void_position_t,
             special(&scratch_result, &list, scratch_arena, environment,
                     &trampoline));
-        tryWithMeta(result_void_position_t,
-                    valueCopy(&scratch_result, result, result_arena),
-                    node->position);
-
         if (trampoline.more) {
           environment = trampoline.environment;
           node = trampoline.node;
           tco = true;
           continue;
         }
+        tryWithMeta(result_void_position_t,
+                    valueCopy(&scratch_result, result, result_arena),
+                    node->position);
 
         return ok(result_void_position_t);
       }
