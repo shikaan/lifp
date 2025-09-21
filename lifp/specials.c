@@ -1,5 +1,6 @@
 #include "specials.h"
 #include "../lib/list.h"
+#include "../lib/profile.h"
 #include "../lib/result.h"
 #include "error.h"
 #include "evaluate.h"
@@ -35,6 +36,7 @@ const char *DEFINE_EXAMPLE = "(def! x (+ 1 2))";
 result_void_position_t define(value_t *result, const node_list_t *nodes,
                               arena_t *scratch_arena,
                               environment_t *environment) {
+  profileArena(scratch_arena);
   assert(nodes->count > 0); // def! is always there
   node_t first = listGet(node_t, nodes, 0);
   if (nodes->count != 3) {
@@ -55,6 +57,7 @@ result_void_position_t define(value_t *result, const node_list_t *nodes,
           NAMESPACE_DELIMITER, key.value.symbol);
   }
 
+  frame_handle_t frame = arenaStartFrame(scratch_arena);
   // Perform reduction in the temporary memory
   value_t reduced;
   node_t value = listGet(node_t, nodes, 2);
@@ -67,6 +70,8 @@ result_void_position_t define(value_t *result, const node_list_t *nodes,
       environmentRegisterSymbol(environment, key.value.symbol, &reduced),
       value.position);
 
+  arenaEndFrame(scratch_arena, frame);
+
   result->type = VALUE_TYPE_NIL;
   result->value.nil = nullptr;
   result->position = first.position;
@@ -77,6 +82,7 @@ const char *FUNCTION_EXAMPLE = "(fn (a b) (+ a b))";
 result_void_position_t function(value_t *result, const node_list_t *nodes,
                                 arena_t *scratch_arena,
                                 environment_t *environment) {
+  profileArena(scratch_arena);
   assert(nodes->count > 0); // fn is always there
   node_t first = listGet(node_t, nodes, 0);
   if (nodes->count != 3) {
@@ -135,6 +141,7 @@ result_void_position_t function(value_t *result, const node_list_t *nodes,
 const char *LET_EXAMPLE = "(let ((a 1) (b 2)) (+ a b))";
 result_void_position_t let(value_t *result, const node_list_t *nodes,
                            arena_t *scratch_arena, environment_t *environment) {
+  profileArena(scratch_arena);
   assert(nodes->count > 0); // let is always there
   node_t first = listGet(node_t, nodes, 0);
   if (nodes->count != 3) {
@@ -209,6 +216,8 @@ result_void_position_t cond(value_t *result, const node_list_t *nodes,
                             environment_t *environment) {
   assert(nodes->count > 0); // cond is always there
 
+  profileArena(scratch_arena);
+
   for (size_t i = 1; i < nodes->count - 1; i++) {
     node_t node = listGet(node_t, nodes, i);
     if (node.type != NODE_TYPE_LIST || node.value.list.count != 2) {
@@ -220,9 +229,12 @@ result_void_position_t cond(value_t *result, const node_list_t *nodes,
     node_t condition = listGet(node_t, &node.value.list, 0);
     value_t condition_value;
     condition_value.position = condition.position;
+
+    frame_handle_t frame = arenaStartFrame(scratch_arena);
     try(result_void_position_t,
         evaluate(&condition_value, scratch_arena, scratch_arena, &condition,
                  environment));
+    arenaEndFrame(scratch_arena, frame);
 
     if (condition_value.type != VALUE_TYPE_BOOLEAN) {
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, node.position,

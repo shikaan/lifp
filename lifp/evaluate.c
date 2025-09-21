@@ -15,6 +15,7 @@
 result_void_position_t invokeClosure(value_t *result, closure_t closure,
                                      value_list_t *arguments,
                                      arena_t *scratch_arena) {
+  profileArena(scratch_arena);
   if (arguments->count < closure.arguments.count) {
     throw(result_void_position_t, ERROR_CODE_TYPE_UNEXPECTED_ARITY,
           closure.form.position,
@@ -68,7 +69,6 @@ result_void_position_t evaluate(value_t *result, arena_t *result_arena,
                                 environment_t *environment) {
   profileSafeAlloc();
   profileArena(scratch_arena);
-  profileArena(result_arena);
 
   result->position.column = node->position.column;
   result->position.line = node->position.line;
