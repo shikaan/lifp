@@ -80,10 +80,10 @@ void listOfElements() {
   evaluateAndClean(&result, &list_node);
   expectEqlValueType(result.type, VALUE_TYPE_LIST,
                      "has correct type");
-  value_list_t reduced_list = result.value.list;
-  expectEqlSize(reduced_list.count, 2, "has correct count");
-  for (size_t i = 0; i < reduced_list.count; i++) {
-    value_t node = listGet(value_t, &reduced_list, i);
+  value_list_t *reduced_list = result.value.list;
+  expectEqlSize(reduced_list->count, 2, "has correct count");
+  for (size_t i = 0; i < reduced_list->count; i++) {
+    value_t node = listGet(value_t, reduced_list, i);
     node_t expected_node = listGet(node_t, expected, i);
     expectEqlValueType(node.type, VALUE_TYPE_NUMBER, "has correct type");
     expectEqlDouble(node.value.number, expected_node.value.number,
@@ -151,9 +151,9 @@ void nested() {
   evaluateAndClean(&result, &outer_list_node);
   expectEqlValueType(result.type, VALUE_TYPE_LIST,
                      "has correct type");
-  expectEqlSize(result.value.list.count, 2, "has correct count");
-  value_t first = listGet(value_t, &result.value.list, 0);
-  value_t second = listGet(value_t, &result.value.list, 1);
+  expectEqlSize(result.value.list->count, 2, "has correct count");
+  value_t first = listGet(value_t, result.value.list, 0);
+  value_t second = listGet(value_t, result.value.list, 1);
   expectEqlValueType(first.type, VALUE_TYPE_NUMBER, "has correct type");
   expectEqlValueType(second.type, VALUE_TYPE_LIST, "has correct type");
 }
@@ -168,7 +168,7 @@ void emptyList() {
   value_t result;
   evaluateAndClean(&result, &empty_list_node);
   expectEqlValueType(result.type, VALUE_TYPE_LIST, "has correct type");
-  expectEqlSize(result.value.list.count, 0, "has correct count");
+  expectEqlSize(result.value.list->count, 0, "has correct count");
 }
 
 void allocations() {

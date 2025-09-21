@@ -158,8 +158,8 @@ void arenaSpanEnd(span_t **span_double_ref) {
 }
 
 void printSpan(const span_t *span, int indentation) {
-  char prefix[32];
-  snprintf(prefix, 32, "%*c", indentation * 2, ' ');
+  char prefix[128];
+  snprintf(prefix, 128, "%*c", indentation * 2, ' ');
 
   printf("%s %s[%lu]: %lu bytes (%0.2f bytes/hit)\n", prefix, span->label,
          span->hits, span->total, (double)span->total / (double)span->hits);
@@ -167,6 +167,53 @@ void printSpan(const span_t *span, int indentation) {
   for (unsigned long i = 0; i < span->subspans_count; i++) {
     printSpan(span->subspans[i], indentation + 1);
   }
+}
+
+void makeSpanSummary(const span_t *root, size_t *len, span_t *summary) {
+  bool found = false;
+  for (size_t i = 0; i < *len; i++) {
+    span_t *span = &summary[i];
+    if (strcmp(root->label, span->label) == 0) {
+      span->hits += root->hits;
+      span->total += root->total;
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) {
+    if (*len == MAX_SUMMARY_SPANS) {
+      printf(
+          "Profiling error: Maximum number (%lu) of summary spans reached.\n",
+          MAX_SUMMARY_SPANS);
+      return;
+    }
+
+    span_t *new_item = &summary[*len];
+    strcpy(new_item->label, root->label);
+    new_item->hits = root->hits;
+    new_item->total = root->total;
+    (*len)++;
+  }
+
+  for (unsigned long i = 0; i < root->subspans_count; i++) {
+    makeSpanSummary(root->subspans[i], len, summary);
+  }
+}
+
+void printSpanSummary(const span_t *root) {
+  span_t summary[MAX_SUMMARY_SPANS];
+  size_t count = 0;
+  makeSpanSummary(root, &count, summary);
+
+  size_t total = 0;
+  for (size_t i = 0; i < count; i++) {
+    span_t span = summary[i];
+    total += span.total;
+    printf(" %16s: %12lu bytes %6lu hits\n", span.label, span.total, span.hits);
+  }
+  printf(" %16s\n", "---");
+  printf(" %16s: %12lu bytes\n", "Total", total);
 }
 
 void printArenas(void) {
@@ -191,16 +238,27 @@ void printArenas(void) {
 
 void profileReport(void) {
   if (ROOT_SAFE_ALLOC_SPAN) {
+#if MEMORY_PROFILE_SAFE_ALLOC == 1
     printf("\n === Memory Metrics: Leaked safeAlloc ===\n");
     printSpan(ROOT_SAFE_ALLOC_SPAN, 0);
+#endif
   }
 
   if (ROOT_ARENA_SPAN) {
+#if MEMORY_PROFILE_ARENA_ALLOCATIONS == 1
     printf("\n === Memory Metrics: Arena Allocations ===\n");
     printSpan(ROOT_ARENA_SPAN, 0);
+#endif
 
+#if MEMORY_PROFILE_ARENA_ALLOCATIONS_SUMMARY == 1
+    printf("\n === Memory Metrics: Arena Allocation Summary ===\n");
+    printSpanSummary(ROOT_ARENA_SPAN);
+#endif
+
+#if MEMORY_PROFILE_ARENA_SATURATION == 1
     printf("\n === Memory Metrics: Arena Saturation ===\n");
     printArenas();
+#endif
   }
 }
 

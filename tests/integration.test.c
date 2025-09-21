@@ -63,25 +63,25 @@ int main() {
   case("list");
   value_t list;
   execute(&list, "(1 2)");
-  expectEqlUint((unsigned int)list.value.list.count, 2, "returns a list"); 
-  value_t first = listGet(value_t, &list.value.list,  0); 
+  expectEqlUint((unsigned int)list.value.list->count, 2, "returns a list"); 
+  value_t first = listGet(value_t, list.value.list,  0); 
   expectEqlDouble(first.value.number, 1, "correct first item"); 
-  value_t second = listGet(value_t, &list.value.list, 1);
+  value_t second = listGet(value_t, list.value.list, 1);
   expectEqlDouble(second.value.number, 2, "correct second item");
   
   case("nested list");
   value_t nested_list;
   execute(&nested_list, "((1) 2)");
   expectEqlUint(nested_list.type, VALUE_TYPE_LIST, "returns a list");
-  expectEqlUint(nested_list.value.list.data[0].type, VALUE_TYPE_LIST, "with nested list");
-  expectEqlUint(nested_list.value.list.data[0].value.list.data->type, VALUE_TYPE_NUMBER, "with correct type");
+  expectEqlUint(nested_list.value.list->data[0].type, VALUE_TYPE_LIST, "with nested list");
+  expectEqlUint(nested_list.value.list->data[0].value.list->data->type, VALUE_TYPE_NUMBER, "with correct type");
 
   case("immediate invocation");
   value_t immediate_invocation;
   execute(&immediate_invocation, "((fn (a b) (list:from a b)) 2 3)");
   expectEqlUint(immediate_invocation.type, VALUE_TYPE_LIST, "returns a list");
-  expectTrue((immediate_invocation.value.list.data[0].value.number == 2 && 
-    immediate_invocation.value.list.data[1].value.number == 3) != 0, "with correct value");
+  expectTrue((immediate_invocation.value.list->data[0].value.number == 2 && 
+    immediate_invocation.value.list->data[1].value.number == 3) != 0, "with correct value");
 
   case("simple form");
   value_t simple;
@@ -110,6 +110,12 @@ int main() {
   expectEqlUint(let.type, VALUE_TYPE_NUMBER, "returns correct type");
   expectEqlDouble(let.value.number, 2, "returns correct value");
 
+  case("let with escape");
+  value_t let_with_escape;
+  execute(&let_with_escape, "(+ 1 (let ((l 1)) l))");
+  expectEqlUint(let_with_escape.type, VALUE_TYPE_NUMBER, "returns correct type");
+  expectEqlDouble(let_with_escape.value.number, 2, "returns correct value");
+
   case("conditional - cond special form");
   value_t cond_test;
   execute(&cond_test, "(cond ((< 5 3) 1) ((> 5 3) 2) (3))");
@@ -130,13 +136,27 @@ int main() {
   value_t empty_list;
   execute(&empty_list, "()");
   expectEqlUint(empty_list.type, VALUE_TYPE_LIST, "empty list has correct type");
-  expectEqlUint((unsigned int)empty_list.value.list.count, 0, "empty list has zero elements");
+  expectEqlUint((unsigned int)empty_list.value.list->count, 0, "empty list has zero elements");
 
   case("currying");
   value_t currying;
   execute(&currying, "(def! make-add (fn (a) (fn (b) (+ a b))))\n((make-add 4) 1)");
   expectEqlUint(currying.type, VALUE_TYPE_NUMBER, "returns a number");
   expectEqlDouble(currying.value.number, 5, "it has correct value");
+
+  case("expanding environment");
+  value_t environment;
+  execute(&environment, 
+      "(def! aa 1)\n"
+      "(def! ab 1)\n"
+      "(def! ac 1)\n"
+      "(def! ad 1)\n"
+      "(def! ae 1)\n"
+      "(def! af 1)\n"
+      "(def! ag 1)\n"
+      "(def! ah 1)\n"
+      "(def! ai 1)\n");
+  expectEqlUint(environment.type, VALUE_TYPE_NIL, "allows environment growth");
 
   arenaDestroy(&ast_arena);
   arenaDestroy(&scratch_arena);

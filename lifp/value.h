@@ -11,14 +11,21 @@
 
 typedef struct value_t value_t;
 typedef struct environment_t environment_t;
+typedef struct {
+  bool more;
+  environment_t *environment;
+  node_t *node;
+} trampoline_t;
 
 typedef List(value_t) value_list_t;
 typedef Result(value_t *, position_t) result_value_ref_t;
 typedef ResultVoid(position_t) result_void_position_t;
+
 typedef result_void_position_t (*builtin_t)(value_t *, const value_list_t *,
                                             arena_t *);
 typedef result_void_position_t (*special_form_t)(value_t *, const node_list_t *,
-                                                 arena_t *, environment_t *);
+                                                 arena_t *, environment_t *,
+                                                 trampoline_t *);
 
 typedef enum {
   VALUE_TYPE_BOOLEAN,
@@ -32,8 +39,8 @@ typedef enum {
 } value_type_t;
 
 typedef struct {
-  node_t form;
-  node_list_t arguments;
+  node_t *form;
+  node_list_t *arguments;
   environment_t *captured_environment;
 } closure_t;
 
@@ -46,7 +53,7 @@ typedef struct value_t {
     closure_t closure;
     builtin_t builtin;
     nullptr_t nil;
-    value_list_t list;
+    value_list_t *list;
     special_form_t special;
     string_t string;
   } value;

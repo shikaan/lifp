@@ -71,3 +71,8 @@ void arenaDestroy(arena_t **self) {
 }
 
 void arenaReset(arena_t *self) { self->offset = 0; }
+
+frame_handle_t arenaStartFrame(arena_t *self) { return self->offset; }
+void arenaEndFrame(arena_t *self, frame_handle_t frame) {
+  self->offset = frame;
+}

@@ -2,6 +2,6 @@
 ; The syntax is very similar to other LISPs you may be familiar with
 (def! fact (fn (n) (cond ((< n 1) 1) (* n (fact (- n 1))))))
 
-(io:print! (fact 50))
+(io:stdout! (fact 100))
 
 ; vim:ft=lisp

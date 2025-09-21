@@ -88,7 +88,7 @@ result_void_position_t strJoin(value_t *result, const value_list_t *values,
           formatValueType(list_value.type));
   }
 
-  if (list_value.value.list.count == 0) {
+  if (list_value.value.list->count == 0) {
     string_t buffer;
     tryCreateBuffer(buffer, 1);
     result->type = VALUE_TYPE_STRING;
@@ -99,8 +99,8 @@ result_void_position_t strJoin(value_t *result, const value_list_t *values,
   size_t separator_length = strlen(separator_value.value.string);
 
   size_t total_length = 0;
-  for (size_t i = 0; i < list_value.value.list.count; i++) {
-    value_t current = listGet(value_t, &list_value.value.list, i);
+  for (size_t i = 0; i < list_value.value.list->count; i++) {
+    value_t current = listGet(value_t, list_value.value.list, i);
     if (current.type != VALUE_TYPE_STRING) {
       throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
             current.position, "%s requires a list of strings. Got %s.",
@@ -108,19 +108,19 @@ result_void_position_t strJoin(value_t *result, const value_list_t *values,
     }
     total_length += strlen(current.value.string);
   }
-  total_length += separator_length * (list_value.value.list.count - 1);
+  total_length += separator_length * (list_value.value.list->count - 1);
 
   string_t buffer;
   tryCreateBuffer(buffer, total_length + 1);
 
-  for (size_t i = 0; i < list_value.value.list.count - 1; i++) {
-    value_t current = listGet(value_t, &list_value.value.list, i);
+  for (size_t i = 0; i < list_value.value.list->count - 1; i++) {
+    value_t current = listGet(value_t, list_value.value.list, i);
     strcat(buffer, current.value.string);
     strcat(buffer, separator_value.value.string);
   }
 
   value_t last =
-      listGet(value_t, &list_value.value.list, list_value.value.list.count - 1);
+      listGet(value_t, list_value.value.list, list_value.value.list->count - 1);
   strcat(buffer, last.value.string);
 
   result->type = VALUE_TYPE_STRING;

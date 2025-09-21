@@ -9,7 +9,7 @@
 (def! init-board
   ; Initializes the board
   (fn ()
-    (list:map 
+    (list:map
       (fn (a i) (if (> (math:random!) 0.5) 1 0))
       (list:times (fn (i) nil) BOARD_SIZE))))
 
@@ -86,3 +86,5 @@
 ; Main
 (def! board (init-board))
 (game-loop board)
+
+; vim:ft=lisp

@@ -118,7 +118,7 @@ result_void_position_t ioPrintf(value_t *result, const value_list_t *values,
           formatValueType(inputs_value.type));
   }
 
-  value_list_t inputs = inputs_value.value.list;
+  value_list_t *inputs = inputs_value.value.list;
   char *format = format_value.value.string;
 
   size_t placeholder_count = 0;
@@ -128,19 +128,19 @@ result_void_position_t ioPrintf(value_t *result, const value_list_t *values,
     placeholder_count++;
   }
 
-  if (placeholder_count > inputs.count) {
+  if (placeholder_count > inputs->count) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,
           format_value.position,
           "Cannot have more placeholders than values. "
           "Got %lu placeholders and %lu values.",
-          placeholder_count, inputs.count);
+          placeholder_count, inputs->count);
   }
 
   size_t index = 0;
   const char *current = format;
   while (*current) {
     if (*current == '{' && *(current + 1) == '}') {
-      value_t value = listGet(value_t, &inputs, index);
+      value_t value = listGet(value_t, inputs, index);
       if (value.type != VALUE_TYPE_STRING) {
         char buffer[INTERMEDIATE_BUFFER_SIZE];
         int offset = 0;

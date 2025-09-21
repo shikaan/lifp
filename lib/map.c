@@ -83,28 +83,33 @@ result_void_t genericMapSet(generic_map_t *self, const char *key, void *value) {
     count++;
 
     if (count == self->capacity) {
-      auto used = self->used;
-      auto keys = self->keys;
-      auto values = self->values;
-      size_t capacity = self->capacity * 2;
-
-      try(result_void_t, arenaAllocate(self->arena, sizeof(bool) * capacity),
-          self->used);
-      try(result_void_t,
-          arenaAllocate(self->arena, sizeof(char) * MAX_KEY_LENGTH * capacity),
-          self->keys);
-      try(result_void_t, arenaAllocate(self->arena, self->item_size * capacity),
-          self->values);
+      size_t old_capacity = self->capacity;
+      bool *old_used = self->used;
+      char (*old_keys)[32] = self->keys;
+      void *old_values = self->values;
 
       // This needs to happen _before_ we start setting again, else the hashed
       // value may not match
-      self->capacity = capacity;
-      for (size_t i = 0; i < self->capacity; i++) {
-        if (used[i]) {
-          byte_t *destination = (byte_t *)values + (i * self->item_size);
-          try(result_void_t, genericMapSet(self, keys[i], destination));
+      self->capacity *= 2;
+      try(result_void_t,
+          arenaAllocate(self->arena, sizeof(bool) * self->capacity),
+          self->used);
+      try(result_void_t,
+          arenaAllocate(self->arena,
+                        sizeof(char) * MAX_KEY_LENGTH * self->capacity),
+          self->keys);
+      try(result_void_t,
+          arenaAllocate(self->arena, self->item_size * self->capacity),
+          self->values);
+
+      for (size_t i = 0; i < old_capacity; i++) {
+        if (old_used[i]) {
+          byte_t *destination = (byte_t *)old_values + (i * self->item_size);
+          try(result_void_t, genericMapSet(self, old_keys[i], destination));
         }
       }
+
+      // retry after expansion
       return genericMapSet(self, key, value);
     }
   }

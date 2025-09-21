@@ -26,4 +26,5 @@ result_void_position_t evaluate(value_t *result, arena_t *result_arena,
 // location pointed to by `result`.
 result_void_position_t invokeClosure(value_t *result, closure_t closure,
                                      value_list_t *arguments,
-                                     arena_t *scratch_arena);
+                                     arena_t *scratch_arena,
+                                     trampoline_t *trampoline);
