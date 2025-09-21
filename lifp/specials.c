@@ -35,7 +35,8 @@ static result_void_t captureEnvironment(const node_t *node,
 const char *DEFINE_EXAMPLE = "(def! x (+ 1 2))";
 result_void_position_t define(value_t *result, const node_list_t *nodes,
                               arena_t *scratch_arena,
-                              environment_t *environment) {
+                              environment_t *environment,
+                              trampoline_t *trampoline) {
   profileArena(scratch_arena);
   assert(nodes->count > 0); // def! is always there
   node_t first = listGet(node_t, nodes, 0);
@@ -75,13 +76,16 @@ result_void_position_t define(value_t *result, const node_list_t *nodes,
   result->type = VALUE_TYPE_NIL;
   result->value.nil = nullptr;
   result->position = first.position;
+
+  trampoline->more = false;
   return ok(result_void_position_t);
 }
 
 const char *FUNCTION_EXAMPLE = "(fn (a b) (+ a b))";
 result_void_position_t function(value_t *result, const node_list_t *nodes,
                                 arena_t *scratch_arena,
-                                environment_t *environment) {
+                                environment_t *environment,
+                                trampoline_t *trampoline) {
   profileArena(scratch_arena);
   assert(nodes->count > 0); // fn is always there
   node_t first = listGet(node_t, nodes, 0);
@@ -135,12 +139,14 @@ result_void_position_t function(value_t *result, const node_list_t *nodes,
               captureEnvironment(&form, environment, captured), form.position);
   result->value.closure.captured_environment = captured;
 
+  trampoline->more = false;
   return ok(result_void_position_t);
 }
 
 const char *LET_EXAMPLE = "(let ((a 1) (b 2)) (+ a b))";
 result_void_position_t let(value_t *result, const node_list_t *nodes,
-                           arena_t *scratch_arena, environment_t *environment) {
+                           arena_t *scratch_arena, environment_t *environment,
+                           trampoline_t *trampoline) {
   profileArena(scratch_arena);
   assert(nodes->count > 0); // let is always there
   node_t first = listGet(node_t, nodes, 0);
@@ -207,17 +213,19 @@ result_void_position_t let(value_t *result, const node_list_t *nodes,
               valueCopy(&temp_result, result, scratch_arena),
               temp_result.position);
 
+  trampoline->more = false;
   return ok(result_void_position_t);
 }
 
 const char *COND_EXAMPLE = "\n  (cond\n    ((!= x 0) (/ 10 x))\n    (+ x 10))";
 result_void_position_t cond(value_t *result, const node_list_t *nodes,
-                            arena_t *scratch_arena,
-                            environment_t *environment) {
+                            arena_t *scratch_arena, environment_t *environment,
+                            trampoline_t *trampoline) {
   assert(nodes->count > 0); // cond is always there
 
   profileArena(scratch_arena);
 
+  (void)result;
   for (size_t i = 1; i < nodes->count - 1; i++) {
     node_t node = listGet(node_t, nodes, i);
     if (node.type != NODE_TYPE_LIST || node.value.list.count != 2) {
@@ -243,15 +251,15 @@ result_void_position_t cond(value_t *result, const node_list_t *nodes,
     }
 
     if (condition_value.value.boolean) {
-      node_t form = listGet(node_t, &node.value.list, 1);
-      try(result_void_position_t,
-          evaluate(result, scratch_arena, scratch_arena, &form, environment));
+      trampoline->more = true;
+      trampoline->environment = environment;
+      trampoline->node = &node.value.list.data[1];
       return ok(result_void_position_t);
     }
   }
 
-  node_t fallback = listGet(node_t, nodes, nodes->count - 1);
-  try(result_void_position_t,
-      evaluate(result, scratch_arena, scratch_arena, &fallback, environment));
+  trampoline->more = true;
+  trampoline->environment = environment;
+  trampoline->node = &nodes->data[nodes->count - 1];
   return ok(result_void_position_t);
 }
