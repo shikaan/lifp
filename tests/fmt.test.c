@@ -70,8 +70,7 @@ void values() {
 
   node_t symbol = nSym(test_arena, "a");
 
-  tryAssert(
-      listAppend(node_t, &closure_value.value.closure.arguments, &symbol));
+  tryAssert(listAppend(node_t, closure_value.value.closure.arguments, &symbol));
   tryAssert(listAppend(node_t, &closure_value.value.closure.form->value.list,
                        &symbol));
 

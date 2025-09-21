@@ -147,16 +147,16 @@ void formatValue(const value_t *value, int size,
   }
   case VALUE_TYPE_CLOSURE:
     append(size, output_buffer, offset, "(fn (");
-    node_list_t arguments = value->value.closure.arguments;
+    node_list_t *arguments = value->value.closure.arguments;
 
-    if (arguments.count > 0) {
-      for (size_t i = 0; i < arguments.count - 1; i++) {
-        node_t sub_node = listGet(node_t, &arguments, i);
+    if (arguments->count > 0) {
+      for (size_t i = 0; i < arguments->count - 1; i++) {
+        node_t sub_node = listGet(node_t, arguments, i);
         formatNode(&sub_node, size, output_buffer, offset);
         append(size, output_buffer, offset, " ");
       }
 
-      node_t sub_node = listGet(node_t, &arguments, arguments.count - 1);
+      node_t sub_node = listGet(node_t, arguments, arguments->count - 1);
       formatNode(&sub_node, size, output_buffer, offset);
     }
     append(size, output_buffer, offset, ") ");

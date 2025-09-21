@@ -27,14 +27,11 @@ result_void_t valueInitList(value_t *self, arena_t *arena, size_t size) {
 result_void_t valueInitClosure(value_t *self, arena_t *arena,
                                node_type_t form_type) {
   self->type = VALUE_TYPE_CLOSURE;
-  node_list_t *arguments = nullptr;
-  try(result_void_t, listCreate(node_t, arena, 2), arguments);
-  self->value.closure.arguments = *arguments;
+  try(result_void_t, listCreate(node_t, arena, 2),
+      self->value.closure.arguments);
 
-  node_t *form = nullptr;
-  try(result_void_t, nodeCreate(arena, form_type), form);
-  try(result_void_t, nodeInit(form, arena));
-  self->value.closure.form = form;
+  try(result_void_t, nodeCreate(arena, form_type), self->value.closure.form);
+  try(result_void_t, nodeInit(self->value.closure.form, arena));
 
   self->value.closure.captured_environment = nullptr;
 
@@ -124,12 +121,12 @@ result_void_t valueCopy(const value_t *source, value_t *destination,
     try(result_void_t,
         nodeCopy(source->value.closure.form, destination->value.closure.form,
                  destination_arena));
-    for (size_t i = 0; i < source->value.closure.arguments.count; i++) {
-      node_t value = source->value.closure.arguments.data[i];
+    for (size_t i = 0; i < source->value.closure.arguments->count; i++) {
+      node_t value = source->value.closure.arguments->data[i];
       node_t duplicated;
       try(result_void_t, nodeCopy(&value, &duplicated, destination_arena));
       try(result_void_t,
-          listAppend(node_t, &destination->value.closure.arguments,
+          listAppend(node_t, destination->value.closure.arguments,
                      &duplicated));
     }
 

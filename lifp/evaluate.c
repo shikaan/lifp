@@ -16,11 +16,11 @@ result_void_position_t invokeClosure(value_t *result, closure_t closure,
                                      value_list_t *arguments,
                                      arena_t *scratch_arena) {
   profileArena(scratch_arena);
-  if (arguments->count < closure.arguments.count) {
+  if (arguments->count < closure.arguments->count) {
     throw(result_void_position_t, ERROR_CODE_TYPE_UNEXPECTED_ARITY,
           closure.form->position,
           "Unexpected arity. Expected %lu arguments, got %lu.",
-          closure.arguments.count, arguments->count);
+          closure.arguments->count, arguments->count);
   }
 
   environment_t *local_environment = nullptr;
@@ -29,8 +29,8 @@ result_void_position_t invokeClosure(value_t *result, closure_t closure,
               result->position, local_environment);
 
   // Populate the closure with the values, skipping the closure
-  for (size_t i = 0; i < closure.arguments.count; i++) {
-    auto argument = listGet(node_t, &closure.arguments, i);
+  for (size_t i = 0; i < closure.arguments->count; i++) {
+    auto argument = listGet(node_t, closure.arguments, i);
     auto value = listGet(value_t, arguments, i);
     tryWithMeta(result_void_position_t,
                 mapSet(value_t, local_environment->values,

@@ -118,7 +118,7 @@ result_void_position_t function(value_t *result, const node_list_t *nodes,
     }
 
     tryWithMeta(result_void_position_t,
-                listAppend(node_t, &result->value.closure.arguments, &argument),
+                listAppend(node_t, result->value.closure.arguments, &argument),
                 argument.position);
   }
 

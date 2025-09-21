@@ -56,9 +56,9 @@ void defSpecialForm() {
   value = mapGet(value_t, environment->values, "fun");
   expectTrue(
       (value->type == VALUE_TYPE_CLOSURE &&
-       value->value.closure.arguments.count == 2 &&
-       strcmp(value->value.closure.arguments.data[0].value.symbol, "a") == 0 &&
-       strcmp(value->value.closure.arguments.data[1].value.symbol, "b") == 0 &&
+       value->value.closure.arguments->count == 2 &&
+       strcmp(value->value.closure.arguments->data[0].value.symbol, "a") == 0 &&
+       strcmp(value->value.closure.arguments->data[1].value.symbol, "b") == 0 &&
        value->value.closure.form->value.list.count == 3) != 0,
       "defines function");
 
@@ -93,7 +93,7 @@ void fnSpecialForm() {
   tryAssert(execute(&result, "(fn (x y) (+ x y))"));
 
   expectEqlUint(result.type, VALUE_TYPE_CLOSURE, "creates closure");
-  expectEqlSize(result.value.closure.arguments.count, 2,
+  expectEqlSize(result.value.closure.arguments->count, 2,
                 "with correct argument count");
   expectEqlUint(result.value.closure.form->type, NODE_TYPE_LIST,
                 "with correct form type");
@@ -152,9 +152,9 @@ void letSpecialForm() {
   tryAssert(execute(&result, "(let ((f (fn (x y) (+ x y)))) f)"));
   closure_t closure = result.value.closure;
   expectTrue(
-      (closure.arguments.count == 2 &&
-       strcmp(closure.arguments.data[0].value.symbol, "x") == 0 &&
-       strcmp(closure.arguments.data[1].value.symbol, "y") == 0 &&
+      (closure.arguments->count == 2 &&
+       strcmp(closure.arguments->data[0].value.symbol, "x") == 0 &&
+       strcmp(closure.arguments->data[1].value.symbol, "y") == 0 &&
        closure.form->value.list.count == 3 &&
        strcmp(closure.form->value.list.data[0].value.symbol, "+") == 0 &&
        strcmp(closure.form->value.list.data[1].value.symbol, "x") == 0 &&
