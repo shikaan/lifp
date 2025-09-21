@@ -124,3 +124,6 @@ void arenaDestroy(arena_t **self);
  *   arenaReset(arena);  // All memory now available again
  */
 void arenaReset(arena_t *self);
+
+frame_handle_t arenaStartFrame(arena_t *self);
+void arenaEndFrame(arena_t *self, frame_handle_t frame);
