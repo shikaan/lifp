@@ -123,7 +123,7 @@ result_void_position_t function(value_t *result, const node_list_t *nodes,
   }
 
   tryWithMeta(result_void_position_t,
-              nodeCopy(&form, &result->value.closure.form, scratch_arena),
+              nodeCopy(&form, result->value.closure.form, scratch_arena),
               form.position);
 
   environment_t *captured = nullptr;

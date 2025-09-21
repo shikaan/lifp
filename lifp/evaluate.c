@@ -18,7 +18,7 @@ result_void_position_t invokeClosure(value_t *result, closure_t closure,
   profileArena(scratch_arena);
   if (arguments->count < closure.arguments.count) {
     throw(result_void_position_t, ERROR_CODE_TYPE_UNEXPECTED_ARITY,
-          closure.form.position,
+          closure.form->position,
           "Unexpected arity. Expected %lu arguments, got %lu.",
           closure.arguments.count, arguments->count);
   }
@@ -39,7 +39,7 @@ result_void_position_t invokeClosure(value_t *result, closure_t closure,
   }
 
   try(result_void_position_t, evaluate(result, scratch_arena, scratch_arena,
-                                       &closure.form, local_environment));
+                                       closure.form, local_environment));
 
   return ok(result_void_position_t);
 }

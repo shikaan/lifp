@@ -59,7 +59,7 @@ void defSpecialForm() {
        value->value.closure.arguments.count == 2 &&
        strcmp(value->value.closure.arguments.data[0].value.symbol, "a") == 0 &&
        strcmp(value->value.closure.arguments.data[1].value.symbol, "b") == 0 &&
-       value->value.closure.form.value.list.count == 3) != 0,
+       value->value.closure.form->value.list.count == 3) != 0,
       "defines function");
 
   tryFail(execute(&result, "(def! num 2)"), exec);
@@ -95,7 +95,7 @@ void fnSpecialForm() {
   expectEqlUint(result.type, VALUE_TYPE_CLOSURE, "creates closure");
   expectEqlSize(result.value.closure.arguments.count, 2,
                 "with correct argument count");
-  expectEqlUint(result.value.closure.form.type, NODE_TYPE_LIST,
+  expectEqlUint(result.value.closure.form->type, NODE_TYPE_LIST,
                 "with correct form type");
 
   tryFail(execute(&result, "(fn (x 1) (+ x y))"), exec);
@@ -151,15 +151,15 @@ void letSpecialForm() {
 
   tryAssert(execute(&result, "(let ((f (fn (x y) (+ x y)))) f)"));
   closure_t closure = result.value.closure;
-  expectTrue((closure.arguments.count == 2 &&
-              strcmp(closure.arguments.data[0].value.symbol, "x") == 0 &&
-              strcmp(closure.arguments.data[1].value.symbol, "y") == 0 &&
-              closure.form.value.list.count == 3 &&
-              strcmp(closure.form.value.list.data[0].value.symbol, "+") == 0 &&
-              strcmp(closure.form.value.list.data[1].value.symbol, "x") == 0 &&
-              strcmp(closure.form.value.list.data[2].value.symbol, "y") == 0) !=
-                 0,
-             "defines functions");
+  expectTrue(
+      (closure.arguments.count == 2 &&
+       strcmp(closure.arguments.data[0].value.symbol, "x") == 0 &&
+       strcmp(closure.arguments.data[1].value.symbol, "y") == 0 &&
+       closure.form->value.list.count == 3 &&
+       strcmp(closure.form->value.list.data[0].value.symbol, "+") == 0 &&
+       strcmp(closure.form->value.list.data[1].value.symbol, "x") == 0 &&
+       strcmp(closure.form->value.list.data[2].value.symbol, "y") == 0) != 0,
+      "defines functions");
 
   value_t *leaked_a = mapGet(value_t, environment->values, "a");
   value_t *leaked_b = mapGet(value_t, environment->values, "b");

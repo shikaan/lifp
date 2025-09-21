@@ -161,7 +161,7 @@ void formatValue(const value_t *value, int size,
     }
     append(size, output_buffer, offset, ") ");
 
-    formatNode(&value->value.closure.form, size, output_buffer, offset);
+    formatNode(value->value.closure.form, size, output_buffer, offset);
     append(size, output_buffer, offset, ")");
   default:
   }

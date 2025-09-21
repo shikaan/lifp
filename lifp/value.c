@@ -34,7 +34,7 @@ result_void_t valueInitClosure(value_t *self, arena_t *arena,
   node_t *form = nullptr;
   try(result_void_t, nodeCreate(arena, form_type), form);
   try(result_void_t, nodeInit(form, arena));
-  self->value.closure.form = *form;
+  self->value.closure.form = form;
 
   self->value.closure.captured_environment = nullptr;
 
@@ -120,9 +120,9 @@ result_void_t valueCopy(const value_t *source, value_t *destination,
     break;
   case VALUE_TYPE_CLOSURE:
     try(result_void_t, valueInitClosure(destination, destination_arena,
-                                        source->value.closure.form.type));
+                                        source->value.closure.form->type));
     try(result_void_t,
-        nodeCopy(&source->value.closure.form, &destination->value.closure.form,
+        nodeCopy(source->value.closure.form, destination->value.closure.form,
                  destination_arena));
     for (size_t i = 0; i < source->value.closure.arguments.count; i++) {
       node_t value = source->value.closure.arguments.data[i];

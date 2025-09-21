@@ -32,7 +32,7 @@ typedef enum {
 } value_type_t;
 
 typedef struct {
-  node_t form;
+  node_t *form;
   node_list_t arguments;
   environment_t *captured_environment;
 } closure_t;

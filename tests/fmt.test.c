@@ -72,7 +72,7 @@ void values() {
 
   tryAssert(
       listAppend(node_t, &closure_value.value.closure.arguments, &symbol));
-  tryAssert(listAppend(node_t, &closure_value.value.closure.form.value.list,
+  tryAssert(listAppend(node_t, &closure_value.value.closure.form->value.list,
                        &symbol));
 
   formatValue(&closure_value, size, buffer, &offset);
