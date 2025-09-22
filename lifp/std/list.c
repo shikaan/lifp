@@ -419,22 +419,23 @@ result_void_position_t listTimes(value_t *result, const value_list_t *arguments,
 }
 
 /**
- * Executes a reducer function over a list, invoked with the result of previous
- * invocations and the current element. It returns a
- * @name list:map
- * @param {function} fn - The function to apply (fn previous current index).
+ * Reduces a list to a single value by repeatedly applying a reducer function.
+ * The function receives the accumulated value, the current element, and its
+ * index.
+ * @name list:reduce
+ * @param {function} fn - The reducer function (fn previous current index).
  * @param {any} initial - The initial value to accumulate over.
- * @param {list} list - The list to map over.
- * @returns {any} A new reduced value.
+ * @param {list} list - The list to reduce.
+ * @returns {any} The final reduced value.
  * @example
- *   (list:reduce (fn (p c) (+ p c)) 0 (1 2 3)) ; returns 6
+ *   (list:reduce (fn (p c i) (+ p c)) 0 (1 2 3)) ; returns 6
  */
 const char *LIST_REDUCE = "list:reduce";
 result_void_position_t
 listReduce(value_t *result, const value_list_t *arguments, arena_t *arena) {
   if (arguments->count < 3) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires 3 arguments. Got %zu", LIST_MAP, arguments->count);
+          "%s requires 3 arguments. Got %zu", LIST_REDUCE, arguments->count);
   }
 
   value_t closure_value = listGet(value_t, arguments, 0);
@@ -444,14 +445,14 @@ listReduce(value_t *result, const value_list_t *arguments, arena_t *arena) {
   if (closure_value.type != VALUE_TYPE_CLOSURE) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           closure_value.position,
-          "%s requires a function as first argument. Got %s.", LIST_MAP,
+          "%s requires a function as first argument. Got %s.", LIST_REDUCE,
           formatValueType(closure_value.type));
   }
 
   if (list_value.type != VALUE_TYPE_LIST) {
     throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           list_value.position, "%s requires a list as second argument. Got %s.",
-          LIST_MAP, formatValueType(list_value.type));
+          LIST_REDUCE, formatValueType(list_value.type));
   }
 
   value_list_t *input_list = list_value.value.list;
