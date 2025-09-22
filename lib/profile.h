@@ -91,14 +91,18 @@ void arenaSpanEnd(span_t **span_double_ref);
 
 #else
 
+typedef void span_t;
+
 #define profileReport()
 #define profileInit()
 #define profileEnd()
 
 #define safeAllocSpanStart(Label)
 #define safeAllocSpanEnd(Span)
-#define arenaSpanStart(Arena, Label)
-#define arenaSpanEnd(Span)
+#define arenaSpanStart(Arena, Label)                                           \
+  {                                                                            \
+  }
+#define arenaSpanEnd(Span) (void)Span
 
 #define profileSafeAlloc()
 #define profileArena(Arena)
