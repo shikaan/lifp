@@ -1,4 +1,4 @@
-lifp - v0.2.0 (2a724c7)
+lifp - v0.2.1 (63e3102)
 ---
 ### Table of Contents
   * [core](#core)
