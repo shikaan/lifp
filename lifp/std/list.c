@@ -417,3 +417,72 @@ result_void_position_t listTimes(value_t *result, const value_list_t *arguments,
 
   return ok(result_void_position_t);
 }
+
+/**
+ * Executes a reducer function over a list, invoked with the result of previous
+ * invocations and the current element. It returns a
+ * @name list:map
+ * @param {function} fn - The function to apply (fn previous current index).
+ * @param {any} initial - The initial value to accumulate over.
+ * @param {list} list - The list to map over.
+ * @returns {any} A new reduced value.
+ * @example
+ *   (list:reduce (fn (p c) (+ p c)) 0 (1 2 3)) ; returns 6
+ */
+const char *LIST_REDUCE = "list:reduce";
+result_void_position_t
+listReduce(value_t *result, const value_list_t *arguments, arena_t *arena) {
+  if (arguments->count < 3) {
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
+          "%s requires 3 arguments. Got %zu", LIST_MAP, arguments->count);
+  }
+
+  value_t closure_value = listGet(value_t, arguments, 0);
+  value_t initial_value = listGet(value_t, arguments, 1);
+  value_t list_value = listGet(value_t, arguments, 2);
+
+  if (closure_value.type != VALUE_TYPE_CLOSURE) {
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+          closure_value.position,
+          "%s requires a function as first argument. Got %s.", LIST_MAP,
+          formatValueType(closure_value.type));
+  }
+
+  if (list_value.type != VALUE_TYPE_LIST) {
+    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+          list_value.position, "%s requires a list as second argument. Got %s.",
+          LIST_MAP, formatValueType(list_value.type));
+  }
+
+  value_list_t *input_list = list_value.value.list;
+  closure_t closure = closure_value.value.closure;
+  value_t reduced = initial_value;
+
+  for (size_t i = 0; i < input_list->count; i++) {
+    value_t current = listGet(value_t, input_list, i);
+
+    value_list_t *closure_args = nullptr;
+    tryWithMeta(result_void_position_t, listCreate(value_t, arena, 3),
+                result->position, closure_args);
+
+    tryWithMeta(result_void_position_t,
+                listAppend(value_t, closure_args, &reduced), result->position);
+
+    tryWithMeta(result_void_position_t,
+                listAppend(value_t, closure_args, &current), result->position);
+
+    value_t index;
+    tryWithMeta(result_void_position_t, valueInit(&index, arena, (number_t)i),
+                result->position);
+    tryWithMeta(result_void_position_t,
+                listAppend(value_t, closure_args, &index), result->position);
+
+    try(result_void_position_t,
+        invokeClosure(&reduced, closure, closure_args, arena, nullptr));
+  }
+
+  result->type = reduced.type;
+  result->value = reduced.value;
+
+  return ok(result_void_position_t);
+}
