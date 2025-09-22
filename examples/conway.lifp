@@ -89,6 +89,4 @@
 (def! rounds (list:times (fn (i) i) 10))
 (list:reduce game-loop board rounds)
 
-(process-board board)
-
 ; vim:ft=lisp
