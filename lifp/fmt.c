@@ -174,7 +174,9 @@ const char *formatValueType(value_type_t type) {
   case VALUE_TYPE_NUMBER:
     return "number";
   case VALUE_TYPE_BUILTIN:
+    return "builtin";
   case VALUE_TYPE_SPECIAL:
+    return "special";
   case VALUE_TYPE_CLOSURE:
     return "function";
   case VALUE_TYPE_NIL:
