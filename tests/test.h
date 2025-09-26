@@ -178,4 +178,13 @@ int report(void) {
   }
 #endif
 
+#ifndef FAILED_ONLY
+#define skip(name)                                                             \
+  {                                                                            \
+    printf("\n> [skipped] %s\n", #name);                                       \
+  }
+#else
+#define suite(name)
+#endif
+
 #endif // TEST_H

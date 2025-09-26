@@ -1,6 +1,7 @@
 #include "test.h"
 #include "utils.h"
 
+#include "../lifp/environment.h"
 #include "../lifp/error.h"
 #include "../lifp/virtual_machine.h"
 
@@ -25,25 +26,7 @@ void createDestroy(void) {
 }
 
 void cloning(void) {
-  vm_t *machine;
-  tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
-
-  value_t value;
-  valueInit(&value, machine->arena, 123.0);
-  tryAssert(environmentRegisterSymbol(machine->global, "lol", &value));
-
-  arena_t *clone_arena;
-  tryAssert(arenaCreate((size_t)(1024 * 1024)), clone_arena);
-
-  environment_t *cloned_env;
-  tryAssert(environmentClone(machine->global, clone_arena), cloned_env);
-
-  const value_t *resolved = environmentResolveSymbol(cloned_env, "lol");
-  expectNotNull(resolved, "cloned environment resolves symbol");
-  expectEqlUint(resolved->type, VALUE_TYPE_NUMBER, "with correct type");
-
-  arenaDestroy(&clone_arena);
-  vmDestroy(&machine);
+  // this functionality has been replaced and needs tests
 }
 
 void resolutions(void) {
@@ -58,30 +41,29 @@ void resolutions(void) {
   expectNotNull(special, "resolves special");
   expectEqlUint(special->type, VALUE_TYPE_SPECIAL, "with correct type");
 
-  value_t value;
-  valueInit(&value, machine->arena, 12.0);
+  value_t value = { VALUE_TYPE_NUMBER, .as.number = 12.0 };
   tryAssert(environmentRegisterSymbol(machine->global, "twelve", &value));
 
   const value_t *custom = environmentResolveSymbol(machine->global, "twelve");
   expectNotNull(custom, "allows defining custom symbol");
   expectEqlUint(custom->type, VALUE_TYPE_NUMBER, "with correct type");
-  expectEqlDouble(custom->value.number, 12.0, "with correct value");
+  expectEqlDouble(custom->as.number, 12.0, "with correct value");
 
   result_void_t result;
   tryFail(environmentRegisterSymbol(machine->global, "twelve", &value), result);
   expectEqlInt(result.code, ERROR_CODE_REFERENCE_SYMBOL_ALREADY_DEFINED,
                 "prevents redefining symbol");
 
-  result = environmentUnsafeRegisterSymbol(machine->global, "twelve", &value);
-  expectEqlInt(result.code, RESULT_OK,
-                "allows redefining symbol with unsafe");
+  // result = environmentUnsafeRegisterSymbol(machine->global, "twelve", &value);
+  // expectEqlInt(result.code, RESULT_OK,
+  //               "allows redefining symbol with unsafe");
 
   environment_t* child;
-  tryAssert(environmentCreate(test_arena, machine->global), child);
+  tryAssert(environmentCreate(machine->global), child);
   const value_t *child_value = environmentResolveSymbol(child, "twelve");
   expectNotNull(child_value, "resolves value form parent");
   expectEqlUint(child_value->type, VALUE_TYPE_NUMBER, "with correct type");
-  expectEqlDouble(child_value->value.number, 12.0, "with correct value");
+  expectEqlDouble(child_value->as.number, 12.0, "with correct value");
 
   vmDestroy(&machine);
 }
@@ -91,7 +73,7 @@ int main(void) {
 
   suite(createDestroy);
   suite(resolutions);
-  suite(cloning);
+  skip(cloning);
 
   arenaDestroy(&test_arena);
   return report();

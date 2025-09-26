@@ -22,7 +22,7 @@ lifp/tokenize.o: lib/list.o lib/arena.o
 lifp/parse.o: lifp/tokenize.o lib/list.o lib/arena.o lifp/node.o
 lifp/node.o: lib/arena.o
 lifp/value.o: lib/arena.o lifp/node.o
-lifp/virtual_machine.o: lib/arena.o lib/map.o lifp/value.o
+lifp/virtual_machine.o: lifp/value.o lifp/environment.o
 lifp/evaluate.o: \
   lib/arena.o lifp/virtual_machine.o lib/map.o lifp/value.o lifp/specials.o
 
@@ -33,22 +33,23 @@ tests/list.test: lib/list.o lib/arena.o
 tests/arena.test: lib/arena.o
 tests/evaluate.test: \
 	lifp/evaluate.o lifp/node.o lib/list.o lib/arena.o lifp/virtual_machine.o \
-	lib/map.o lifp/value.o lifp/fmt.o lifp/specials.o
+	lib/map.o lifp/value.o lifp/fmt.o lifp/specials.o lifp/environment.o
 tests/specials.test: \
 	lifp/specials.o lifp/evaluate.o lifp/node.o lib/list.o lib/arena.o \
 	lifp/virtual_machine.o lib/map.o lifp/value.o lifp/fmt.o lifp/tokenize.o \
-	lifp/parse.o
+	lifp/parse.o lifp/environment.o
 tests/map.test: lib/arena.o lib/map.o
 tests/fmt.test: lifp/fmt.o lifp/node.o lib/arena.o lib/list.o lifp/value.o \
-	lifp/virtual_machine.o lib/map.o lifp/specials.o lifp/evaluate.o
+	lifp/virtual_machine.o lib/map.o lifp/specials.o lifp/evaluate.o \
+	lifp/environment.o
 tests/virtual_machine.test: lifp/virtual_machine.o lib/map.o lib/list.o \
 	lib/arena.o lifp/fmt.o lifp/specials.o lifp/evaluate.o lifp/value.o \
-	lifp/node.o
+	lifp/node.o lifp/environment.o
 
 tests/integration.test: \
 	lifp/tokenize.o lifp/parse.o lib/arena.o lifp/evaluate.o lib/list.o \
 	lib/map.o lifp/node.o lifp/virtual_machine.o lifp/value.o lifp/fmt.o \
-	lifp/specials.o
+	lifp/specials.o lifp/environment.o
 
 tests/memory.test: \
 	lifp/tokenize.o lifp/parse.o lib/arena.o lifp/evaluate.o lib/list.o \
@@ -59,7 +60,7 @@ bin/lifp: CFLAGS := $(CFLAGS) -DVERSION='"$(VERSION)"' -DSHA='"$(SHA)"'
 bin/lifp: \
 	lifp/tokenize.o lifp/parse.o lib/list.o lifp/evaluate.o lifp/node.o \
 	lib/arena.o lifp/virtual_machine.o lib/map.o lib/profile.o lifp/fmt.o \
-	lifp/value.o lifp/specials.o linenoise.o args.o
+	lifp/value.o lifp/specials.o lifp/environment.o linenoise.o args.o
 
 .PHONY: artifacts/docs.h
 artifacts/docs.h:

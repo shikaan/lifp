@@ -135,9 +135,7 @@ int run(const run_opts_t OPTIONS) {
     tryRun(parse(ast_arena, tokens, &line_offset, &depth), syntax_tree);
 
     if (syntax_tree) {
-      value_t reduced;
-      tryRun(evaluate(&reduced, result_arena, scratch_arena, syntax_tree,
-                      machine->global));
+      tryRun(evaluate(syntax_tree, machine->global));
     }
   } while (file_offset < file_length);
 

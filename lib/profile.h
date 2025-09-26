@@ -44,12 +44,13 @@
 // ```
 //
 
+/* #define MEMORY_PROFILE */
 #ifdef MEMORY_PROFILE
 
 // Update these values for finer reports
-#define MEMORY_PROFILE_SAFE_ALLOC 0
+#define MEMORY_PROFILE_SAFE_ALLOC 1
 #define MEMORY_PROFILE_ARENA_ALLOCATIONS 0
-#define MEMORY_PROFILE_ARENA_ALLOCATIONS_SUMMARY 1
+#define MEMORY_PROFILE_ARENA_ALLOCATIONS_SUMMARY 0
 #define MEMORY_PROFILE_ARENA_SATURATION 0
 
 #include "arena.h"
@@ -85,6 +86,10 @@ void arenaSpanEnd(span_t **span_double_ref);
       __attribute__((cleanup(safeAllocSpanEnd))) =                             \
           safeAllocSpanStart(__FUNCTION__);
 
+#define profileSafeAllocLabel(Label)                                           \
+  span_t *_concat(metrics_, __LINE__)                                          \
+      __attribute__((cleanup(safeAllocSpanEnd))) = safeAllocSpanStart(Label);
+
 #define profileArena(Arena)                                                    \
   span_t *_concat(metrics_, __LINE__) __attribute__((cleanup(arenaSpanEnd))) = \
       arenaSpanStart(Arena, __FUNCTION__);
@@ -101,6 +106,7 @@ void arenaSpanEnd(span_t **span_double_ref);
 #define arenaSpanEnd(Span)
 
 #define profileSafeAlloc()
+#define profileSafeAllocLabel(Label)
 #define profileArena(Arena)
 
 #endif

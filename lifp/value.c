@@ -1,153 +1,124 @@
 #include "value.h"
-#include "../lib/string.h"
-#include "node.h"
+#include "position.h"
 #include "types.h"
-#include "virtual_machine.h"
 #include <assert.h>
 #include <stddef.h>
 #include <string.h>
 
-result_ref_t valueCreate(arena_t *arena, value_type_t type) {
+result_value_ref_t valueCreate(value_type_t type, value_as_t as,
+                               position_t pos) {
   value_t *value = nullptr;
-  try(result_ref_t, arenaAllocate(arena, sizeof(value_t)), value);
+  tryWithMeta(result_value_ref_t, allocSafe(sizeof(value_t)), pos, value);
   value->type = type;
-  value->position.column = 0;
-  value->position.line = 0;
-  return ok(result_ref_t, value);
+  value->as = as;
+  value->position = pos;
+  return ok(result_value_ref_t, value);
 }
 
-result_void_t valueInitList(value_t *self, arena_t *arena, size_t size) {
-  self->type = VALUE_TYPE_LIST;
-  try(result_void_t, listCreate(value_t, arena, size), self->value.list);
-  return ok(result_void_t);
-}
+result_value_ref_t valueDeepCopy(const value_t *self) {
+  value_t *destination = nullptr;
+  tryWithMeta(result_value_ref_t, allocSafe(sizeof(value_t)), self->position,
+              destination);
+  destination->type = self->type;
+  destination->position = self->position;
 
-result_void_t valueInitClosure(value_t *self, arena_t *arena,
-                               node_type_t form_type) {
-  self->type = VALUE_TYPE_CLOSURE;
-  try(result_void_t, listCreate(node_t, arena, 2),
-      self->value.closure.arguments);
-
-  try(result_void_t, nodeCreate(arena, form_type), self->value.closure.form);
-  try(result_void_t, nodeInit(self->value.closure.form, arena));
-
-  self->value.closure.captured_environment = nullptr;
-
-  return ok(result_void_t);
-}
-
-result_void_t valueInitBoolean(value_t *self, arena_t *arena, bool value) {
-  (void)arena;
-  self->type = VALUE_TYPE_BOOLEAN;
-  self->value.boolean = value;
-  return ok(result_void_t);
-}
-
-result_void_t valueInitNumber(value_t *self, arena_t *arena, number_t value) {
-  (void)arena;
-  self->type = VALUE_TYPE_NUMBER;
-  self->value.number = value;
-  return ok(result_void_t);
-}
-
-result_void_t valueInitNil(value_t *self, arena_t *arena, nullptr_t value) {
-  (void)arena;
-  self->type = VALUE_TYPE_NIL;
-  self->value.nil = value;
-  return ok(result_void_t);
-}
-
-result_void_t valueInitBuiltin(value_t *self, arena_t *arena, builtin_t value) {
-  (void)arena;
-  self->type = VALUE_TYPE_BUILTIN;
-  self->value.builtin = value;
-  return ok(result_void_t);
-}
-
-result_void_t valueInitSpecial(value_t *self, arena_t *arena,
-                               special_form_t value) {
-  (void)arena;
-  self->type = VALUE_TYPE_SPECIAL;
-  self->value.special = value;
-  return ok(result_void_t);
-}
-
-result_void_t valueInitString(value_t *self, arena_t *arena,
-                              const char *value) {
-  self->type = VALUE_TYPE_STRING;
-  size_t len = strlen(value);
-  string_t string;
-  try(result_void_t, arenaAllocate(arena, (len + 1) * sizeof(char)), string);
-  stringCopy(string, value, len + 1);
-  self->value.string = string;
-  return ok(result_void_t);
-}
-
-result_void_t valueCopy(const value_t *source, value_t *destination,
-                        arena_t *destination_arena) {
-  destination->position.line = source->position.line;
-  destination->position.column = source->position.column;
-
-  switch (source->type) {
+  switch (destination->type) {
   case VALUE_TYPE_BOOLEAN:
-    try(result_void_t, valueInitBoolean(destination, destination_arena,
-                                        source->value.boolean));
-    break;
   case VALUE_TYPE_NUMBER:
-    try(result_void_t,
-        valueInitNumber(destination, destination_arena, source->value.number));
-    break;
   case VALUE_TYPE_BUILTIN:
-    try(result_void_t, valueInitBuiltin(destination, destination_arena,
-                                        source->value.builtin));
-    break;
   case VALUE_TYPE_SPECIAL:
-    try(result_void_t, valueInitSpecial(destination, destination_arena,
-                                        source->value.special));
-    break;
   case VALUE_TYPE_NIL:
-    try(result_void_t,
-        valueInitNil(destination, destination_arena, source->value.nil));
-    break;
-  case VALUE_TYPE_STRING:
-    try(result_void_t,
-        valueInitString(destination, destination_arena, source->value.string));
+    destination->as = self->as;
     break;
   case VALUE_TYPE_CLOSURE:
-    try(result_void_t, valueInitClosure(destination, destination_arena,
-                                        source->value.closure.form->type));
-    try(result_void_t,
-        nodeCopy(source->value.closure.form, destination->value.closure.form,
-                 destination_arena));
-    for (size_t i = 0; i < source->value.closure.arguments->count; i++) {
-      node_t value = source->value.closure.arguments->data[i];
-      node_t duplicated;
-      try(result_void_t, nodeCopy(&value, &duplicated, destination_arena));
-      try(result_void_t,
-          listAppend(node_t, destination->value.closure.arguments,
-                     &duplicated));
-    }
-
-    try(result_void_t,
-        environmentClone(source->value.closure.captured_environment,
-                         destination_arena),
-        destination->value.closure.captured_environment);
+    // TODO
+    destination->as = self->as;
     break;
   case VALUE_TYPE_LIST: {
-    try(result_void_t,
-        valueInit(destination, destination_arena, source->value.list->count));
-    for (size_t i = 0; i < source->value.list->count; i++) {
-      value_t value = listGet(value_t, source->value.list, i);
-      value_t duplicated;
-      try(result_void_t, valueCopy(&value, &duplicated, destination_arena));
-      try(result_void_t,
-          listAppend(value_t, destination->value.list, &duplicated));
+    size_t count = self->as.list->count;
+    tryWithMeta(result_value_ref_t, valueArrayCreate(count), self->position,
+                destination->as.list);
+
+    for (size_t i = 0; i < count; i++) {
+      value_t *copied;
+      tryWithMeta(result_value_ref_t, valueDeepCopy(&self->as.list->data[i]),
+                  self->position, copied);
+      destination->as.list->data[i] = *copied;
     }
+    break;
+  }
+  case VALUE_TYPE_STRING: {
+    destination->as.string = strdup(self->as.string);
     break;
   }
   default:
     unreachable();
   }
 
-  return ok(result_void_t);
+  return ok(result_value_ref_t, destination);
+}
+
+result_ref_t argumentsCreate(size_t count) {
+  arguments_t *args = nullptr;
+  try(result_ref_t, allocSafe(sizeof(arguments_t)), args);
+  try(result_ref_t, allocSafe(sizeof(string_t *) * count), args->data);
+  args->count = count;
+  return ok(result_ref_t, args);
+}
+
+result_ref_t valueArrayCreate(size_t count) {
+  value_array_t *array = nullptr;
+  try(result_ref_t, allocSafe(sizeof(value_array_t)), array);
+  array->count = count;
+  try(result_ref_t, allocSafe(sizeof(value_t) * count), array->data);
+  return ok(result_ref_t, array);
+}
+
+static void valueDestroyInner(value_t *self) {
+  if (!self)
+    return;
+
+  switch (self->type) {
+  case VALUE_TYPE_BOOLEAN:
+  case VALUE_TYPE_NUMBER:
+  case VALUE_TYPE_NIL:
+  case VALUE_TYPE_BUILTIN:
+  case VALUE_TYPE_SPECIAL:
+    // These types don't have nested allocations to clean up
+    break;
+  case VALUE_TYPE_CLOSURE:
+    // TODO
+    break;
+  case VALUE_TYPE_LIST: {
+    valueArrayDestroy(&self->as.list);
+    break;
+  }
+  case VALUE_TYPE_STRING:
+    if (self->as.string) {
+      deallocSafe(&self->as.string);
+    }
+    break;
+  default:
+    unreachable();
+  }
+}
+
+void valueDestroy(value_t **self) {
+  if (!self || !*self)
+    return;
+
+  // Clean up nested structures first
+  valueDestroyInner(*self);
+
+  // Then free the main value structure
+  deallocSafe(self);
+}
+
+void valueArrayDestroy(value_array_t **self) {
+  value_array_t *array = (*self);
+  for (size_t i = 0; i < array->count; i++) {
+    valueDestroyInner(&array->data[i]);
+  }
+  deallocSafe(&array->data);
+  deallocSafe(self);
 }

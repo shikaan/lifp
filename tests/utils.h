@@ -84,7 +84,7 @@ static inline value_t pInt(int number) {
   return (value_t){.type = VALUE_TYPE_NUMBER,
                    .position.column = 1,
                    .position.line = 1,
-                   .value.number = number};
+                   .as.number = number};
 }
 
 static inline node_t nInt(int number) {

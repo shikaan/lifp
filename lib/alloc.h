@@ -2,6 +2,7 @@
 
 #include "./result.h"
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef MEMORY_PROFILE
 constexpr long MAX_SEGMENTS = 1024;
@@ -26,12 +27,23 @@ extern safe_alloc_metrics_t safe_alloc_metrics;
   }
 
 #define allocProfileEnd(DoublePointer)                                         \
-  for (unsigned long i = 0; i < safe_alloc_metrics.segments_count; i++) {      \
-    if (*(DoublePointer) == safe_alloc_metrics.pointers[i] &&                  \
-        !safe_alloc_metrics.freed[i]) {                                        \
-      safe_alloc_metrics.bytes -= safe_alloc_metrics.sizes[i];                 \
-      safe_alloc_metrics.freed[i] = true;                                      \
+  for (unsigned long k = 0; k < safe_alloc_metrics.segments_count; k++) {      \
+    if (*(DoublePointer) == safe_alloc_metrics.pointers[k] &&                  \
+        !safe_alloc_metrics.freed[k]) {                                        \
+      safe_alloc_metrics.bytes -= safe_alloc_metrics.sizes[k];                 \
+      safe_alloc_metrics.freed[k] = true;                                      \
     }                                                                          \
+  }
+
+#define allocResetMetrics()                                                    \
+  {                                                                            \
+    for (unsigned long i = 0; i < safe_alloc_metrics.segments_count; i++) {    \
+      safe_alloc_metrics.pointers[i] = nullptr;                                \
+      safe_alloc_metrics.sizes[i] = 0;                                         \
+      safe_alloc_metrics.freed[i] = false;                                     \
+    }                                                                          \
+    safe_alloc_metrics.segments_count = 0;                                     \
+    safe_alloc_metrics.bytes = 0;                                              \
   }
 
 #define allocGetMetrics() safe_alloc_metrics
@@ -44,6 +56,7 @@ extern safe_alloc_metrics_t safe_alloc_metrics;
 #define allocProfileEnd(DoublePointer)
 #define allocGetMetrics()
 #define allocMetricsInit()
+#define allocResetMetrics()
 
 #endif
 
@@ -78,9 +91,23 @@ static inline result_ref_t allocSafe(size_t size) {
           "Unable to allocate size: %lu", size);
   }
 
+  memset(ptr, 0, size);
   allocProfileStart(ptr, size);
 
   return ok(result_ref_t, ptr);
+}
+
+static inline result_ref_t reallocSafe(void *ptr, size_t size) {
+  void *result = realloc(ptr, size);
+
+  if (result == nullptr) {
+    throw(result_ref_t, ALLOC_ERROR_MALLOC_ERROR, nullptr,
+          "Unable to reallocate %p to size %lu", ptr, size);
+  }
+
+  // TODO: instrument realloc!
+
+  return ok(result_ref_t, result);
 }
 
 /**

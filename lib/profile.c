@@ -134,13 +134,7 @@ span_t *arenaSpanStart(arena_t *arena, const char *label) {
 
 void safeAllocSpanEnd(span_t **span_double_ref) {
   span_t *span = *span_double_ref;
-  unsigned long delta = getAllocatedBytes() - span->last;
-  span->total += delta;
-
-  if (span->parent) {
-    span->parent->total += delta;
-  }
-
+  span->total += getAllocatedBytes() - span->last;
   CURRENT_SAFE_ALLOC_SPAN = span->parent;
 }
 
@@ -239,7 +233,7 @@ void printArenas(void) {
 void profileReport(void) {
   if (ROOT_SAFE_ALLOC_SPAN) {
 #if MEMORY_PROFILE_SAFE_ALLOC == 1
-    printf("\n === Memory Metrics: Leaked safeAlloc ===\n");
+    printf("\n === Memory Metrics: Allocations ===\n");
     printSpan(ROOT_SAFE_ALLOC_SPAN, 0);
 #endif
   }
