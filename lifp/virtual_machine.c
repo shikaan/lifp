@@ -57,6 +57,7 @@ result_vm_ref_t vmCreate(vm_options_t opts) {
   // setBuiltin(LIST_EACH, listEach);
   // setBuiltin(LIST_FILTER, listFilter);
   // setBuiltin(LIST_TIMES, listTimes);
+  // setBuiltin(LIST_REDUCE, listReduce);
   // setBuiltin(MATH_MAX, mathMax);
   // setBuiltin(MATH_MIN, mathMin);
   // setBuiltin(MATH_CEIL, mathCeil);
