@@ -6,8 +6,37 @@
 #include "position.h"
 #include "value.h"
 #include "virtual_machine.h"
+#include <assert.h>
 #include <stddef.h>
 #include <string.h>
+
+// TODO: trampoline and TCO
+result_value_ref_t invokeClosure(value_t *closure_value,
+                                 value_array_t *arguments) {
+  assert(closure_value->type == VALUE_TYPE_CLOSURE);
+  closure_t closure = closure_value->as.closure;
+
+  if (arguments->count < closure.arguments->count) {
+    throw(result_value_ref_t, ERROR_CODE_TYPE_UNEXPECTED_ARITY,
+          closure.form->position,
+          "Unexpected arity. Expected %lu arguments, got %lu.",
+          closure.arguments->count, arguments->count);
+  }
+
+  environment_t *local_environment = nullptr;
+  tryWithMeta(result_value_ref_t, environmentCreate(closure.environment),
+              closure_value->position, local_environment);
+
+  for (size_t i = 0; i < closure.arguments->count; i++) {
+    const value_t value = arguments->data[i];
+    const char *key = closure.arguments->data[i];
+    tryWithMeta(result_value_ref_t,
+                environmentRegisterSymbol(local_environment, key, &value),
+                closure_value->position);
+  }
+
+  return evaluate(closure.form, local_environment);
+}
 
 result_value_ref_t evaluate(node_t *node, environment_t *environment) {
   profileSafeAlloc();
@@ -109,15 +138,8 @@ result_value_ref_t evaluate(node_t *node, environment_t *environment) {
         return ok(result_value_ref_t, value);
       }
       case VALUE_TYPE_CLOSURE: {
-        closure_t closure = scratch->as.closure;
         size_t arguments_count = list.count - 1;
 
-        if (arguments_count < closure.arguments->count) {
-          throw(result_value_ref_t, ERROR_CODE_TYPE_UNEXPECTED_ARITY,
-                closure.form->position,
-                "Unexpected arity. Expected %lu arguments, got %lu.",
-                closure.arguments->count, arguments_count);
-        }
         value_array_t *arguments;
         tryWithMeta(result_value_ref_t, valueArrayCreate(arguments_count),
                     first_node.position, arguments);
@@ -129,21 +151,7 @@ result_value_ref_t evaluate(node_t *node, environment_t *environment) {
           deallocSafe(&item);
         }
 
-        environment_t *local_environment = nullptr;
-        tryWithMeta(result_value_ref_t, environmentCreate(closure.environment),
-                    node->position, local_environment);
-
-        for (size_t i = 0; i < closure.arguments->count; i++) {
-          const value_t value = arguments->data[i];
-          const char *key = closure.arguments->data[i];
-          tryWithMeta(result_value_ref_t,
-                      environmentRegisterSymbol(local_environment, key, &value),
-                      node->position);
-        }
-
-        environment = local_environment;
-        node = closure.form;
-        continue;
+        return invokeClosure(scratch, arguments);
       }
       case VALUE_TYPE_BOOLEAN:
       case VALUE_TYPE_NIL:
@@ -160,7 +168,7 @@ result_value_ref_t evaluate(node_t *node, environment_t *environment) {
         for (size_t i = 1; i < list.count; i++) {
           value_t *item = nullptr;
           try(result_value_ref_t, evaluate(&list.data[i], environment), item);
-          memmove(&array->data[i], item, sizeof(value_t));
+          array->data[i] = *item;
           deallocSafe(&item);
         }
 

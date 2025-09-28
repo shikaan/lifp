@@ -9,9 +9,9 @@
 #include "std/core.c"
 #include "std/flow.c"
 #include "std/io.c"
-// #include "std/list.c"
+#include "std/list.c"
 #include "std/math.c"
-// #include "std/str.c"
+#include "std/str.c"
 // NOLINTEND
 
 #include <assert.h>
@@ -55,25 +55,25 @@ result_vm_ref_t vmCreate(vm_options_t opts) {
   setBuiltin(IO_PRINTF, ioPrintf);
   setBuiltin(IO_READLINE, ioReadline);
   setBuiltin(IO_CLEAR, ioClear);
-  // setBuiltin(LIST_COUNT, listCount);
-  // setBuiltin(LIST_FROM, listFrom);
-  // setBuiltin(LIST_NTH, listNth);
-  // setBuiltin(LIST_MAP, listMap);
-  // setBuiltin(LIST_EACH, listEach);
-  // setBuiltin(LIST_FILTER, listFilter);
-  // setBuiltin(LIST_TIMES, listTimes);
-  // setBuiltin(LIST_REDUCE, listReduce);
+  setBuiltin(LIST_COUNT, listCount);
+  setBuiltin(LIST_FROM, listFrom);
+  setBuiltin(LIST_NTH, listNth);
+  setBuiltin(LIST_MAP, listMap);
+  setBuiltin(LIST_EACH, listEach);
+  setBuiltin(LIST_FILTER, listFilter);
+  setBuiltin(LIST_TIMES, listTimes);
+  setBuiltin(LIST_REDUCE, listReduce);
   setBuiltin(MATH_MAX, mathMax);
   setBuiltin(MATH_MIN, mathMin);
   setBuiltin(MATH_CEIL, mathCeil);
   setBuiltin(MATH_FLOOR, mathFloor);
   setBuiltin(MATH_RANDOM, mathRandom);
-  // setBuiltin(STR_LENGTH, strLength);
-  // setBuiltin(STR_JOIN, strJoin);
-  // setBuiltin(STR_SLICE, strSlice);
-  // setBuiltin(STR_INCLUDE, strInclude);
-  // setBuiltin(STR_TRIM_LEFT, strTrimLeft);
-  // setBuiltin(STR_TRIM_RIGHT, strTrimRight);
+  setBuiltin(STR_LENGTH, strLength);
+  setBuiltin(STR_JOIN, strJoin);
+  setBuiltin(STR_SLICE, strSlice);
+  setBuiltin(STR_INCLUDE, strInclude);
+  setBuiltin(STR_TRIM_LEFT, strTrimLeft);
+  setBuiltin(STR_TRIM_RIGHT, strTrimRight);
 #undef setBuiltin
 
   try(result_vm_ref_t, valueMapCreate(4), specials);

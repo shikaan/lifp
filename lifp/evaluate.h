@@ -20,6 +20,4 @@ result_value_ref_t evaluate(node_t *, environment_t *);
 // using the specified scratch arena for temporary allocations, and within the
 // given environment. The result of the closure execution is stored in the
 // location pointed to by `result`.
-result_value_ref_t invokeClosure(value_t *result, closure_t closure,
-                                 value_list_t *arguments,
-                                 trampoline_t *trampoline);
+result_value_ref_t invokeClosure(value_t *, value_array_t *);
