@@ -49,7 +49,7 @@ result_void_t valueMapSet(value_map_t *self, const char *key,
   size_t count = 0;
 
   while (self->used[index]) {
-    const bool is_same_key = strncmp(self->keys[index], key, key_len) == 0;
+    const bool is_same_key = strcmp(self->keys[index], key) == 0;
 
     if (is_same_key) {
       self->data[index] = *value;
@@ -60,16 +60,29 @@ result_void_t valueMapSet(value_map_t *self, const char *key,
     count++;
 
     if (count == self->capacity) {
+      size_t old_capacity = self->capacity;
+      bool *old_used = self->used;
+      char **old_keys = self->keys;
+      value_t *old_data = self->data;
+
       self->capacity *= 2;
-      try(result_void_t, reallocSafe(self->used, sizeof(bool) * self->capacity),
-          self->used);
-      try(result_void_t,
-          reallocSafe(self->keys, sizeof(char *) * self->capacity), self->keys);
-      try(result_void_t,
-          reallocSafe(self->data, sizeof(value_t) * self->capacity),
+      try(result_void_t, allocSafe(sizeof(bool) * self->capacity), self->used);
+      try(result_void_t, allocSafe(sizeof(char *) * self->capacity),
+          self->keys);
+      try(result_void_t, allocSafe(sizeof(value_t) * self->capacity),
           self->data);
 
-      // retry after expansion
+      // rehash
+      for (size_t i = 0; i < old_capacity; i++) {
+        if (old_used[i]) {
+          valueMapSet(self, old_keys[i], &old_data[i]);
+        }
+      }
+
+      deallocSafe(&old_used);
+      deallocSafe(&old_keys);
+      deallocSafe(&old_data);
+
       return valueMapSet(self, key, value);
     }
   }

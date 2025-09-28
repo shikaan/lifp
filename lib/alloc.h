@@ -97,19 +97,6 @@ static inline result_ref_t allocSafe(size_t size) {
   return ok(result_ref_t, ptr);
 }
 
-static inline result_ref_t reallocSafe(void *ptr, size_t size) {
-  void *result = realloc(ptr, size);
-
-  if (result == nullptr) {
-    throw(result_ref_t, ALLOC_ERROR_MALLOC_ERROR, nullptr,
-          "Unable to reallocate %p to size %lu", ptr, size);
-  }
-
-  // TODO: instrument realloc!
-
-  return ok(result_ref_t, result);
-}
-
 /**
  * Safely deallocate memory and set pointer to nullptr.
  * @name deallocSafe
