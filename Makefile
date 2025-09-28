@@ -122,3 +122,11 @@ memory-test:
 
 .PHONY: test
 test: lifp-test lib-test memory-test
+
+.PHONY: docker-build
+docker-build:
+	docker build . --tag lifp
+
+.PHONY: docker-run
+docker-run:
+	docker run -it --rm -v "$(PWD)":/mnt lifp bash
