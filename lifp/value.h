@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../lib/list.h"
 #include "../lib/result.h"
 #include "node.h"
 #include "position.h"
@@ -16,7 +15,6 @@ typedef struct {
   node_t *node;
 } trampoline_t;
 
-typedef List(value_t) value_list_t;
 typedef Result(value_t *, position_t) result_value_ref_t;
 typedef ResultVoid(position_t) result_void_position_t;
 
@@ -68,9 +66,31 @@ typedef struct value_t {
   position_t position;
 } value_t;
 
+// value map (moved from environment)
+typedef enum {
+  MAP_ERROR_ALLOCATION = ARENA_ERROR_OUT_OF_SPACE,
+  MAP_ERROR_INVALID_KEY,
+} map_error_t;
+
+typedef struct {
+  size_t capacity;
+  bool *used;
+  char **keys;
+  value_t *data;
+} value_map_t;
+
+typedef Result(value_map_t *) result_value_map_ref_t;
+
 result_value_ref_t valueCreate(value_type_t, value_as_t, position_t);
+result_value_ref_t valueDeepCopy(const value_t *);
+void valueDestroy(value_t **);
+
 result_ref_t valueArrayCreate(size_t);
 void valueArrayDestroy(value_array_t **);
 result_ref_t argumentsCreate(size_t);
-void valueDestroy(value_t **);
-result_value_ref_t valueDeepCopy(const value_t *);
+
+result_value_map_ref_t valueMapCreate(size_t);
+void valueMapDestroy(value_map_t **);
+void valueMapDestroyInner(value_map_t *);
+result_void_t valueMapSet(value_map_t *, const char *, const value_t *);
+void *valueMapGet(const value_map_t *, const char *);

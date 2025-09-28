@@ -1,7 +1,6 @@
 #include "specials.h"
 #include "../lib/list.h"
 #include "../lib/result.h"
-#include "environment.h"
 #include "error.h"
 #include "evaluate.h"
 #include "node.h"
@@ -11,26 +10,6 @@
 #include <assert.h>
 #include <stddef.h>
 #include <string.h>
-
-// static result_void_t captureEnvironment(const node_t *node,
-//                                         const environment_t *source,
-//                                         environment_t *destination) {
-//   if (node->type == NODE_TYPE_SYMBOL) {
-//     const value_t *value = environmentResolveSymbol(source,
-//     node->value.symbol); if (value && (value->type != VALUE_TYPE_SPECIAL &&
-//                   value->type != VALUE_TYPE_BUILTIN)) {
-//       try(result_void_t, environmentUnsafeRegisterSymbol(
-//                              destination, node->value.symbol, value));
-//     }
-//   } else if (node->type == NODE_TYPE_LIST) {
-//     for (size_t i = 0; i < node->value.list.count; i++) {
-//       const node_t sub_node = listGet(node_t, &node->value.list, i);
-//       try(result_void_t, captureEnvironment(&sub_node, source, destination));
-//     }
-//   }
-
-//   return ok(result_void_t);
-// }
 
 /**
  * Binds a value to a symbol in the current environment.

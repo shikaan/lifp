@@ -1,6 +1,5 @@
 #include "evaluate.h"
 #include "../lib/profile.h"
-#include "environment.h"
 #include "error.h"
 #include "node.h"
 #include "position.h"

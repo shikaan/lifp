@@ -1,7 +1,6 @@
 // This is for the CI compiler
 #define _POSIX_C_SOURCE 200809L
 #include "virtual_machine.h"
-#include "environment.h"
 #include "specials.h"
 #include "value.h"
 
@@ -92,6 +91,25 @@ result_vm_ref_t vmCreate(vm_options_t opts) {
   return ok(result_vm_ref_t, machine);
 }
 
+// Merged from environment.c
+result_environment_ref_t environmentCreate(environment_t *parent) {
+  environment_t *environment = nullptr;
+  try(result_environment_ref_t, allocSafe(sizeof(environment_t)), environment);
+
+  value_map_t *values = nullptr;
+  try(result_environment_ref_t, valueMapCreate(8), values);
+
+  environment->values = *values;
+  environment->parent = parent;
+
+  return ok(result_environment_ref_t, environment);
+}
+
+void environmentDestroy(environment_t **self) {
+  valueMapDestroyInner(&(*self)->values);
+  deallocSafe(self);
+}
+
 result_void_t environmentRegisterSymbol(environment_t *self, const char *key,
                                         const value_t *value) {
   if (!value)
@@ -129,6 +147,8 @@ const value_t *environmentResolveSymbol(const environment_t *self,
 }
 
 void vmDestroy(vm_t **self) {
+  if (!self || !*self)
+    return;
   environmentDestroy(&(*self)->global);
   deallocSafe(self);
 }

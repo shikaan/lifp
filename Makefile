@@ -16,15 +16,14 @@ args.o: vendor/args/src/args.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 lib/list.o: lib/arena.o
-lib/map.o: lib/arena.o
 
 lifp/tokenize.o: lib/list.o lib/arena.o
 lifp/parse.o: lifp/tokenize.o lib/list.o lib/arena.o lifp/node.o
 lifp/node.o: lib/arena.o
 lifp/value.o: lib/arena.o lifp/node.o
-lifp/virtual_machine.o: lifp/value.o lifp/environment.o
+lifp/virtual_machine.o: lifp/value.o
 lifp/evaluate.o: \
-  lib/arena.o lifp/virtual_machine.o lib/map.o lifp/value.o lifp/specials.o
+  lib/arena.o lifp/virtual_machine.o lifp/value.o lifp/specials.o
 
 tests/tokenize.test: lifp/tokenize.o lib/list.o lib/arena.o
 tests/parser.test: \
@@ -33,34 +32,33 @@ tests/list.test: lib/list.o lib/arena.o
 tests/arena.test: lib/arena.o
 tests/evaluate.test: \
 	lifp/evaluate.o lifp/node.o lib/list.o lib/arena.o lifp/virtual_machine.o \
-	lib/map.o lifp/value.o lifp/fmt.o lifp/specials.o lifp/environment.o
+	lifp/value.o lifp/fmt.o lifp/specials.o
 tests/specials.test: \
 	lifp/specials.o lifp/evaluate.o lifp/node.o lib/list.o lib/arena.o \
-	lifp/virtual_machine.o lib/map.o lifp/value.o lifp/fmt.o lifp/tokenize.o \
-	lifp/parse.o lifp/environment.o
-tests/map.test: lib/arena.o lib/map.o
+	lifp/virtual_machine.o lifp/value.o lifp/fmt.o lifp/tokenize.o \
+	lifp/parse.o
 tests/fmt.test: lifp/fmt.o lifp/node.o lib/arena.o lib/list.o lifp/value.o \
-	lifp/virtual_machine.o lib/map.o lifp/specials.o lifp/evaluate.o \
-	lifp/environment.o
-tests/virtual_machine.test: lifp/virtual_machine.o lib/map.o lib/list.o \
+	lifp/virtual_machine.o lifp/specials.o lifp/evaluate.o
+tests/virtual_machine.test: lifp/virtual_machine.o lib/list.o \
 	lib/arena.o lifp/fmt.o lifp/specials.o lifp/evaluate.o lifp/value.o \
-	lifp/node.o lifp/environment.o
+	lifp/node.o
+
 
 tests/integration.test: \
 	lifp/tokenize.o lifp/parse.o lib/arena.o lifp/evaluate.o lib/list.o \
-	lib/map.o lifp/node.o lifp/virtual_machine.o lifp/value.o lifp/fmt.o \
-	lifp/specials.o lifp/environment.o
+	lifp/node.o lifp/virtual_machine.o lifp/value.o lifp/fmt.o \
+	lifp/specials.o
 
 tests/memory.test: \
 	lifp/tokenize.o lifp/parse.o lib/arena.o lifp/evaluate.o lib/list.o \
-	lib/map.o lifp/node.o lifp/virtual_machine.o lifp/value.o lifp/fmt.o \
+	lifp/node.o lifp/virtual_machine.o lifp/value.o lifp/fmt.o \
 	lib/profile.o lifp/specials.o
 
 bin/lifp: CFLAGS := $(CFLAGS) -DVERSION='"$(VERSION)"' -DSHA='"$(SHA)"'
 bin/lifp: \
 	lifp/tokenize.o lifp/parse.o lib/list.o lifp/evaluate.o lifp/node.o \
-	lib/arena.o lifp/virtual_machine.o lib/map.o lib/profile.o lifp/fmt.o \
-	lifp/value.o lifp/specials.o lifp/environment.o linenoise.o args.o
+	lib/arena.o lifp/virtual_machine.o lib/profile.o lifp/fmt.o \
+	lifp/value.o lifp/specials.o linenoise.o args.o
 
 .PHONY: artifacts/docs.h
 artifacts/docs.h:
@@ -84,6 +82,7 @@ clean:
 	rm -f tests/*.test
 
 .PHONY: lifp-test
+
 lifp-test: \
 	tests/tokenize.test tests/parser.test tests/evaluate.test \
 	tests/integration.test tests/fmt.test tests/tokenize.test \
@@ -104,14 +103,9 @@ lifp-test: \
 	tests/integration.test
 
 .PHONY: lib-test
-lib-test: tests/arena.test tests/list.test tests/map.test \
-	tests/arena.test tests/list.test tests/map.test
+lib-test: tests/arena.test tests/list.test
 	tests/arena.test
 	tests/list.test
-	tests/map.test
-	tests/arena.test
-	tests/list.test
-	tests/map.test
 
 .PHONY: memory-test
 memory-test:

@@ -63,12 +63,6 @@ result_value_ref_t listFrom(const value_array_t *arguments, position_t pos) {
   tryWithMeta(result_value_ref_t, valueArrayCreate(arguments->count), pos,
               value_list);
 
-  value_t *result = nullptr;
-  try(result_value_ref_t,
-      valueCreate(VALUE_TYPE_LIST, (value_as_t){.list = value_list}, pos))
-      result->type = VALUE_TYPE_LIST;
-
-  // Copy all arguments to the new list
   for (size_t i = 0; i < arguments->count; i++) {
     value_t source = listGet(value_t, arguments, i);
     value_t *duplicated;
@@ -77,7 +71,7 @@ result_value_ref_t listFrom(const value_array_t *arguments, position_t pos) {
     deallocSafe(&duplicated);
   }
 
-  return ok(result_value_ref_t);
+  return valueCreate(VALUE_TYPE_LIST, (value_as_t){.list = value_list}, pos);
 }
 
 /**
@@ -319,7 +313,7 @@ result_value_ref_t listFilter(const value_array_t *arguments, position_t pos) {
 
     if (predicate_result->as.boolean) {
       value_t *duplicate;
-      tryWithMeta(result_value_ref_t, valueDeepCopy(&index), pos, duplicate);
+      tryWithMeta(result_value_ref_t, valueDeepCopy(&input), pos, duplicate);
       filtered_list->data[filtered_count++] = *duplicate;
       deallocSafe(&duplicate);
     }

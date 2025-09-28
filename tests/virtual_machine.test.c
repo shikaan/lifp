@@ -1,7 +1,6 @@
 #include "test.h"
 #include "utils.h"
 
-#include "../lifp/environment.h"
 #include "../lifp/error.h"
 #include "../lifp/virtual_machine.h"
 
@@ -25,8 +24,16 @@ void createDestroy(void) {
   expectNull(machine, "sets pointer to null");
 }
 
-void cloning(void) {
-  // this functionality has been replaced and needs tests
+void environmentCreateDestroy(void) {
+  environment_t *env = nullptr;
+  case("create env");
+  tryAssert(environmentCreate(nullptr), env);
+  expectNotNull(env, "creates an environment");
+  expectEqlSize(env->values.capacity, 8, "initial map capacity");
+
+  case("destroy env");
+  environmentDestroy(&env);
+  expectNull(env, "sets pointer to null");
 }
 
 void resolutions(void) {
@@ -41,7 +48,7 @@ void resolutions(void) {
   expectNotNull(special, "resolves special");
   expectEqlUint(special->type, VALUE_TYPE_SPECIAL, "with correct type");
 
-  value_t value = { VALUE_TYPE_NUMBER, .as.number = 12.0 };
+  value_t value = {VALUE_TYPE_NUMBER, .as.number = 12.0};
   tryAssert(environmentRegisterSymbol(machine->global, "twelve", &value));
 
   const value_t *custom = environmentResolveSymbol(machine->global, "twelve");
@@ -52,13 +59,9 @@ void resolutions(void) {
   result_void_t result;
   tryFail(environmentRegisterSymbol(machine->global, "twelve", &value), result);
   expectEqlInt(result.code, ERROR_CODE_REFERENCE_SYMBOL_ALREADY_DEFINED,
-                "prevents redefining symbol");
+               "prevents redefining symbol");
 
-  // result = environmentUnsafeRegisterSymbol(machine->global, "twelve", &value);
-  // expectEqlInt(result.code, RESULT_OK,
-  //               "allows redefining symbol with unsafe");
-
-  environment_t* child;
+  environment_t *child;
   tryAssert(environmentCreate(machine->global), child);
   const value_t *child_value = environmentResolveSymbol(child, "twelve");
   expectNotNull(child_value, "resolves value form parent");
@@ -72,8 +75,8 @@ int main(void) {
   tryAssert(arenaCreate((size_t)(1024 * 1024)), test_arena);
 
   suite(createDestroy);
+  suite(environmentCreateDestroy);
   suite(resolutions);
-  skip(cloning);
 
   arenaDestroy(&test_arena);
   return report();

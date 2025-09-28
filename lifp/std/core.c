@@ -14,6 +14,13 @@
 #include <stdint.h>
 #include <string.h>
 
+void debugValue(value_t *value) {
+  char buf[256];
+  int offset = 0;
+  formatValue(value, 256, buf, &offset);
+  puts(buf);
+}
+
 /**
  * Sums arguments.
  * @name +
@@ -302,7 +309,8 @@ result_value_ref_t notEqual(const value_array_t *arguments, position_t pos) {
  * @name <
  * @param {number} argument - The first argument.
  * @param {number} argument - The second argument.
- * @returns {boolean} True if the first argument is less than the second, false otherwise.
+ * @returns {boolean} True if the first argument is less than the second, false
+ * otherwise.
  * @example
  *   (< 1 6) ; returns true
  */
@@ -340,7 +348,8 @@ result_value_ref_t lessThan(const value_array_t *arguments, position_t pos) {
  * @name >
  * @param {number} argument - The first argument.
  * @param {number} argument - The second argument.
- * @returns {boolean} True if the first argument is greater than the second, false otherwise.
+ * @returns {boolean} True if the first argument is greater than the second,
+ * false otherwise.
  * @example
  *   (> 1 6) ; returns false
  */
@@ -356,11 +365,13 @@ result_value_ref_t greaterThan(const value_array_t *arguments, position_t pos) {
     value_t left_number = listGet(value_t, arguments, i);
     value_t right_number = listGet(value_t, arguments, i + 1);
     if (left_number.type != VALUE_TYPE_NUMBER) {
+      debugValue(&left_number);
       throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
             left_number.position, "%s requires numbers. Got %s.", GREATER_THAN,
             formatValueType(left_number.type));
     }
     if (right_number.type != VALUE_TYPE_NUMBER) {
+      debugValue(&right_number);
       throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
             right_number.position, "%s requires numbers. Got %s.", GREATER_THAN,
             formatValueType(right_number.type));
@@ -378,7 +389,8 @@ result_value_ref_t greaterThan(const value_array_t *arguments, position_t pos) {
  * @name <=
  * @param {number} argument - The first argument.
  * @param {number} argument - The second argument.
- * @returns {boolean} True if the first argument is less than or equal to the second, false otherwise.
+ * @returns {boolean} True if the first argument is less than or equal to the
+ * second, false otherwise.
  * @example
  *   (<= 1 6) ; returns true
  */
@@ -415,7 +427,8 @@ result_value_ref_t lessEqual(const value_array_t *arguments, position_t pos) {
  * @name >=
  * @param {number} argument - The first argument.
  * @param {number} argument - The second argument.
- * @returns {boolean} True if the first argument is greater than or equal to the second, false otherwise.
+ * @returns {boolean} True if the first argument is greater than or equal to the
+ * second, false otherwise.
  * @example
  *   (>= 6 1) ; returns true
  */
