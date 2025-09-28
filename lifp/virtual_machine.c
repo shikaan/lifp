@@ -7,10 +7,10 @@
 
 // NOLINTBEGIN - intentionally including .c files
 #include "std/core.c"
-// #include "std/flow.c"
-// #include "std/io.c"
+#include "std/flow.c"
+#include "std/io.c"
 // #include "std/list.c"
-// #include "std/math.c"
+#include "std/math.c"
 // #include "std/str.c"
 // NOLINTEND
 
@@ -37,19 +37,24 @@ result_vm_ref_t vmCreate(vm_options_t opts) {
 
   value_t builtin;
   setBuiltin(SUM, sum);
-  // setBuiltin(SUB, subtract);
-  // setBuiltin(MUL, multiply);
-  // setBuiltin(DIV, divide);
-  // setBuiltin(MOD, modulo);
-  // setBuiltin(EQUAL, equal);
-  // setBuiltin(LESS_THAN, lessThan);
-  // setBuiltin(GREATER_THAN, greaterThan);
-  // setBuiltin(NEQ, notEqual);
-  // setBuiltin(LEQ, lessEqual);
-  // setBuiltin(GEQ, greaterEqual);
-  // setBuiltin(LOGICAL_AND, logicalAnd);
-  // setBuiltin(LOGICAL_OR, logicalOr);
-  // setBuiltin(FLOW_SLEEP, flowSleep);
+  setBuiltin(SUB, subtract);
+  setBuiltin(MUL, multiply);
+  setBuiltin(DIV, divide);
+  setBuiltin(MOD, modulo);
+  setBuiltin(EQUAL, equal);
+  setBuiltin(LESS_THAN, lessThan);
+  setBuiltin(GREATER_THAN, greaterThan);
+  setBuiltin(NEQ, notEqual);
+  setBuiltin(LEQ, lessEqual);
+  setBuiltin(GEQ, greaterEqual);
+  setBuiltin(LOGICAL_AND, logicalAnd);
+  setBuiltin(LOGICAL_OR, logicalOr);
+  setBuiltin(FLOW_SLEEP, flowSleep);
+  setBuiltin(IO_STDOUT, ioStdout);
+  setBuiltin(IO_STDERR, ioStderr);
+  setBuiltin(IO_PRINTF, ioPrintf);
+  setBuiltin(IO_READLINE, ioReadline);
+  setBuiltin(IO_CLEAR, ioClear);
   // setBuiltin(LIST_COUNT, listCount);
   // setBuiltin(LIST_FROM, listFrom);
   // setBuiltin(LIST_NTH, listNth);
@@ -58,22 +63,17 @@ result_vm_ref_t vmCreate(vm_options_t opts) {
   // setBuiltin(LIST_FILTER, listFilter);
   // setBuiltin(LIST_TIMES, listTimes);
   // setBuiltin(LIST_REDUCE, listReduce);
-  // setBuiltin(MATH_MAX, mathMax);
-  // setBuiltin(MATH_MIN, mathMin);
-  // setBuiltin(MATH_CEIL, mathCeil);
-  // setBuiltin(MATH_FLOOR, mathFloor);
-  // setBuiltin(MATH_RANDOM, mathRandom);
+  setBuiltin(MATH_MAX, mathMax);
+  setBuiltin(MATH_MIN, mathMin);
+  setBuiltin(MATH_CEIL, mathCeil);
+  setBuiltin(MATH_FLOOR, mathFloor);
+  setBuiltin(MATH_RANDOM, mathRandom);
   // setBuiltin(STR_LENGTH, strLength);
   // setBuiltin(STR_JOIN, strJoin);
   // setBuiltin(STR_SLICE, strSlice);
   // setBuiltin(STR_INCLUDE, strInclude);
   // setBuiltin(STR_TRIM_LEFT, strTrimLeft);
   // setBuiltin(STR_TRIM_RIGHT, strTrimRight);
-  // setBuiltin(IO_STDOUT, ioStdout);
-  // setBuiltin(IO_STDERR, ioStderr);
-  // setBuiltin(IO_PRINTF, ioPrintf);
-  // setBuiltin(IO_READLINE, ioReadline);
-  // setBuiltin(IO_CLEAR, ioClear);
 #undef setBuiltin
 
   try(result_vm_ref_t, valueMapCreate(4), specials);

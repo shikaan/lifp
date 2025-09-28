@@ -20,79 +20,67 @@
 #include <time.h>
 
 /**
- * Returns the maximum value in a sequence of numbers.
+ * Returns the maximum of the arguments.
  * @name math:max
- * @param {...number} numbers - The list of numbers.
+ * @param {...number} arguments - The arguments to compare.
  * @returns {number} The maximum value.
  * @example
  *   (math:max 1 2 3) ; returns 3
  */
 const char *MATH_MAX = "math:max";
-result_void_position_t mathMax(value_t *result, const value_list_t *values,
-                               arena_t *arena) {
-  (void)arena;
-  if (values->count < 1) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires 1 argument. Got %zu", MATH_MAX, values->count);
+result_value_ref_t mathMax(const value_array_t *arguments, position_t pos) {
+  if (arguments->count < 1) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
+          "%s requires at least 1 argument. Got %zu", MATH_MAX,
+          arguments->count);
   }
 
-  // Find the maximum value
   number_t max_value = DBL_MIN;
-  for (size_t i = 0; i < values->count; i++) {
-    value_t current = listGet(value_t, values, i);
+  for (size_t i = 0; i < arguments->count; i++) {
+    value_t current = listGet(value_t, arguments, i);
     if (current.type != VALUE_TYPE_NUMBER) {
-      throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+      throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
             current.position, "%s requires numbers. Got %s.", MATH_MAX,
             formatValueType(current.type));
     }
-
-    if (current.value.number > max_value) {
-      max_value = current.value.number;
+    if (current.as.number > max_value) {
+      max_value = current.as.number;
     }
   }
 
-  result->type = VALUE_TYPE_NUMBER;
-  result->value.number = max_value;
-
-  return ok(result_void_position_t);
+  return valueCreate(VALUE_TYPE_NUMBER, (value_as_t){.number = max_value}, pos);
 }
 
 /**
- * Returns the minimum value in a sequence of numbers.
+ * Returns the minimum of the arguments.
  * @name math:min
- * @param {...number} numbers - The list of numbers.
+ * @param {...number} arguments - The arguments to compare.
  * @returns {number} The minimum value.
  * @example
  *   (math:min 1 2 3) ; returns 1
  */
 const char *MATH_MIN = "math:min";
-result_void_position_t mathMin(value_t *result, const value_list_t *values,
-                               arena_t *arena) {
-  (void)arena;
-  if (values->count < 1) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires 1 argument. Got %zu", MATH_MIN, values->count);
+result_value_ref_t mathMin(const value_array_t *arguments, position_t pos) {
+  if (arguments->count < 1) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
+          "%s requires at least 1 argument. Got %zu", MATH_MIN,
+          arguments->count);
   }
 
-  // Find the minimum value
   number_t min_value = DBL_MAX;
-  for (size_t i = 0; i < values->count; i++) {
-    value_t current = listGet(value_t, values, i);
+  for (size_t i = 0; i < arguments->count; i++) {
+    value_t current = listGet(value_t, arguments, i);
     if (current.type != VALUE_TYPE_NUMBER) {
-      throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+      throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
             current.position, "%s requires numbers. Got %s.", MATH_MIN,
             formatValueType(current.type));
     }
-
-    if (current.value.number < min_value) {
-      min_value = current.value.number;
+    if (current.as.number < min_value) {
+      min_value = current.as.number;
     }
   }
 
-  result->type = VALUE_TYPE_NUMBER;
-  result->value.number = min_value;
-
-  return ok(result_void_position_t);
+  return valueCreate(VALUE_TYPE_NUMBER, (value_as_t){.number = min_value}, pos);
 }
 
 /**
@@ -103,83 +91,71 @@ result_void_position_t mathMin(value_t *result, const value_list_t *values,
  *   (math:random!) ; returns a random number between 0 and 1
  */
 const char *MATH_RANDOM = "math:random!";
-result_void_position_t mathRandom(value_t *result, const value_list_t *values,
-                                  arena_t *arena) {
-  (void)arena;
-  if (values->count != 0) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires no arguments. Got %zu", MATH_RANDOM, values->count);
+result_value_ref_t mathRandom(const value_array_t *arguments, position_t pos) {
+  if (arguments->count != 0) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
+          "%s requires no arguments. Got %zu", MATH_RANDOM, arguments->count);
   }
 
-  // Initialize random number generator on first call
   static bool initialized = false;
   if (!initialized) {
     srand((unsigned int)time(nullptr));
     initialized = true;
   }
 
-  result->type = VALUE_TYPE_NUMBER;
-  result->value.number = (number_t)rand() / RAND_MAX;
-
-  return ok(result_void_position_t);
+  number_t rand_value = (number_t)rand() / RAND_MAX;
+  return valueCreate(VALUE_TYPE_NUMBER, (value_as_t){.number = rand_value},
+                     pos);
 }
 
 /**
- * Returns the smallest integer greater than or equal to the given number.
+ * Returns the smallest integer greater than or equal to the argument.
  * @name math:ceil
- * @param {number} n - The number to ceil.
- * @returns {number} The smallest integer >= n.
+ * @param {number} argument - The number to ceil.
+ * @returns {number} The smallest integer >= argument.
  * @example
  *   (math:ceil 2.3) ; returns 3
  */
 const char *MATH_CEIL = "math:ceil";
-result_void_position_t mathCeil(value_t *result, const value_list_t *values,
-                                arena_t *arena) {
-  (void)arena;
-  if (values->count != 1) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires 1 argument. Got %zu", MATH_CEIL, values->count);
+result_value_ref_t mathCeil(const value_array_t *arguments, position_t pos) {
+  if (arguments->count != 1) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
+          "%s requires 1 argument. Got %zu", MATH_CEIL, arguments->count);
   }
 
-  value_t number = listGet(value_t, values, 0);
+  value_t number = listGet(value_t, arguments, 0);
   if (number.type != VALUE_TYPE_NUMBER) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           number.position, "%s requires a number. Got %s.", MATH_CEIL,
           formatValueType(number.type));
   }
 
-  result->type = VALUE_TYPE_NUMBER;
-  result->value.number = ceil(number.value.number);
-
-  return ok(result_void_position_t);
+  return valueCreate(VALUE_TYPE_NUMBER,
+                     (value_as_t){.number = ceil(number.as.number)}, pos);
 }
 
 /**
- * Returns the largest integer less than or equal to the given number.
+ * Returns the largest integer less than or equal to the argument.
  * @name math:floor
- * @param {number} n - The number to floor.
- * @returns {number} The largest integer <= n.
+ * @param {number} argument - The number to floor.
+ * @returns {number} The largest integer <= argument.
  * @example
  *   (math:floor 2.7) ; returns 2
  */
 const char *MATH_FLOOR = "math:floor";
-result_void_position_t mathFloor(value_t *result, const value_list_t *values,
-                                 arena_t *arena) {
-  (void)arena;
-  if (values->count != 1) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires 1 argument. Got %zu", MATH_FLOOR, values->count);
+result_value_ref_t mathFloor(const value_array_t *arguments, position_t pos) {
+  if (arguments->count != 1) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
+          "%s requires 1 argument. Got %zu", MATH_FLOOR, arguments->count);
   }
 
-  value_t number = listGet(value_t, values, 0);
+  value_t number = listGet(value_t, arguments, 0);
   if (number.type != VALUE_TYPE_NUMBER) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           number.position, "%s requires a number. Got %s.", MATH_FLOOR,
           formatValueType(number.type));
   }
 
-  result->type = VALUE_TYPE_NUMBER;
-  result->value.number = floor(number.value.number);
-
-  return ok(result_void_position_t);
+  return valueCreate(VALUE_TYPE_NUMBER,
+                     (value_as_t){.number = floor(number.as.number)}, pos);
 }

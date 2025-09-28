@@ -10,7 +10,6 @@
 // ___HEADER_END___
 
 #include "../../lib/result.h"
-#include "../../lib/string.h"
 #include "../error.h"
 #include "../fmt.h"
 #include "../value.h"
@@ -30,12 +29,12 @@ static void streamPrint(FILE *stream, value_t *value) {
     fprintf(stream, "%s\n", buffer);
   } else {
     // This prevents printing quotes in the formatted string
-    fprintf(stream, "%s\n", value->value.string);
+    fprintf(stream, "%s\n", value->as.string);
   }
 }
 
 /**
- * Prints a value to standard output.
+ * Prints an argument to standard output.
  * @name io:stdout!
  * @param {any} value - The value to print.
  * @returns {nil} Returns nil.
@@ -43,21 +42,16 @@ static void streamPrint(FILE *stream, value_t *value) {
  *   (io:stdout! "hello")
  */
 const char *IO_STDOUT = "io:stdout!";
-result_void_position_t ioStdout(value_t *result, const value_list_t *values,
-                                arena_t *arena) {
-  (void)arena;
-  if (values->count < 1) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires 1 argument. Got %zu", IO_STDOUT, values->count);
+result_value_ref_t ioStdout(const value_array_t *arguments, position_t pos) {
+  if (arguments->count != 1) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
+          "%s requires 1 argument. Got %zu", IO_STDOUT, arguments->count);
   }
 
-  value_t value = listGet(value_t, values, 0);
+  value_t value = listGet(value_t, arguments, 0);
   streamPrint(stdout, &value);
 
-  result->type = VALUE_TYPE_NIL;
-  result->value.nil = nullptr;
-
-  return ok(result_void_position_t);
+  return valueCreate(VALUE_TYPE_NIL, (value_as_t){}, pos);
 }
 
 /**
@@ -69,22 +63,16 @@ result_void_position_t ioStdout(value_t *result, const value_list_t *values,
  *   (io:stderr! "error")
  */
 const char *IO_STDERR = "io:stderr!";
-result_void_position_t ioStderr(value_t *result, const value_list_t *values,
-                                arena_t *arena) {
-  (void)arena;
-  if (values->count < 1) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires 1 argument. Got %zu", IO_STDERR, values->count);
+result_value_ref_t ioStderr(const value_array_t *arguments, position_t pos) {
+  if (arguments->count != 1) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
+          "%s requires 1 argument. Got %zu", IO_STDERR, arguments->count);
   }
 
-  value_t value = listGet(value_t, values, 0);
-
+  value_t value = listGet(value_t, arguments, 0);
   streamPrint(stderr, &value);
 
-  result->type = VALUE_TYPE_NIL;
-  result->value.nil = nullptr;
-
-  return ok(result_void_position_t);
+  return valueCreate(VALUE_TYPE_NIL, (value_as_t){}, pos);
 }
 
 /**
@@ -98,28 +86,31 @@ result_void_position_t ioStderr(value_t *result, const value_list_t *values,
  *   (io:printf! "Hello, {}!" ("world")) ; prints "Hello, world!"
  */
 const char *IO_PRINTF = "io:printf!";
-result_void_position_t ioPrintf(value_t *result, const value_list_t *values,
-                                arena_t *arena) {
-  (void)arena;
-  if (values->count < 2) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires two arguments. Got %zu", IO_PRINTF, values->count);
+result_value_ref_t ioPrintf(const value_array_t *arguments, position_t pos) {
+  if (arguments->count < 2) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
+          "%s requires at least 2 arguments. Got %zu", IO_PRINTF,
+          arguments->count);
   }
 
-  value_t format_value = listGet(value_t, values, 0);
-  value_t inputs_value = listGet(value_t, values, 1);
+  value_t format_value = listGet(value_t, arguments, 0);
+  value_t inputs_value = listGet(value_t, arguments, 1);
 
-  if (format_value.type != VALUE_TYPE_STRING ||
-      inputs_value.type != VALUE_TYPE_LIST) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
-          result->position,
-          "%s requires a format string and a list of arguments. Got %s and %s.",
-          IO_PRINTF, formatValueType(format_value.type),
+  if (format_value.type != VALUE_TYPE_STRING) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+          format_value.position,
+          "%s requires a format string as the first argument. Got %s.",
+          IO_PRINTF, formatValueType(format_value.type));
+  }
+  if (inputs_value.type != VALUE_TYPE_LIST) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+          inputs_value.position,
+          "%s requires a list as the second argument. Got %s.", IO_PRINTF,
           formatValueType(inputs_value.type));
   }
 
-  value_list_t *inputs = inputs_value.value.list;
-  char *format = format_value.value.string;
+  value_array_t *inputs = inputs_value.as.list;
+  char *format = format_value.as.string;
 
   size_t placeholder_count = 0;
   const char *placeholder = format;
@@ -129,8 +120,7 @@ result_void_position_t ioPrintf(value_t *result, const value_list_t *values,
   }
 
   if (placeholder_count > inputs->count) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR,
-          format_value.position,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, format_value.position,
           "Cannot have more placeholders than values. "
           "Got %lu placeholders and %lu values.",
           placeholder_count, inputs->count);
@@ -148,7 +138,7 @@ result_void_position_t ioPrintf(value_t *result, const value_list_t *values,
         fputs(buffer, stdout);
       } else {
         // This prevents printing quotes in the formatted string
-        fputs(value.value.string, stdout);
+        fputs(value.as.string, stdout);
       }
       index++;
       current += 2;
@@ -158,10 +148,7 @@ result_void_position_t ioPrintf(value_t *result, const value_list_t *values,
     current++;
   }
 
-  result->type = VALUE_TYPE_NIL;
-  result->value.nil = nullptr;
-
-  return ok(result_void_position_t);
+  return valueCreate(VALUE_TYPE_NIL, (value_as_t){}, pos);
 }
 
 /**
@@ -173,28 +160,26 @@ result_void_position_t ioPrintf(value_t *result, const value_list_t *values,
  *   (io:readline! "What's your name?") ; returns user input
  */
 const char *IO_READLINE = "io:readline!";
-result_void_position_t ioReadline(value_t *result, const value_list_t *values,
-                                  arena_t *arena) {
-  if (values->count < 1) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires 1 argument. Got %zu.", IO_READLINE, values->count);
+result_value_ref_t ioReadline(const value_array_t *arguments, position_t pos) {
+  if (arguments->count < 1) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
+          "%s requires 1 argument. Got %zu", IO_READLINE, arguments->count);
   }
 
-  value_t question_value = listGet(value_t, values, 0);
+  value_t question_value = listGet(value_t, arguments, 0);
 
   if (question_value.type != VALUE_TYPE_STRING) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
-          result->position, "%s requires a string. Got %s.", IO_READLINE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+          question_value.position, "%s requires a string. Got %s.", IO_READLINE,
           formatValueType(question_value.type));
   }
 
-  printf("%s", question_value.value.string);
+  printf("%s", question_value.as.string);
 
   char buffer[INTERMEDIATE_BUFFER_SIZE];
   if (fgets(buffer, sizeof(buffer), stdin) == nullptr) {
-    result->type = VALUE_TYPE_STRING;
-    *result->value.string = 0;
-    return ok(result_void_position_t);
+    return valueCreate(VALUE_TYPE_STRING, (value_as_t){.string = strdup("")},
+                       pos);
   }
 
   // Remove trailing newline if present
@@ -203,13 +188,11 @@ result_void_position_t ioReadline(value_t *result, const value_list_t *values,
     buffer[len - 1] = '\0';
   }
 
-  result->type = VALUE_TYPE_STRING;
-  tryWithMeta(result_void_position_t, arenaAllocate(arena, len),
-              question_value.position, result->value.string);
-
-  stringCopy(result->value.string, buffer, len);
-
-  return ok(result_void_position_t);
+  return valueCreate(VALUE_TYPE_STRING,
+                     (value_as_t){
+                         .string = strdup(buffer),
+                     },
+                     pos);
 }
 
 /**
@@ -220,14 +203,11 @@ result_void_position_t ioReadline(value_t *result, const value_list_t *values,
  *   (io:clear!)
  */
 const char *IO_CLEAR = "io:clear!";
-result_void_position_t ioClear(value_t *result, const value_list_t *values,
-                               arena_t *arena) {
-  (void)arena;
-  (void)values;
+result_value_ref_t ioClear(const value_array_t *arguments, position_t pos) {
+  if (arguments->count != 0) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
+          "%s requires no arguments. Got %zu", IO_CLEAR, arguments->count);
+  }
   puts("\e[1;1H\e[2J");
-
-  result->type = VALUE_TYPE_NIL;
-  result->value.nil = nullptr;
-
-  return ok(result_void_position_t);
+  return valueCreate(VALUE_TYPE_NIL, (value_as_t){}, pos);
 }

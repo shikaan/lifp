@@ -27,24 +27,22 @@
  */
 const char *FLOW_SLEEP = "flow:sleep!";
 
-result_void_position_t flowSleep(value_t *result, const value_list_t *arguments,
-                                 arena_t *arena) {
-  (void)arena;
+result_value_ref_t flowSleep(const value_array_t *arguments, position_t pos) {
   if (arguments->count < 1) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
           "%s requires 1 argument. Got %zu", FLOW_SLEEP, arguments->count);
   }
 
   value_t ms_value = listGet(value_t, arguments, 0);
   if (ms_value.type != VALUE_TYPE_NUMBER) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           ms_value.position, "%s requires a number. Got %s.", FLOW_SLEEP,
           formatValueType(ms_value.type));
   }
 
-  long milliseconds = lround(ms_value.value.number);
+  long milliseconds = lround(ms_value.as.number);
   if (milliseconds < 0) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, ms_value.position,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, ms_value.position,
           "%s requires a non-negative number.", FLOW_SLEEP);
   }
 
@@ -53,8 +51,5 @@ result_void_position_t flowSleep(value_t *result, const value_list_t *arguments,
   timespec_val.tv_nsec = (milliseconds % 1000) * 1000000L;
   nanosleep(&timespec_val, nullptr);
 
-  result->type = VALUE_TYPE_NIL;
-  result->value.nil = nullptr;
-
-  return ok(result_void_position_t);
+  return valueCreate(VALUE_TYPE_NIL, (value_as_t){}, pos);
 }
