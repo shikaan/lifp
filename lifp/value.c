@@ -1,10 +1,12 @@
 #include "value.h"
 #include "../lib/string.h"
+#include "node.h"
 #include "position.h"
 #include "types.h"
-#include <stdint.h>
+#include "virtual_machine.h"
 #include <assert.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 
 result_value_ref_t valueCreate(value_type_t type, value_as_t as,
@@ -32,10 +34,27 @@ result_value_ref_t valueDeepCopy(const value_t *self) {
   case VALUE_TYPE_NIL:
     destination->as = self->as;
     break;
-  case VALUE_TYPE_CLOSURE:
-    // TODO
-    destination->as = self->as;
+  case VALUE_TYPE_CLOSURE: {
+    destination->as.closure.environment = self->as.closure.environment;
+
+    size_t count = self->as.closure.arguments->count;
+    arguments_t *closure_arguments = nullptr;
+    tryWithMeta(result_value_ref_t, argumentsCreate(count), self->position,
+                closure_arguments);
+
+    for (size_t i = 0; i < count; i++) {
+      closure_arguments->data[i] = strdup(self->as.closure.arguments->data[i]);
+    }
+
+    destination->as.closure.arguments = closure_arguments;
+
+    node_t *closure_form = nullptr;
+    tryWithMeta(result_value_ref_t, nodeCopy(self->as.closure.form),
+                self->position, closure_form);
+    destination->as.closure.form = closure_form;
+
     break;
+  }
   case VALUE_TYPE_LIST: {
     size_t count = self->as.list->count;
     tryWithMeta(result_value_ref_t, valueArrayCreate(count), self->position,
@@ -46,6 +65,7 @@ result_value_ref_t valueDeepCopy(const value_t *self) {
       tryWithMeta(result_value_ref_t, valueDeepCopy(&self->as.list->data[i]),
                   self->position, copied);
       destination->as.list->data[i] = *copied;
+      deallocSafe(&copied);
     }
     break;
   }
@@ -68,6 +88,17 @@ result_ref_t argumentsCreate(size_t count) {
   return ok(result_ref_t, args);
 }
 
+void argumentsDestroy(arguments_t **self) {
+  if (!self || !(*self))
+    return;
+  arguments_t *array = (*self);
+  for (size_t i = 0; i < array->count; i++) {
+    deallocSafe(&array->data[i]);
+  }
+  deallocSafe(&array->data);
+  deallocSafe(self);
+}
+
 result_ref_t valueArrayCreate(size_t count) {
   value_array_t *array = nullptr;
   try(result_ref_t, allocSafe(sizeof(value_array_t)), array);
@@ -81,27 +112,25 @@ static void valueDestroyInner(value_t *self) {
     return;
 
   switch (self->type) {
-  case VALUE_TYPE_BOOLEAN:
-  case VALUE_TYPE_NUMBER:
-  case VALUE_TYPE_NIL:
-  case VALUE_TYPE_BUILTIN:
-  case VALUE_TYPE_SPECIAL:
-    // These types don't have nested allocations to clean up
-    break;
   case VALUE_TYPE_CLOSURE:
-    // TODO
+    argumentsDestroy(&self->as.closure.arguments);
+    environmentDestroy(&self->as.closure.environment);
+    nodeDestroy(&self->as.closure.form);
     break;
   case VALUE_TYPE_LIST: {
     valueArrayDestroy(&self->as.list);
     break;
   }
   case VALUE_TYPE_STRING:
-    if (self->as.string) {
-      deallocSafe(&self->as.string);
-    }
+    deallocSafe(&self->as.string);
     break;
+  case VALUE_TYPE_BOOLEAN:
+  case VALUE_TYPE_NUMBER:
+  case VALUE_TYPE_NIL:
+  case VALUE_TYPE_BUILTIN:
+  case VALUE_TYPE_SPECIAL:
   default:
-    unreachable();
+    break;
   }
 }
 
@@ -113,6 +142,8 @@ void valueDestroy(value_t **self) {
 }
 
 void valueArrayDestroy(value_array_t **self) {
+  if (!self || !*self)
+    return;
   value_array_t *array = (*self);
   for (size_t i = 0; i < array->count; i++) {
     valueDestroyInner(&array->data[i]);
@@ -120,8 +151,6 @@ void valueArrayDestroy(value_array_t **self) {
   deallocSafe(&array->data);
   deallocSafe(self);
 }
-
-// value_map_t implementation moved from environment.c
 
 static uint64_t hash(size_t len, const char key[static len]) {
   uint64_t hash = 14695981039346656037U;
@@ -158,7 +187,7 @@ result_void_t valueMapSet(value_map_t *self, const char *key,
   assert(self);
   size_t key_len = strlen(key);
   if (key_len == 0) {
-    throw(result_void_t, MAP_ERROR_INVALID_KEY, nullptr,
+    throw(result_void_t, VALUE_MAP_ERROR_INVALID_KEY, nullptr,
           "Map key cannot be empy");
   }
 
@@ -234,9 +263,13 @@ void *valueMapGet(const value_map_t *self, const char *key) {
 }
 
 void valueMapDestroyInner(value_map_t *self) {
+  if (!self)
+    return;
+
   for (size_t i = 0; i < self->capacity; i++) {
     if (self->used[i]) {
       deallocSafe(&self->keys[i]);
+      valueDestroyInner(&self->data[i]);
     }
   }
   deallocSafe(&self->keys);

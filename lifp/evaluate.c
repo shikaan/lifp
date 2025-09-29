@@ -34,7 +34,9 @@ result_value_ref_t invokeClosure(value_t *closure_value,
                 closure_value->position);
   }
 
-  return evaluate(closure.form, local_environment);
+  result_value_ref_t result = evaluate(closure.form, local_environment);
+  environmentDestroy(&local_environment);
+  return result;
 }
 
 result_value_ref_t evaluate(node_t *node, environment_t *environment) {
@@ -143,6 +145,7 @@ result_value_ref_t evaluate(node_t *node, environment_t *environment) {
         tryWithMeta(result_value_ref_t, valueArrayCreate(arguments_count),
                     first_node.position, arguments);
 
+        // skip the closure symbol
         for (size_t i = 1; i < list.count; i++) {
           value_t *item = nullptr;
           try(result_value_ref_t, evaluate(&list.data[i], environment), item);
@@ -150,7 +153,11 @@ result_value_ref_t evaluate(node_t *node, environment_t *environment) {
           deallocSafe(&item);
         }
 
-        return invokeClosure(scratch, arguments);
+        result_value_ref_t result = invokeClosure(scratch, arguments);
+
+        valueArrayDestroy(&arguments);
+        valueDestroy(&scratch);
+        return result;
       }
       case VALUE_TYPE_BOOLEAN:
       case VALUE_TYPE_NIL:

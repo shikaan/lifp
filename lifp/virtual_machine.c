@@ -14,10 +14,14 @@
 // NOLINTEND
 
 #include <assert.h>
+#include <limits.h>
 #include <stddef.h>
+#include <stdio.h>
 
 value_map_t *builtins;
 value_map_t *specials;
+
+static int count = 0;
 
 result_vm_ref_t vmCreate(vm_options_t opts) {
   vm_t *machine = nullptr;
@@ -27,8 +31,8 @@ result_vm_ref_t vmCreate(vm_options_t opts) {
   machine->options = opts;
 
   try(result_vm_ref_t, environmentCreate(nullptr), machine->global);
-  try(result_vm_ref_t, valueMapCreate(1), builtins);
 
+  try(result_vm_ref_t, valueMapCreate(64), builtins);
 #define setBuiltin(Label, Builtin)                                             \
   builtin.type = VALUE_TYPE_BUILTIN;                                           \
   builtin.as.builtin = (Builtin);                                              \
@@ -91,22 +95,28 @@ result_vm_ref_t vmCreate(vm_options_t opts) {
   return ok(result_vm_ref_t, machine);
 }
 
-// Merged from environment.c
 result_environment_ref_t environmentCreate(environment_t *parent) {
+  count++;
   environment_t *environment = nullptr;
   try(result_environment_ref_t, allocSafe(sizeof(environment_t)), environment);
 
   value_map_t *values = nullptr;
-  try(result_environment_ref_t, valueMapCreate(8), values);
-
+  try(result_environment_ref_t, valueMapCreate(4), values);
   environment->values = *values;
+  deallocSafe(&values);
+
   environment->parent = parent;
 
   return ok(result_environment_ref_t, environment);
 }
 
 void environmentDestroy(environment_t **self) {
-  valueMapDestroyInner(&(*self)->values);
+  if (!self || !(*self))
+    return;
+
+  environment_t *env = (*self);
+  value_map_t *values = &env->values;
+  valueMapDestroyInner(values);
   deallocSafe(self);
 }
 
@@ -120,7 +130,10 @@ result_void_t environmentRegisterSymbol(environment_t *self, const char *key,
           "Identifier '%s' has already been declared", key);
   }
 
-  try(result_void_t, valueMapSet(&self->values, key, value));
+  value_t *copy = nullptr;
+  tryWithMeta(result_void_t, valueDeepCopy(value), nullptr, copy);
+  try(result_void_t, valueMapSet(&self->values, key, copy));
+  deallocSafe(&copy);
   return ok(result_void_t);
 }
 
@@ -149,6 +162,11 @@ const value_t *environmentResolveSymbol(const environment_t *self,
 void vmDestroy(vm_t **self) {
   if (!self || !*self)
     return;
+
   environmentDestroy(&(*self)->global);
+  valueMapDestroyInner(builtins);
+  valueMapDestroyInner(specials);
+  deallocSafe(&builtins);
+  deallocSafe(&specials);
   deallocSafe(self);
 }

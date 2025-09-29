@@ -43,3 +43,4 @@ typedef struct {
 result_ref_t nodeCreate(arena_t *, node_type_t);
 result_void_t nodeInit(node_t *, arena_t *);
 result_ref_t nodeCopy(const node_t *);
+void nodeDestroy(node_t **);

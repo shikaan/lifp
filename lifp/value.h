@@ -66,11 +66,10 @@ typedef struct value_t {
   position_t position;
 } value_t;
 
-// value map (moved from environment)
 typedef enum {
-  MAP_ERROR_ALLOCATION = ARENA_ERROR_OUT_OF_SPACE,
-  MAP_ERROR_INVALID_KEY,
-} map_error_t;
+  VALUE_MAP_ERROR_ALLOCATION,
+  VALUE_MAP_ERROR_INVALID_KEY,
+} value_map_error_t;
 
 typedef struct {
   size_t capacity;

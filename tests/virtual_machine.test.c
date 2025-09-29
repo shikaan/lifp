@@ -29,7 +29,7 @@ void environmentCreateDestroy(void) {
   case("create env");
   tryAssert(environmentCreate(nullptr), env);
   expectNotNull(env, "creates an environment");
-  expectEqlSize(env->values.capacity, 8, "initial map capacity");
+  expectEqlSize(env->values.capacity, 4, "initial map capacity");
 
   case("destroy env");
   environmentDestroy(&env);

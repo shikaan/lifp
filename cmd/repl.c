@@ -2,7 +2,6 @@
 #include "../lib/arena.h"
 #include "../lib/profile.h"
 #include "../lib/string.h"
-#include "../lifp/environment.h"
 #include "../lifp/evaluate.h"
 #include "../lifp/fmt.h"
 #include "../lifp/node.h"
@@ -293,6 +292,8 @@ int repl(const repl_opts_t OPTIONS) {
     memset(buffer, 0, OPTIONS.output_size);
     profileReport();
   }
+
+  puts("post while");
 
   profileEnd();
   valueDestroy(&result);

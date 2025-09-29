@@ -162,12 +162,13 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  ap_free(repl_parser);
+  ap_free(run_parser);
   return ap_get_cmd_exit_code(root_parser);
 
 error:
-  if (root_parser)
-    ap_free(root_parser);
-  if (run_parser)
-    ap_free(run_parser);
+  ap_free(repl_parser);
+  ap_free(run_parser);
+  ap_free(root_parser);
   return 1;
 }

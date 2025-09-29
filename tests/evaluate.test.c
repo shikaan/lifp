@@ -113,6 +113,7 @@ void functionCall() {
   value_t *result;
   tryAssert(evaluate(&form_node, global), result);
   expectEqlDouble(result->as.number, 6, "has correct result");
+  valueDestroy(&result);
   
   value_t val = { .type = VALUE_TYPE_NUMBER, .as.number = 1};
   tryAssert(environmentRegisterSymbol(global, "lol", &val));
@@ -182,11 +183,12 @@ void allocations() {
   value_array_t *inner_list_values = nullptr;
   tryAssert(valueArrayCreate(2), inner_list_values);
   string_t string = strdup("a");
+  string_t inner_string = strdup(string);
   inner_list_values->data[0] = (value_t){.type = VALUE_TYPE_NUMBER,
                                          .as.number = 2,
                                          .position = {1, 1}};
   inner_list_values->data[1] = (value_t){.type = VALUE_TYPE_STRING,
-                                         .as.string = string,
+                                         .as.string = inner_string,
                                          .position = {1, 1}};
 
   value_t inner_list_value = {.type = VALUE_TYPE_LIST,
@@ -205,6 +207,7 @@ void allocations() {
                               .position = {1, 1}};
 
   tryAssert(environmentRegisterSymbol(global, "nested", &outer_list_value));
+  valueArrayDestroy(&outer_list_values); 
 
   // Evaluate the symbol and verify nested retrieval
   node_t sym_node = nSym(test_arena, "nested");
@@ -231,10 +234,13 @@ void allocations() {
   expectEqlValueType(inner_second.type, VALUE_TYPE_STRING, "inner second type");
   expectEqlString(inner_second.as.string, "a", 2, "inner second value");
 
-  case("deep copy");
   valueDestroy(&result);
+  
+  // TODO: this should be done for each value type
+  case("deep copy");
 
   const value_t* retrieved = environmentResolveSymbol(global, "nested");
+
   value_array_t *retrieved_outer = retrieved->as.list;
   value_array_t* retrieved_inner = retrieved->as.list->data[1].as.list;
    expectTrue(
@@ -249,6 +255,8 @@ void allocations() {
       retrieved_inner->data[1].type == VALUE_TYPE_STRING &&
       strncmp(retrieved_inner->data[1].as.string, string, 2) == 0
     ) != 0, "value exists in environment after destroy");
+
+   deallocSafe(&string);
 }
 
 void errors() { 
