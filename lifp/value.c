@@ -35,7 +35,10 @@ result_value_ref_t valueDeepCopy(const value_t *self) {
     destination->as = self->as;
     break;
   case VALUE_TYPE_CLOSURE: {
-    destination->as.closure.environment = self->as.closure.environment;
+    tryWithMeta(result_value_ref_t,
+                environmentClone(self->as.closure.environment), self->position,
+                destination->as.closure.environment);
+    // destination->as.closure.environment = self->as.closure.environment;
 
     size_t count = self->as.closure.arguments->count;
     arguments_t *closure_arguments = nullptr;

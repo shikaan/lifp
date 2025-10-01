@@ -21,8 +21,6 @@
 value_map_t *builtins;
 value_map_t *specials;
 
-static int count = 0;
-
 result_vm_ref_t vmCreate(vm_options_t opts) {
   vm_t *machine = nullptr;
   try(result_vm_ref_t, allocSafe(sizeof(vm_t)), machine);
@@ -96,7 +94,6 @@ result_vm_ref_t vmCreate(vm_options_t opts) {
 }
 
 result_environment_ref_t environmentCreate(environment_t *parent) {
-  count++;
   environment_t *environment = nullptr;
   try(result_environment_ref_t, allocSafe(sizeof(environment_t)), environment);
 
@@ -108,6 +105,22 @@ result_environment_ref_t environmentCreate(environment_t *parent) {
   environment->parent = parent;
 
   return ok(result_environment_ref_t, environment);
+}
+
+result_environment_ref_t environmentClone(environment_t *original) {
+  environment_t *new = nullptr;
+  try(result_environment_ref_t, environmentCreate(original->parent), new);
+
+  for (size_t i = 0; i < original->values.capacity; i++) {
+    if (original->values.used[i]) {
+      value_t *copy;
+      tryWithMeta(result_environment_ref_t,
+                  valueDeepCopy(&original->values.data[i]), nullptr, copy);
+      valueMapSet(&original->values, original->values.keys[i], copy);
+    }
+  }
+
+  return ok(result_environment_ref_t, new);
 }
 
 void environmentDestroy(environment_t **self) {

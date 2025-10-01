@@ -30,3 +30,5 @@ result_void_t environmentRegisterSymbol(environment_t *, const char *,
 
 result_vm_ref_t vmCreate(vm_options_t);
 void vmDestroy(vm_t **);
+
+result_environment_ref_t environmentClone(environment_t *original);

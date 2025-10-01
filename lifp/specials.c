@@ -35,7 +35,7 @@ result_value_ref_t define(const node_array_t *nodes, environment_t *environment,
           "%s requires a symbol and a form.", DEFINE);
   }
 
-  if (strchr(key.value.symbol, NAMESPACE_DELIMITER) != NULL) {
+  if (strchr(key.value.symbol, NAMESPACE_DELIMITER) != nullptr) {
     throw(result_value_ref_t, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN,
           first.position,
           "Unexpected namespace delimiter '%c' in custom symbol '%s'.",
@@ -50,7 +50,7 @@ result_value_ref_t define(const node_array_t *nodes, environment_t *environment,
   tryWithMeta(result_value_ref_t,
               environmentRegisterSymbol(environment, key.value.symbol, reduced),
               key.position);
-  deallocSafe(&reduced);
+  valueDestroy(&reduced);
 
   trampoline->more = false;
   return valueCreate(VALUE_TYPE_NIL, (value_as_t){}, first.position);
@@ -101,11 +101,9 @@ result_value_ref_t function(const node_array_t *nodes,
   tryWithMeta(result_value_ref_t, environmentCreate(environment),
               first.position, closure_environment);
 
-  value_as_t value_as = {.closure = {
-                             .arguments = closure_arguments,
-                             .form = closure_form,
-                             .environment = closure_environment,
-                         }};
+  value_as_t value_as = {.closure = {.arguments = closure_arguments,
+                                     .form = closure_form,
+                                     .environment = closure_environment}};
 
   value_t *result = nullptr;
   tryWithMeta(result_value_ref_t,
