@@ -161,12 +161,20 @@ result_value_ref_t let(const node_array_t *nodes, environment_t *environment,
         result_value_ref_t,
         environmentRegisterSymbol(local_env, symbol.value.symbol, evaluated),
         evaluated->position);
+    valueDestroy(&evaluated);
   }
 
-  trampoline->more = true;
-  trampoline->environment = local_env;
-  trampoline->node = &nodes->data[2];
-  return ok(result_value_ref_t, nullptr);
+  // TODO: TCO
+  // trampoline->more = true;
+  // trampoline->environment = local_env;
+  // trampoline->node = &nodes->data[2];
+
+  value_t *evaluated = nullptr;
+  try(result_value_ref_t, evaluate(&nodes->data[2], local_env), evaluated);
+  environmentDestroy(&local_env);
+
+  trampoline->more = false;
+  return ok(result_value_ref_t, evaluated);
 }
 
 result_value_ref_t cond(const node_array_t *nodes, environment_t *environment,

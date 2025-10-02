@@ -99,11 +99,11 @@ int main() {
   expectEqlUint(fun2->type, VALUE_TYPE_STRING, "returns correct type");
   valueDestroy(&fun2);
   
-  // case("let");
-  // value_t *let = execute("(let ((plus (fn (x y) (+ x y))) (a 1)) (plus a 1))"); 
-  // expectEqlUint(let->type, VALUE_TYPE_NUMBER, "returns correct type");
-  // expectEqlDouble(let->as.number, 2, "returns correct value");
-  // valueDestroy(&let);
+  case("let");
+  value_t *let = execute("(let ((plus (fn (x y) (+ x y))) (a 1)) (plus a 1))"); 
+  expectEqlUint(let->type, VALUE_TYPE_NUMBER, "returns correct type");
+  expectEqlDouble(let->as.number, 2, "returns correct value");
+  valueDestroy(&let);
 
   // case("let with escape");
   // value_t *let_with_escape = execute("(+ 1 (let ((l 1)) l))");
