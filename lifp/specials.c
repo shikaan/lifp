@@ -171,6 +171,19 @@ result_value_ref_t let(const node_array_t *nodes, environment_t *environment,
 
   value_t *evaluated = nullptr;
   try(result_value_ref_t, evaluate(&nodes->data[2], local_env), evaluated);
+
+  if (evaluated->type == VALUE_TYPE_CLOSURE) {
+    environment_t *env = evaluated->as.closure.environment;
+
+    while (env) {
+      if (env == local_env) {
+        throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, evaluated->position,
+              "Cannot return pointer to ephemeral environment.")
+      }
+      env = env->parent;
+    }
+  }
+
   environmentForceDestroy(&local_env);
 
   trampoline->more = false;

@@ -159,21 +159,6 @@ void letSpecialForm() {
              "defines lists");
   valueDestroy(&result);
 
-  tryAssert(execute("(let ((f (fn (x y) (+ x y)))) f)"), result);
-  expectTrue((result->type == VALUE_TYPE_CLOSURE &&
-              result->as.closure.arguments->count == 2 &&
-              strcmp(result->as.closure.arguments->data[0], "x") == 0 &&
-              strcmp(result->as.closure.arguments->data[1], "y") == 0 &&
-              result->as.closure.form->value.list.count == 3 &&
-              strcmp(result->as.closure.form->value.list.data[0].value.symbol,
-                     "+") == 0 &&
-              strcmp(result->as.closure.form->value.list.data[1].value.symbol,
-                     "x") == 0 &&
-              strcmp(result->as.closure.form->value.list.data[2].value.symbol,
-                     "y") == 0) != 0,
-             "defines functions");
-  valueDestroy(&result);
-
   value_t *leaked_a = valueMapGet(&environment->values, "a");
   value_t *leaked_b = valueMapGet(&environment->values, "b");
   expectNull(leaked_a, "doesn't leak binding to outer scope");
@@ -183,6 +168,10 @@ void letSpecialForm() {
   expectEqlDouble(result->as.number, 11,
                   "bindings can depend on previously defined");
   valueDestroy(&result);
+
+  tryFail(execute("(let ((f (fn (x y) (+ x y)))) f)"), exec);
+  expectIncludeString(exec.message, "ephemeral environment",
+                      "prevents escaping values");
 
   tryFail(execute("(let ((a (+ 5 b)) (b 1)) (+ a b))"), exec);
   expectIncludeString(exec.message, "cannot be found",
