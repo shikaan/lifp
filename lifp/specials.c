@@ -171,7 +171,7 @@ result_value_ref_t let(const node_array_t *nodes, environment_t *environment,
 
   value_t *evaluated = nullptr;
   try(result_value_ref_t, evaluate(&nodes->data[2], local_env), evaluated);
-  environmentDestroy(&local_env);
+  environmentForceDestroy(&local_env);
 
   trampoline->more = false;
   return ok(result_value_ref_t, evaluated);

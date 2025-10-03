@@ -103,24 +103,12 @@ result_environment_ref_t environmentCreate(environment_t *parent) {
   deallocSafe(&values);
 
   environment->parent = parent;
-
-  return ok(result_environment_ref_t, environment);
-}
-
-result_environment_ref_t environmentClone(environment_t *original) {
-  environment_t *new = nullptr;
-  try(result_environment_ref_t, environmentCreate(original->parent), new);
-
-  for (size_t i = 0; i < original->values.capacity; i++) {
-    if (original->values.used[i]) {
-      value_t *copy;
-      tryWithMeta(result_environment_ref_t,
-                  valueDeepCopy(&original->values.data[i]), nullptr, copy);
-      valueMapSet(&original->values, original->values.keys[i], copy);
-    }
+  environment->refcount = 1;
+  if (parent) {
+    parent->refcount++;
   }
 
-  return ok(result_environment_ref_t, new);
+  return ok(result_environment_ref_t, environment);
 }
 
 void environmentDestroy(environment_t **self) {
@@ -128,9 +116,34 @@ void environmentDestroy(environment_t **self) {
     return;
 
   environment_t *env = (*self);
+
+  if (env->parent == nullptr)
+    return;
+
+  env->refcount--;
+
+  if (env->refcount <= 0) {
+    value_map_t *values = &env->values;
+    environment_t *parent = env->parent;
+    valueMapDestroyInner(values);
+    deallocSafe(self);
+
+    environmentDestroy(&parent);
+  }
+}
+
+void environmentForceDestroy(environment_t **self) {
+  if (!self || !(*self))
+    return;
+
+  environment_t *env = (*self);
+
   value_map_t *values = &env->values;
+  environment_t *parent = env->parent;
   valueMapDestroyInner(values);
   deallocSafe(self);
+
+  environmentDestroy(&parent);
 }
 
 result_void_t environmentRegisterSymbol(environment_t *self, const char *key,
@@ -176,7 +189,9 @@ void vmDestroy(vm_t **self) {
   if (!self || !*self)
     return;
 
-  environmentDestroy(&(*self)->global);
+  environment_t *global = (*self)->global;
+  environmentForceDestroy(&global);
+
   valueMapDestroyInner(builtins);
   valueMapDestroyInner(specials);
   deallocSafe(&builtins);

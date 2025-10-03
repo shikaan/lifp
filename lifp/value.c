@@ -35,10 +35,8 @@ result_value_ref_t valueDeepCopy(const value_t *self) {
     destination->as = self->as;
     break;
   case VALUE_TYPE_CLOSURE: {
-    tryWithMeta(result_value_ref_t,
-                environmentClone(self->as.closure.environment), self->position,
-                destination->as.closure.environment);
-    // destination->as.closure.environment = self->as.closure.environment;
+    destination->as.closure.environment = self->as.closure.environment;
+    self->as.closure.environment->refcount++;
 
     size_t count = self->as.closure.arguments->count;
     arguments_t *closure_arguments = nullptr;
@@ -225,6 +223,10 @@ result_void_t valueMapSet(value_map_t *self, const char *key,
       for (size_t i = 0; i < old_capacity; i++) {
         if (old_used[i]) {
           valueMapSet(self, old_keys[i], &old_data[i]);
+
+          // This is not part of rehashing, but we'd need to walk the list again
+          // to cleanup keys a few lines down, might as well doing it here.
+          deallocSafe(&old_keys[i]);
         }
       }
 

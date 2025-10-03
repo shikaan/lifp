@@ -6,6 +6,8 @@
 typedef struct environment_t {
   struct environment_t *parent;
   value_map_t values;
+
+  int refcount;
 } environment_t;
 
 typedef struct {
@@ -23,6 +25,7 @@ typedef Result(environment_t *) result_environment_ref_t;
 
 result_environment_ref_t environmentCreate(environment_t *);
 void environmentDestroy(environment_t **);
+void environmentForceDestroy(environment_t **);
 
 const value_t *environmentResolveSymbol(const environment_t *, const char *);
 result_void_t environmentRegisterSymbol(environment_t *, const char *,
@@ -30,5 +33,3 @@ result_void_t environmentRegisterSymbol(environment_t *, const char *,
 
 result_vm_ref_t vmCreate(vm_options_t);
 void vmDestroy(vm_t **);
-
-result_environment_ref_t environmentClone(environment_t *original);
