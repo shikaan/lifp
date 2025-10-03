@@ -10,35 +10,34 @@ void createDestroy(void) {
   vm_t *machine = nullptr;
 
   case("create");
-  tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
+  tryAssert(vmCreate(), machine);
   expectNotNull(machine, "creates a virtual machine");
   expectNotNull(machine->global, "machine has global environment");
-  expectEqlSize(machine->options.vm_size, VM_TEST_OPTIONS.vm_size,
-    "sets vm_size correctly");
-  expectEqlSize(machine->options.environment_size,
-    VM_TEST_OPTIONS.environment_size,
-    "sets environment_size correctly");
-      
+
   case("destroy");
   vmDestroy(&machine);
   expectNull(machine, "sets pointer to null");
 }
 
 void environmentCreateDestroy(void) {
-  environment_t *env = nullptr;
+  vm_t *machine = nullptr;
+  tryAssert(vmCreate(), machine);
+  
   case("create env");
-  tryAssert(environmentCreate(nullptr), env);
+  environment_t *env = nullptr;
+  tryAssert(environmentCreate(machine->global), env);
   expectNotNull(env, "creates an environment");
   expectEqlSize(env->values.capacity, 4, "initial map capacity");
-
+  
   case("destroy env");
   environmentDestroy(&env);
   expectNull(env, "sets pointer to null");
+  vmDestroy(&machine);
 }
 
 void resolutions(void) {
   vm_t *machine;
-  tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
+  tryAssert(vmCreate(), machine);
 
   const value_t *builtin = environmentResolveSymbol(machine->global, "+");
   expectNotNull(builtin, "resolves builtin");

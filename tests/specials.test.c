@@ -253,22 +253,22 @@ int main(void) {
   tryAssert(arenaCreate((size_t)(1024 * 1024)), test_arena);
   vm_t *machine;
 
-  tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
+  tryAssert(vmCreate(), machine);
   environment = machine->global;
   suite(defSpecialForm);
   vmDestroy(&machine);
 
-  tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
+  tryAssert(vmCreate(), machine);
   environment = machine->global;
   suite(fnSpecialForm);
   vmDestroy(&machine);
 
-  tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
+  tryAssert(vmCreate(), machine);
   environment = machine->global;
   suite(letSpecialForm);
   vmDestroy(&machine);
 
-  tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
+  tryAssert(vmCreate(), machine);
   environment = machine->global;
   suite(condSpecialForm);
   vmDestroy(&machine);

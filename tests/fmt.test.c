@@ -1,5 +1,4 @@
 #include "../lifp/fmt.h"
-#include "../lib/list.h"
 #include "../lifp/node.h"
 #include "test.h"
 #include "utils.h"

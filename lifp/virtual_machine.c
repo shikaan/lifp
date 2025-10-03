@@ -21,12 +21,11 @@
 value_map_t *builtins;
 value_map_t *specials;
 
-result_vm_ref_t vmCreate(vm_options_t opts) {
+result_vm_ref_t vmCreate(void) {
   vm_t *machine = nullptr;
   try(result_vm_ref_t, allocSafe(sizeof(vm_t)), machine);
 
   machine->global = nullptr;
-  machine->options = opts;
 
   try(result_vm_ref_t, environmentCreate(nullptr), machine->global);
 

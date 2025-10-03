@@ -273,7 +273,7 @@ void errors() {
 
 int main(void) {
   vm_t *machine;
-  tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
+  tryAssert(vmCreate(), machine);
   global = machine->global;
 
   tryAssert(arenaCreate((size_t)1024*64), test_arena);

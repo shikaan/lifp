@@ -17,7 +17,7 @@ value_t *execute(const char *input) {
   char *line = strtok(input_copy, "\n");
 
   vm_t *machine;
-  tryAssert(vmCreate(VM_TEST_OPTIONS), machine);
+  tryAssert(vmCreate(), machine);
 
   value_t *intermediate_result = nullptr;
   while (line != NULL) {
@@ -169,10 +169,10 @@ void expandingEnvironment() {
                             "(def! ab 1)\n"
                             "(def! ac 1)\n"
                             "(def! ad 1)\n"
-                            // "(def! ae 1)\n"
-                            // "(def! af 1)\n"
-                            // "(def! ag 1)\n"
-                            // "(def! ah 1)\n"
+                            "(def! ae 1)\n"
+                            "(def! af 1)\n"
+                            "(def! ag 1)\n"
+                            "(def! ah 1)\n"
                             "(def! ai 1)\n");
   expectEqlUint(result->type, VALUE_TYPE_NIL, "allows environment growth");
   valueDestroy(&result);

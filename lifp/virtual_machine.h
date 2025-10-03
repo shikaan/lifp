@@ -11,12 +11,6 @@ typedef struct environment_t {
 } environment_t;
 
 typedef struct {
-  size_t environment_size;
-  size_t vm_size;
-} vm_options_t;
-
-typedef struct {
-  vm_options_t options;
   environment_t *global;
 } vm_t;
 
@@ -31,5 +25,5 @@ const value_t *environmentResolveSymbol(const environment_t *, const char *);
 result_void_t environmentRegisterSymbol(environment_t *, const char *,
                                         const value_t *);
 
-result_vm_ref_t vmCreate(vm_options_t);
+result_vm_ref_t vmCreate(void);
 void vmDestroy(vm_t **);
