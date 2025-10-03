@@ -179,8 +179,6 @@ result_value_ref_t let(const node_array_t *nodes, environment_t *environment,
 
 result_value_ref_t cond(const node_array_t *nodes, environment_t *environment,
                         trampoline_t *trampoline) {
-  assert(nodes->count > 0); // cond is always there
-
   for (size_t i = 1; i < nodes->count - 1; i++) {
     node_t node = listGet(node_t, nodes, i);
     if (node.type != NODE_TYPE_LIST || node.value.list.count != 2) {
@@ -202,16 +200,30 @@ result_value_ref_t cond(const node_array_t *nodes, environment_t *environment,
     bool is_true = condition_value->as.boolean;
     valueDestroy(&condition_value);
 
+    // TODO: TCO
+    // if (is_true) {
+    //   trampoline->more = true;
+    //   trampoline->environment = environment;
+    //   trampoline->node = &node.value.list.data[1];
+    //   return ok(result_value_ref_t);
+    // }
     if (is_true) {
-      trampoline->more = true;
-      trampoline->environment = environment;
-      trampoline->node = &node.value.list.data[1];
-      return ok(result_value_ref_t);
+      value_t *evaluated = nullptr;
+      try(result_value_ref_t, evaluate(&node.value.list.data[1], environment),
+          evaluated);
+      trampoline->more = false;
+      return ok(result_value_ref_t, evaluated);
     }
   }
 
-  trampoline->more = true;
-  trampoline->environment = environment;
-  trampoline->node = &nodes->data[nodes->count - 1];
-  return ok(result_value_ref_t);
+  // TODO: TCO
+  // trampoline->more = true;
+  // trampoline->environment = environment;
+  // trampoline->node = &nodes->data[nodes->count - 1];
+  // return ok(result_value_ref_t);
+  value_t *evaluated = nullptr;
+  try(result_value_ref_t, evaluate(&nodes->data[nodes->count - 1], environment),
+      evaluated);
+  trampoline->more = false;
+  return ok(result_value_ref_t, evaluated);
 }

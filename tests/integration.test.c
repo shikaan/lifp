@@ -35,8 +35,6 @@ value_t *execute(const char *input) {
     line = strtok(nullptr, "\n");
   }
 
-  // This is trying to destroy the closure assigned to global, whose environment
-  // has already been destoyed
   vmDestroy(&machine);
   return intermediate_result;
 }
@@ -105,37 +103,39 @@ int main() {
   expectEqlDouble(let->as.number, 2, "returns correct value");
   valueDestroy(&let);
 
-  // case("let with escape");
-  // value_t *let_with_escape = execute("(+ 1 (let ((l 1)) l))");
-  // expectEqlUint(let_with_escape->type, VALUE_TYPE_NUMBER, "returns correct
-  // type"); expectEqlDouble(let_with_escape->as.number, 2, "returns correct
-  // value");
+  case("let with escape");
+  value_t *let_with_escape = execute("(+ 1 (let ((l 1)) l))");
+  expectEqlUint(let_with_escape->type, VALUE_TYPE_NUMBER, "returns correct type"); 
+  expectEqlDouble(let_with_escape->as.number, 2, "returns correct value");
+  valueDestroy(&let_with_escape);
 
-  // case("conditional - cond special form");
-  // value_t *cond_test = execute("(cond ((< 5 3) 1) ((> 5 3) 2) (3))");
-  // expectEqlDouble(cond_test->as.number, 2, "evaluates correct branch");
+  case("conditional - cond special form");
+  value_t *cond_test = execute("(cond ((< 5 3) 1) ((> 5 3) 2) (3))");
+  expectEqlDouble(cond_test->as.number, 2, "evaluates correct branch");
+  valueDestroy(&cond_test);
 
-  // case("boolean operations");
-  // value_t *bool_test = execute("(and (= 1 1) (> 5 3))");
-  // expectEqlUint(bool_test->type, VALUE_TYPE_BOOLEAN, "returns boolean type");
-  // expectTrue(bool_test->as.boolean, "logical and works");
+  case("boolean operations");
+  value_t *bool_test = execute("(and (= 1 1) (> 5 3))");
+  expectEqlUint(bool_test->type, VALUE_TYPE_BOOLEAN, "returns boolean type");
+  expectTrue(bool_test->as.boolean, "logical and works");
+  valueDestroy(&bool_test);
 
-  // case("recursive function calls");
-  // value_t *factorial = execute("(def! fact (fn (n) (cond ((< n 1) 1) (* n
-  // (fact (- n 1))))))\n(fact 5)"); expectEqlDouble(factorial->as.number, 120,
-  // "recursive factorial works");
+  case("recursive function calls");
+  value_t *factorial = execute("(def! fact (fn (n) (cond ((< n 1) 1) (* n (fact (- n 1))))))\n(fact 5)");
+  expectEqlDouble(factorial->as.number, 120, "recursive factorial works");
+  valueDestroy(&factorial);
 
-  // case("empty list and nil handling");
-  // value_t *empty_list = execute("()");
-  // expectEqlUint(empty_list->type, VALUE_TYPE_LIST, "empty list has correct
-  // type"); expectEqlUint((unsigned int)empty_list->as.list->count, 0, "empty
-  // list has zero elements");
+  case("empty list and nil handling");
+  value_t *empty_list = execute("()");
+  expectEqlUint(empty_list->type, VALUE_TYPE_LIST, "empty list has correct type"); 
+  expectEqlUint((unsigned int)empty_list->as.list->count, 0, "empty list has zero elements");
+  valueDestroy(&empty_list);
 
-  // case("currying");
-  // value_t *currying = execute("(def! make-add (fn (a) (fn (b) (+ a
-  // b))))\n((make-add 4) 1)"); expectEqlUint(currying->type, VALUE_TYPE_NUMBER,
-  // "returns a number"); expectEqlDouble(currying->as.number, 5, "it has
-  // correct value");
+  case("currying");
+  value_t *currying = execute("(def! make-add (fn (a) (fn (b) (+ a b))))\n((make-add 4) 1)");
+  expectEqlUint(currying->type, VALUE_TYPE_NUMBER, "returns a number");
+  expectEqlDouble(currying->as.number, 5, "it has correct value");
+  valueDestroy(&currying);
 
   // case("expanding environment");
   // value_t *environment = execute(
@@ -148,8 +148,8 @@ int main() {
   //     "(def! ag 1)\n"
   //     "(def! ah 1)\n"
   //     "(def! ai 1)\n");
-  // expectEqlUint(environment->type, VALUE_TYPE_NIL, "allows environment
-  // growth");
+  // expectEqlUint(environment->type, VALUE_TYPE_NIL, "allows environment growth");
+  // valueDestroy(&environment);
 
   arenaDestroy(&ast_arena);
 
