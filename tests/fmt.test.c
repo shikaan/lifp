@@ -110,6 +110,7 @@ void values() {
 
   formatValue(&closure_value, size, buffer, &offset);
   expectEqlString(buffer, "(fn (a) (a))", 13, "formats lambdas");
+  deallocSafe(&arg_a);
 }
 
 void errors() {
