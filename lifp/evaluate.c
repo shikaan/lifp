@@ -40,7 +40,6 @@ result_value_ref_t invokeClosure(value_t *closure_value,
 }
 
 result_value_ref_t evaluate(node_t *node, environment_t *environment) {
-  profileSafeAlloc();
   trampoline_t trampoline;
   position_t position = node->position;
 

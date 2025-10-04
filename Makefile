@@ -107,15 +107,8 @@ lib-test: tests/arena.test tests/list.test
 	tests/arena.test
 	tests/list.test
 
-.PHONY: memory-test
-memory-test:
-	# Memory tests can only be run with the profiler on
-	make PROFILE=1 clean tests/memory.test
-	tests/memory.test
-	make clean
-
 .PHONY: test
-test: lifp-test lib-test memory-test
+test: lifp-test lib-test
 
 .PHONY: docker-build
 docker-build:

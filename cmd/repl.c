@@ -236,7 +236,6 @@ int repl(const repl_opts_t OPTIONS) {
   profileInit();
   while (true) {
     allocResetMetrics();
-    profileSafeAlloc();
 
     arenaReset(ast_arena);
     char *input = linenoise("> ");
