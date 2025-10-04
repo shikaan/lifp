@@ -49,7 +49,7 @@ Checkout the [examples](./examples) folder to see more.
 
 ### API Docs
 
-[API Docs](https://shikaan.github.io/lifp-c/)
+[API Docs](https://shikaan.github.io/lifp/)
 
 ### Syntax Highlighting
 
@@ -71,7 +71,7 @@ This project is written in C23, therefore you need [LLVM](https://releases.llvm.
 
 ```bash
 # Clone the repository
-git clone https://github.com/shikaan/-c.git
+git clone https://github.com/shikaan/lifp.git
 cd lifp
 
 # Start the REPL
@@ -84,7 +84,7 @@ make test
 make
 ```
 
-The binary will be created in the `build` directory.
+The binary will be created in the `bin` directory.
 
 ## License
 
