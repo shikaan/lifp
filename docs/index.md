@@ -1,12 +1,54 @@
-lifp - v0.2.1 (63e3102)
+lifp - v0.3.0 (787dadf)
 ---
 ### Table of Contents
+  * [specials](#specials)
   * [core](#core)
   * [flow](#flow)
   * [io](#io)
   * [list](#list)
   * [math](#math)
   * [str](#str)
+
+# specials
+
+Special forms for the lifp language. These are core language constructs
+that control binding, scope, and conditional execution.
+### cond
+
+Conditional branching. Evaluates the first true condition's form, or the last form if none match.
+
+```lisp
+(cond ((< x 0) "negative") ((= x 0) "zero") ("positive"))
+```
+
+
+### def!
+
+Binds a value to a symbol in the current environment.
+
+```lisp
+(def! answer 42)
+(def! sum (fn (a b) (+ a b)))
+```
+
+
+### fn
+
+Creates a function (closure) with given arguments and body.
+
+```lisp
+(fn (a b) (+ a b))
+```
+
+
+### let
+
+Binds local variables for the scope of a body expression.
+
+```lisp
+(let ((x 1) (y 2)) (+ x y)) ; returns 3
+```
+
 
 # core
 
@@ -27,7 +69,7 @@ Performs a modulo division.
 
 ### *
 
-Multiplies a sequence of numbers.
+Multiplies arguments.
 
 ```lisp
 (* 1 2 3) ; returns 6
@@ -36,7 +78,7 @@ Multiplies a sequence of numbers.
 
 ### +
 
-Sums a sequence of numbers.
+Sums arguments.
 
 ```lisp
 (+ 1 2 3) ; returns 6
@@ -45,7 +87,7 @@ Sums a sequence of numbers.
 
 ### -
 
-Subtracts a sequence of numbers from the first.
+Subtracts arguments from the first argument.
 
 ```lisp
 (- 6 3 2) ; returns 1
@@ -54,7 +96,7 @@ Subtracts a sequence of numbers from the first.
 
 ### /
 
-Divides the first number by the rest.
+Divides the first argument by the rest.
 
 ```lisp
 (/ 6 3 2) ; returns 1
@@ -63,7 +105,7 @@ Divides the first number by the rest.
 
 ### <
 
-Checks if the first value is less than the second.
+Checks if the first argument is less than the second. otherwise.
 
 ```lisp
 (< 1 6) ; returns true
@@ -72,7 +114,7 @@ Checks if the first value is less than the second.
 
 ### <=
 
-Checks if the first value is less than or equal to the second.
+Checks if the first argument is less than or equal to the second. second, false otherwise.
 
 ```lisp
 (<= 1 6) ; returns true
@@ -81,7 +123,7 @@ Checks if the first value is less than or equal to the second.
 
 ### <>
 
-Checks if two values are not equal.
+Checks if two arguments are not equal.
 
 ```lisp
 (<> 6 6) ; returns false
@@ -90,7 +132,7 @@ Checks if two values are not equal.
 
 ### =
 
-Checks if two values are equal.
+Checks if two arguments are equal.
 
 ```lisp
 (= 6 6) ; returns true
@@ -99,7 +141,7 @@ Checks if two values are equal.
 
 ### >
 
-Checks if the first value is greater than the second.
+Checks if the first argument is greater than the second. false otherwise.
 
 ```lisp
 (> 1 6) ; returns false
@@ -108,7 +150,7 @@ Checks if the first value is greater than the second.
 
 ### >=
 
-Checks if the first value is greater than or equal to the second.
+Checks if the first argument is greater than or equal to the second. second, false otherwise.
 
 ```lisp
 (>= 6 1) ; returns true
@@ -117,7 +159,7 @@ Checks if the first value is greater than or equal to the second.
 
 ### and
 
-Logical AND operation on two boolean values.
+Logical AND operation on boolean arguments.
 
 ```lisp
 (and true false) ; returns false
@@ -126,7 +168,7 @@ Logical AND operation on two boolean values.
 
 ### or
 
-Logical OR operation on two boolean values.
+Logical OR operation on boolean arguments.
 
 ```lisp
 (or true false) ; returns true
@@ -199,7 +241,7 @@ Prints a value to standard error.
 
 ### io:stdout!
 
-Prints a value to standard output.
+Prints an argument to standard output.
 
 ```lisp
 (io:stdout! "hello")
@@ -271,6 +313,15 @@ Returns the nth element of a list, or nil if out of bounds.
 ```
 
 
+### list:reduce
+
+Reduces a list to a single value by repeatedly applying a reducer function. The function receives the accumulated value, the current element, and its index.
+
+```lisp
+(list:reduce (fn (p c i) (+ p c)) 0 (1 2 3)) ; returns 6
+```
+
+
 ### list:times
 
 Calls a function a given number of times, collecting the results in a list. The function receives the current index.
@@ -294,7 +345,7 @@ random, ceil, and floor for working with numbers and lists of numbers.
 ```
 ### math:ceil
 
-Returns the smallest integer greater than or equal to the given number.
+Returns the smallest integer greater than or equal to the argument.
 
 ```lisp
 (math:ceil 2.3) ; returns 3
@@ -303,7 +354,7 @@ Returns the smallest integer greater than or equal to the given number.
 
 ### math:floor
 
-Returns the largest integer less than or equal to the given number.
+Returns the largest integer less than or equal to the argument.
 
 ```lisp
 (math:floor 2.7) ; returns 2
@@ -312,7 +363,7 @@ Returns the largest integer less than or equal to the given number.
 
 ### math:max
 
-Returns the maximum value in a sequence of numbers.
+Returns the maximum of the arguments.
 
 ```lisp
 (math:max 1 2 3) ; returns 3
@@ -321,7 +372,7 @@ Returns the maximum value in a sequence of numbers.
 
 ### math:min
 
-Returns the minimum value in a sequence of numbers.
+Returns the minimum of the arguments.
 
 ```lisp
 (math:min 1 2 3) ; returns 1
@@ -349,12 +400,12 @@ String manipulation functions for lifp.
 (str:trimLeft "   foo") ; returns "foo"
 (str:trimRight "foo   ") ; returns "foo"
 ```
-### str:include
+### str:include?
 
 Checks if a string contains a substring.
 
 ```lisp
-(str:include "hello world" "world") ; returns true
+(str:include? "hello world" "world") ; returns true
 ```
 
 
