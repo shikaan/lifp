@@ -1,3 +1,7 @@
+// Special forms for the lifp language. These are core language constructs
+// that control binding, scope, and conditional execution.
+// ___HEADER_END___
+
 #include "specials.h"
 #include "../lib/list.h"
 #include "../lib/result.h"
@@ -57,6 +61,15 @@ result_value_ref_t define(const node_array_t *nodes, environment_t *environment,
   return valueCreate(VALUE_TYPE_NIL, (value_as_t){}, first.position);
 }
 
+/**
+ * Creates a function (closure) with given arguments and body.
+ * @name fn
+ * @param {list} arguments - List of symbols to bind as parameters.
+ * @param {any} form - The body expression to evaluate when called.
+ * @returns {closure} A closure value.
+ * @example
+ *   (fn (a b) (+ a b))
+ */
 result_value_ref_t function(const node_array_t *nodes,
                             environment_t *environment,
                             trampoline_t *trampoline) {
@@ -129,6 +142,15 @@ result_value_ref_t function(const node_array_t *nodes,
   return ok(result_value_ref_t, result);
 }
 
+/**
+ * Binds local variables for the scope of a body expression.
+ * @name let
+ * @param {list} assignments - List of (symbol value) pairs.
+ * @param {any} body - The expression to evaluate in the local scope.
+ * @returns {any} The result of evaluating the body.
+ * @example
+ *   (let ((x 1) (y 2)) (+ x y)) ; returns 3
+ */
 result_value_ref_t let(const node_array_t *nodes, environment_t *environment,
                        trampoline_t *trampoline) {
   assert(nodes->count > 0); // let is always there
@@ -217,6 +239,16 @@ result_value_ref_t let(const node_array_t *nodes, environment_t *environment,
   return ok(result_value_ref_t, evaluated);
 }
 
+/**
+ * Conditional branching. Evaluates the first true condition's form, or the last
+ * form if none match.
+ * @name cond
+ * @param {...list} clauses - Each clause is (condition form).
+ * @param {any} else - The final expression if no conditions match.
+ * @returns {any} The result of the matching form or else.
+ * @example
+ *   (cond ((< x 0) "negative") ((= x 0) "zero") ("positive"))
+ */
 result_value_ref_t cond(const node_array_t *nodes, environment_t *environment,
                         trampoline_t *trampoline) {
   for (size_t i = 1; i < nodes->count - 1; i++) {
