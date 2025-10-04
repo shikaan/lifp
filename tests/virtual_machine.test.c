@@ -67,6 +67,7 @@ void resolutions(void) {
   expectEqlUint(child_value->type, VALUE_TYPE_NUMBER, "with correct type");
   expectEqlDouble(child_value->as.number, 12.0, "with correct value");
 
+  environmentForceDestroy(&child);
   vmDestroy(&machine);
 }
 

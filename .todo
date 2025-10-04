@@ -1,19 +1,7 @@
 Memory management without arenas
 ---
 
-- [x] Handle scalars
-- [x] Handle lists
-- [x] Run builtins
-- [x] Run specials
-  - [x] Make environments unaware of arenas
-  - [x] Make Hashmaps unaware of arenas
-- [x] Run functions
-  - [x] Allow closures
-
 - [ ] Support TCO with trampolines
-- [ ] Memory leaks
-- [ ] Rest of std
-
 
 BUGS
 ---
