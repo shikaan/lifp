@@ -4,6 +4,7 @@
 #include "error.h"
 #include "evaluate.h"
 #include "node.h"
+#include "position.h"
 #include "token.h"
 #include "value.h"
 #include "virtual_machine.h"
@@ -47,10 +48,10 @@ result_value_ref_t define(const node_array_t *nodes, environment_t *environment,
   value_t *reduced = nullptr;
   try(result_value_ref_t, evaluate(&value, environment), reduced);
 
-  tryWithMeta(result_value_ref_t,
-              environmentRegisterSymbol(environment, key.value.symbol, reduced),
-              key.position);
-  valueDestroy(&reduced);
+  tryFinallyWithMeta(
+      result_value_ref_t,
+      environmentRegisterSymbol(environment, key.value.symbol, reduced),
+      valueDestroy(&reduced), key.position);
 
   trampoline->more = false;
   return valueCreate(VALUE_TYPE_NIL, (value_as_t){}, first.position);
@@ -80,11 +81,13 @@ result_value_ref_t function(const node_array_t *nodes,
   for (size_t i = 0; i < arguments.value.list.count; i++) {
     node_t argument = listGet(node_t, &arguments.value.list, i);
     if (argument.type != NODE_TYPE_SYMBOL) {
+      argumentsDestroy(&closure_arguments);
       throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, argument.position,
             "%s requires a binding list of symbols.", FUNCTION);
     }
 
     if (environmentResolveSymbol(environment, argument.value.symbol)) {
+      argumentsDestroy(&closure_arguments);
       throw(result_value_ref_t, ERROR_CODE_REFERENCE_SYMBOL_SHADOWED,
             argument.position, "Identifier '%s' shadows a value",
             argument.value.symbol);
@@ -94,21 +97,33 @@ result_value_ref_t function(const node_array_t *nodes,
   }
 
   node_t *closure_form = nullptr;
-  tryWithMeta(result_value_ref_t, nodeCopy(&form), first.position,
-              closure_form);
+  tryCatchWithMeta(result_value_ref_t, nodeCopy(&form),
+                   argumentsDestroy(&closure_arguments), first.position,
+                   closure_form);
 
   environment_t *closure_environment = nullptr;
-  tryWithMeta(result_value_ref_t, environmentCreate(environment),
-              first.position, closure_environment);
+  tryCatchWithMeta(
+      result_value_ref_t, environmentCreate(environment),
+      {
+        nodeDestroy(&closure_form);
+        argumentsDestroy(&closure_arguments);
+      },
+      first.position, closure_environment);
 
   value_as_t value_as = {.closure = {.arguments = closure_arguments,
                                      .form = closure_form,
                                      .environment = closure_environment}};
 
   value_t *result = nullptr;
-  tryWithMeta(result_value_ref_t,
-              valueCreate(VALUE_TYPE_CLOSURE, value_as, first.position),
-              first.position, result);
+  tryCatchWithMeta(
+      result_value_ref_t,
+      valueCreate(VALUE_TYPE_CLOSURE, value_as, first.position),
+      {
+        nodeDestroy(&closure_form);
+        argumentsDestroy(&closure_arguments);
+        environmentDestroy(&closure_environment);
+      },
+      first.position, result);
 
   trampoline->more = false;
   return ok(result_value_ref_t, result);
@@ -137,17 +152,23 @@ result_value_ref_t let(const node_array_t *nodes, environment_t *environment,
     node_t couple = listGet(node_t, &couples.value.list, i);
 
     if (couple.type != NODE_TYPE_LIST || couple.value.list.count != 2) {
+      environmentForceDestroy(&local_env);
+
       throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, couple.position,
             "%s requires a list of symbol-form assignments.", LET);
     }
 
     node_t symbol = listGet(node_t, &couple.value.list, 0);
     if (symbol.type != NODE_TYPE_SYMBOL) {
+      environmentForceDestroy(&local_env);
+
       throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, symbol.position,
             "%s requires a list of symbol-form assignments.", LET);
     }
 
     if (strchr(symbol.value.symbol, NAMESPACE_DELIMITER) != nullptr) {
+      environmentForceDestroy(&local_env);
+
       throw(result_value_ref_t, ERROR_CODE_SYNTAX_UNEXPECTED_TOKEN,
             first.position,
             "Unexpected namespace delimiter '%c' in custom symbol '%s'.",
@@ -155,13 +176,20 @@ result_value_ref_t let(const node_array_t *nodes, environment_t *environment,
     }
 
     node_t body = listGet(node_t, &couple.value.list, 1);
-    value_t *evaluated = nullptr;
-    try(result_value_ref_t, evaluate(&body, local_env), evaluated);
-    tryWithMeta(
+    value_t *intermediate = nullptr;
+    tryCatch(result_value_ref_t, evaluate(&body, local_env),
+             environmentForceDestroy(&local_env), intermediate);
+    position_t position = intermediate->position;
+
+    tryCatchWithMeta(
         result_value_ref_t,
-        environmentRegisterSymbol(local_env, symbol.value.symbol, evaluated),
-        evaluated->position);
-    valueDestroy(&evaluated);
+        environmentRegisterSymbol(local_env, symbol.value.symbol, intermediate),
+        {
+          environmentForceDestroy(&local_env);
+          valueDestroy(&intermediate);
+        },
+        position);
+    valueDestroy(&intermediate);
   }
 
   // TODO: TCO
@@ -170,14 +198,18 @@ result_value_ref_t let(const node_array_t *nodes, environment_t *environment,
   // trampoline->node = &nodes->data[2];
 
   value_t *evaluated = nullptr;
-  try(result_value_ref_t, evaluate(&nodes->data[2], local_env), evaluated);
+  tryCatch(result_value_ref_t, evaluate(&nodes->data[2], local_env),
+           environmentForceDestroy(&local_env), evaluated);
 
   if (evaluated->type == VALUE_TYPE_CLOSURE) {
     environment_t *env = evaluated->as.closure.environment;
 
     while (env) {
       if (env == local_env) {
-        throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, evaluated->position,
+        position_t position = evaluated->position;
+        valueDestroy(&evaluated);
+        environmentForceDestroy(&local_env);
+        throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, position,
               "Cannot return pointer to ephemeral environment.")
       }
       env = env->parent;
@@ -205,9 +237,10 @@ result_value_ref_t cond(const node_array_t *nodes, environment_t *environment,
     try(result_value_ref_t, evaluate(&condition, environment), condition_value);
 
     if (condition_value->type != VALUE_TYPE_BOOLEAN) {
+      value_type_t type = condition_value->type;
+      valueDestroy(&condition_value);
       throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, node.position,
-            "Conditions should resolve to a boolean, got %d.",
-            condition_value->type);
+            "Conditions should resolve to a boolean, got %d.", type);
     }
 
     bool is_true = condition_value->as.boolean;

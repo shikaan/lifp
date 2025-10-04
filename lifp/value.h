@@ -86,7 +86,9 @@ void valueDestroy(value_t **);
 
 result_ref_t valueArrayCreate(size_t);
 void valueArrayDestroy(value_array_t **);
+
 result_ref_t argumentsCreate(size_t);
+void argumentsDestroy(arguments_t **self);
 
 result_value_map_ref_t valueMapCreate(size_t);
 void valueMapDestroy(value_map_t **);

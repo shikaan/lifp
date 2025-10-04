@@ -125,11 +125,11 @@ static void valueDestroyInner(value_t *self) {
   case VALUE_TYPE_STRING:
     deallocSafe(&self->as.string);
     break;
+  case VALUE_TYPE_SPECIAL:
   case VALUE_TYPE_BOOLEAN:
   case VALUE_TYPE_NUMBER:
   case VALUE_TYPE_NIL:
   case VALUE_TYPE_BUILTIN:
-  case VALUE_TYPE_SPECIAL:
   default:
     break;
   }

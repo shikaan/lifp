@@ -102,21 +102,30 @@ result_value_ref_t evaluate(node_t *node, environment_t *environment) {
       case VALUE_TYPE_BUILTIN: {
         builtin_t builtin = scratch->as.builtin;
         value_array_t *values;
-        tryWithMeta(result_value_ref_t, valueArrayCreate(list.count - 1),
-                    first_node.position, values);
+        tryCatchWithMeta(result_value_ref_t, valueArrayCreate(list.count - 1),
+                         valueDestroy(&scratch), first_node.position, values);
 
         for (size_t i = 1; i < list.count; i++) {
           value_t *item = nullptr;
-          try(result_value_ref_t, evaluate(&list.data[i], environment), item);
+          tryCatch(
+              result_value_ref_t, evaluate(&list.data[i], environment),
+              {
+                valueArrayDestroy(&values);
+                valueDestroy(&scratch);
+              },
+              item);
           values->data[i - 1] = *item;
           deallocSafe(&item);
         }
 
         value_t *value = nullptr;
-        try(result_value_ref_t, builtin(values, position), value);
-
-        valueDestroy(&scratch);
-        valueArrayDestroy(&values);
+        tryFinally(
+            result_value_ref_t, builtin(values, position),
+            {
+              valueDestroy(&scratch);
+              valueArrayDestroy(&values);
+            },
+            value);
 
         return ok(result_value_ref_t, value);
       }
@@ -125,8 +134,8 @@ result_value_ref_t evaluate(node_t *node, environment_t *environment) {
         node_array_t nodes = {.data = list.data, .count = list.count};
 
         value_t *value = nullptr;
-        try(result_value_ref_t, special(&nodes, environment, &trampoline),
-            value);
+        tryCatch(result_value_ref_t, special(&nodes, environment, &trampoline),
+                 valueDestroy(&scratch), value);
 
         if (trampoline.more) {
           environment = trampoline.environment;
