@@ -10,10 +10,9 @@
 typedef struct value_t value_t;
 typedef struct environment_t environment_t;
 typedef struct {
-  bool more;
+  bool should_continue;
   environment_t *environment;
   node_t *node;
-  bool ephemeral_environment;
 } trampoline_t;
 
 typedef Result(value_t *, position_t) result_value_ref_t;
@@ -89,7 +88,7 @@ result_ref_t valueArrayCreate(size_t);
 void valueArrayDestroy(value_array_t **);
 
 result_ref_t argumentsCreate(size_t);
-void argumentsDestroy(arguments_t **self);
+void argumentsDestroy(arguments_t **);
 
 result_value_map_ref_t valueMapCreate(size_t);
 void valueMapDestroy(value_map_t **);

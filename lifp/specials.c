@@ -53,7 +53,7 @@ result_value_ref_t define(const node_array_t *nodes, environment_t *environment,
       environmentRegisterSymbol(environment, key.value.symbol, reduced),
       valueDestroy(&reduced), key.position);
 
-  trampoline->more = false;
+  trampoline->should_continue = false;
   return valueCreate(VALUE_TYPE_NIL, (value_as_t){}, first.position);
 }
 
@@ -125,7 +125,7 @@ result_value_ref_t function(const node_array_t *nodes,
       },
       first.position, result);
 
-  trampoline->more = false;
+  trampoline->should_continue = false;
   return ok(result_value_ref_t, result);
 }
 
@@ -192,11 +192,6 @@ result_value_ref_t let(const node_array_t *nodes, environment_t *environment,
     valueDestroy(&intermediate);
   }
 
-  // TODO: TCO
-  // trampoline->more = true;
-  // trampoline->environment = local_env;
-  // trampoline->node = &nodes->data[2];
-
   value_t *evaluated = nullptr;
   tryCatch(result_value_ref_t, evaluate(&nodes->data[2], local_env),
            environmentForceDestroy(&local_env), evaluated);
@@ -218,7 +213,7 @@ result_value_ref_t let(const node_array_t *nodes, environment_t *environment,
 
   environmentForceDestroy(&local_env);
 
-  trampoline->more = false;
+  trampoline->should_continue = false;
   return ok(result_value_ref_t, evaluated);
 }
 
@@ -247,14 +242,14 @@ result_value_ref_t cond(const node_array_t *nodes, environment_t *environment,
     valueDestroy(&condition_value);
 
     if (is_true) {
-      trampoline->more = true;
+      trampoline->should_continue = true;
       trampoline->environment = environment;
       trampoline->node = &node.value.list.data[1];
       return ok(result_value_ref_t, nullptr);
     }
   }
 
-  trampoline->more = true;
+  trampoline->should_continue = true;
   trampoline->environment = environment;
   trampoline->node = &nodes->data[nodes->count - 1];
   return ok(result_value_ref_t, nullptr);

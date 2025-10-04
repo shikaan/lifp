@@ -8,7 +8,6 @@
 #include <stddef.h>
 #include <string.h>
 
-// TODO: trampoline and TCO
 result_value_ref_t invokeClosure(value_t *closure_value,
                                  value_array_t *arguments) {
   assert(closure_value->type == VALUE_TYPE_CLOSURE);
@@ -132,11 +131,11 @@ result_value_ref_t evaluate(node_t *node, environment_t *environment) {
         node_array_t nodes = {.data = list.data, .count = list.count};
 
         value_t *value = nullptr;
-        tryCatch(result_value_ref_t, special(&nodes, environment, &trampoline),
-                 valueDestroy(&scratch), value);
+        tryFinally(result_value_ref_t,
+                   special(&nodes, environment, &trampoline),
+                   valueDestroy(&scratch), value);
 
-        valueDestroy(&scratch);
-        if (trampoline.more) {
+        if (trampoline.should_continue) {
           environment = trampoline.environment;
           node = trampoline.node;
           valueDestroy(&value);

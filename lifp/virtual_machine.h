@@ -6,8 +6,7 @@
 typedef struct environment_t {
   struct environment_t *parent;
   value_map_t values;
-
-  int refcount;
+  size_t refcount;
 } environment_t;
 
 typedef struct {
