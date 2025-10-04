@@ -1,5 +1,4 @@
 #include "evaluate.h"
-#include "../lib/profile.h"
 #include "error.h"
 #include "node.h"
 #include "position.h"
@@ -136,6 +135,7 @@ result_value_ref_t evaluate(node_t *node, environment_t *environment) {
         tryCatch(result_value_ref_t, special(&nodes, environment, &trampoline),
                  valueDestroy(&scratch), value);
 
+        valueDestroy(&scratch);
         if (trampoline.more) {
           environment = trampoline.environment;
           node = trampoline.node;
@@ -143,7 +143,6 @@ result_value_ref_t evaluate(node_t *node, environment_t *environment) {
           continue;
         }
 
-        valueDestroy(&scratch);
         return ok(result_value_ref_t, value);
       }
       case VALUE_TYPE_CLOSURE: {

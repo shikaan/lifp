@@ -13,6 +13,7 @@ typedef struct {
   bool more;
   environment_t *environment;
   node_t *node;
+  bool ephemeral_environment;
 } trampoline_t;
 
 typedef Result(value_t *, position_t) result_value_ref_t;
