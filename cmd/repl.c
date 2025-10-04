@@ -286,8 +286,6 @@ int repl(const repl_opts_t OPTIONS) {
     profileReport();
   }
 
-  puts("post while");
-
   profileEnd();
   valueDestroy(&result);
   vmDestroy(&machine);

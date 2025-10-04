@@ -273,5 +273,3 @@ result_value_ref_t strTrimRight(const value_array_t *arguments,
   stringCopy(buffer, string_value.as.string, len + 1);
   return valueCreate(VALUE_TYPE_STRING, (value_as_t){.string = buffer}, pos);
 }
-
-#undef tryCreateBuffer

@@ -88,7 +88,7 @@ void values() {
       .count = 1,
       .data = (string_t[]){arg_a},
   };
-  node_t form_list_data[] = {nSym(test_arena, arg_a)}; // will overwrite
+  node_t form_list_data[] = {nSym(test_arena, arg_a)};
   node_t form = {
       .type = NODE_TYPE_LIST,
       .position = pos,

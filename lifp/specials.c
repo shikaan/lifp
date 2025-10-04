@@ -205,7 +205,7 @@ result_value_ref_t let(const node_array_t *nodes, environment_t *environment,
         valueDestroy(&evaluated);
         environmentForceDestroy(&local_env);
         throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, position,
-              "Cannot return pointer to ephemeral environment.")
+              "Cannot return pointer to ephemeral environment.");
       }
       env = env->parent;
     }
