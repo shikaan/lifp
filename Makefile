@@ -43,16 +43,10 @@ tests/virtual_machine.test: lifp/virtual_machine.o lib/list.o \
 	lib/arena.o lifp/fmt.o lifp/specials.o lifp/evaluate.o lifp/value.o \
 	lifp/node.o
 
-
 tests/integration.test: \
 	lifp/tokenize.o lifp/parse.o lib/arena.o lifp/evaluate.o lib/list.o \
 	lifp/node.o lifp/virtual_machine.o lifp/value.o lifp/fmt.o \
 	lifp/specials.o
-
-tests/memory.test: \
-	lifp/tokenize.o lifp/parse.o lib/arena.o lifp/evaluate.o lib/list.o \
-	lifp/node.o lifp/virtual_machine.o lifp/value.o lifp/fmt.o \
-	lib/profile.o lifp/specials.o
 
 bin/lifp: CFLAGS := $(CFLAGS) -DVERSION='"$(VERSION)"' -DSHA='"$(SHA)"'
 bin/lifp: \

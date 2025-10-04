@@ -61,6 +61,15 @@ void list() {
   valueDestroy(&result);
 }
 
+void listFromBuiltin() {
+  value_t *result = execute("(list:from 1 2 3 4 5)");
+  expectEqlUint(result->type, VALUE_TYPE_LIST, "returns a list from builtin");
+  expectEqlSize(result->as.list->count, 5, "contains 5 elements");
+  expectEqlDouble(result->as.list->data[4].as.number, 5,
+                  "last element correct");
+  valueDestroy(&result);
+}
+
 void nestedList() {
   value_t *result = execute("((1) 2)");
   expectEqlUint(result->type, VALUE_TYPE_LIST, "returns a list");
@@ -89,6 +98,12 @@ void simpleForm() {
 void nestedForm() {
   value_t *result = execute("(+ 1 (+ 2 4))");
   expectEqlDouble(result->as.number, 7, "returns correct value");
+  valueDestroy(&result);
+}
+
+void multiArgForm() {
+  value_t *result = execute("(+ 1 2 3)");
+  expectEqlDouble(result->as.number, 6, "supports variadic builtin invocation");
   valueDestroy(&result);
 }
 
@@ -149,6 +164,17 @@ void recursiveCalls() {
   valueDestroy(&result);
 }
 
+void recursionReturningList() {
+  value_t *result = execute("(def! count2 (fn (n) (cond ((= n 0) (0)) (count2 "
+                            "(- n 1)))))\n(count2 3)");
+  expectEqlUint(result->type, VALUE_TYPE_LIST,
+                "returns list from recursive function");
+  expectEqlSize(result->as.list->count, 1, "list has one element");
+  expectEqlDouble(result->as.list->data[0].as.number, 0,
+                  "base case list value correct");
+  valueDestroy(&result);
+}
+
 void emptyList() {
   value_t *result = execute("()");
   expectEqlUint(result->type, VALUE_TYPE_LIST, "returns correct type");
@@ -184,10 +210,12 @@ int main() {
   suite(number);
   suite(symbol);
   suite(list);
+  suite(listFromBuiltin);
   suite(nestedList);
   suite(immediateInvocation);
   suite(simpleForm);
   suite(nestedForm);
+  suite(multiArgForm);
   suite(functionDeclaration);
   suite(functionWithAllocations);
   suite(basicLet);
@@ -196,6 +224,7 @@ int main() {
   suite(basicCond);
   suite(booleanOperations);
   suite(recursiveCalls);
+  suite(recursionReturningList);
   suite(emptyList);
   suite(currying);
   suite(expandingEnvironment);

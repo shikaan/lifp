@@ -229,6 +229,12 @@ void condSpecialForm() {
   expectEqlDouble(result->as.number, 42, "evaluates the first true clause");
   valueDestroy(&result);
 
+  tryAssert(execute("(cond (true (let ((x 10)) x)) 0)"), result);
+  expectEqlUint(result->type, VALUE_TYPE_NUMBER,
+                "returns number from let in cond");
+  expectEqlDouble(result->as.number, 10, "evaluates let clause correctly");
+  valueDestroy(&result);
+
   tryFail(execute("(cond (1 2) 3)"), exec);
   expectIncludeString(exec.message, "should resolve to a boolean",
                       "prevents non-boolean conditions");
