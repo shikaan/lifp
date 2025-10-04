@@ -1,245 +1,198 @@
 #include "evaluate.h"
-#include "../lib/profile.h"
-#include "../lib/string.h"
 #include "error.h"
 #include "node.h"
 #include "position.h"
 #include "value.h"
 #include "virtual_machine.h"
-
 #include <assert.h>
 #include <stddef.h>
-#include <stdio.h>
 #include <string.h>
 
-result_void_position_t invokeClosure(value_t *result, closure_t closure,
-                                     value_list_t *arguments,
-                                     arena_t *scratch_arena,
-                                     trampoline_t *trampoline) {
-  profileArena(scratch_arena);
+result_value_ref_t invokeClosure(value_t *closure_value,
+                                 value_array_t *arguments) {
+  assert(closure_value->type == VALUE_TYPE_CLOSURE);
+  closure_t closure = closure_value->as.closure;
+
   if (arguments->count < closure.arguments->count) {
-    throw(result_void_position_t, ERROR_CODE_TYPE_UNEXPECTED_ARITY,
+    throw(result_value_ref_t, ERROR_CODE_TYPE_UNEXPECTED_ARITY,
           closure.form->position,
           "Unexpected arity. Expected %lu arguments, got %lu.",
           closure.arguments->count, arguments->count);
   }
 
   environment_t *local_environment = nullptr;
-  tryWithMeta(result_void_position_t,
-              environmentCreate(scratch_arena, closure.captured_environment),
-              result->position, local_environment);
+  tryWithMeta(result_value_ref_t, environmentCreate(closure.environment),
+              closure_value->position, local_environment);
 
-  // Populate the closure with the values, skipping the closure
   for (size_t i = 0; i < closure.arguments->count; i++) {
-    auto argument = listGet(node_t, closure.arguments, i);
-    auto value = listGet(value_t, arguments, i);
-    tryWithMeta(result_void_position_t,
-                mapSet(value_t, local_environment->values,
-                       argument.value.symbol, &value),
-                value.position);
+    const value_t value = arguments->data[i];
+    const char *key = closure.arguments->data[i];
+    tryWithMeta(result_value_ref_t,
+                environmentRegisterSymbol(local_environment, key, &value),
+                closure_value->position);
   }
 
-  if (trampoline) {
-    trampoline->more = true;
-    trampoline->environment = local_environment;
-    trampoline->node = closure.form;
-  } else {
-    try(result_void_position_t, evaluate(result, scratch_arena, scratch_arena,
-                                         closure.form, local_environment));
-  }
-
-  return ok(result_void_position_t);
+  result_value_ref_t result = evaluate(closure.form, local_environment);
+  environmentDestroy(&local_environment);
+  return result;
 }
 
-static result_void_position_t
-evaluateNodeList(value_list_t **result, size_t initial_index, node_list_t *list,
-                 arena_t *scratch_arena, environment_t *environment,
-                 position_t position) {
-  assert(initial_index <= list->count);
-  tryWithMeta(result_void_position_t,
-              listCreate(value_t, scratch_arena, list->count), position,
-              *result);
-
-  for (size_t i = initial_index; i < list->count; i++) {
-    node_t node = listGet(node_t, list, i);
-    value_t reduced;
-    try(result_void_position_t,
-        evaluate(&reduced, scratch_arena, scratch_arena, &node, environment));
-    tryWithMeta(result_void_position_t, listAppend(value_t, *result, &reduced),
-                node.position);
-  }
-  return ok(result_void_position_t);
-}
-
-result_void_position_t evaluate(value_t *result, arena_t *result_arena,
-                                arena_t *scratch_arena, node_t *node,
-                                environment_t *environment) {
-  profileSafeAlloc();
-  profileArena(scratch_arena);
-
-  result->position.column = node->position.column;
-  result->position.line = node->position.line;
-
-  bool tco = false;
+result_value_ref_t evaluate(node_t *node, environment_t *environment) {
+  trampoline_t trampoline;
+  position_t position = node->position;
 
   while (true) {
     switch (node->type) {
     case NODE_TYPE_BOOLEAN: {
-      tryWithMeta(result_void_position_t,
-                  valueInit(result, result_arena, node->value.boolean),
-                  result->position);
-      return ok(result_void_position_t);
+      return valueCreate(VALUE_TYPE_BOOLEAN,
+                         (value_as_t){.boolean = node->value.boolean},
+                         position);
     }
-    case NODE_TYPE_NIL: {
-      tryWithMeta(result_void_position_t,
-                  valueInit(result, result_arena, node->value.nil),
-                  result->position);
-      return ok(result_void_position_t);
-    }
+
     case NODE_TYPE_NUMBER: {
-      tryWithMeta(result_void_position_t,
-                  valueInit(result, result_arena, node->value.number),
-                  result->position);
-      return ok(result_void_position_t);
+      return valueCreate(VALUE_TYPE_NUMBER,
+                         (value_as_t){.number = node->value.number}, position);
     }
+
+    case NODE_TYPE_NIL: {
+      return valueCreate(VALUE_TYPE_NIL, (value_as_t){}, position);
+    }
+
     case NODE_TYPE_STRING: {
-      result->type = VALUE_TYPE_STRING;
-      size_t len = strlen(node->value.string);
-      string_t string = nullptr;
-      tryWithMeta(result_void_position_t, arenaAllocate(result_arena, len + 1),
-                  node->position, string);
-      stringCopy(string, node->value.string, len + 1);
-      result->value.string = string;
-      return ok(result_void_position_t);
+      return valueCreate(VALUE_TYPE_STRING,
+                         (value_as_t){.string = strdup(node->value.string)},
+                         position);
     }
+
     case NODE_TYPE_SYMBOL: {
-      const value_t *resolved_value =
+      const value_t *value =
           environmentResolveSymbol(environment, node->value.symbol);
 
-      if (!resolved_value) {
-        throw(result_void_position_t, ERROR_CODE_REFERENCE_SYMBOL_NOT_FOUND,
-              result->position,
+      if (!value) {
+        throw(result_value_ref_t, ERROR_CODE_REFERENCE_SYMBOL_NOT_FOUND,
+              position,
               "Symbol '%s' cannot be found in the current environment",
               node->value.symbol);
       }
 
-      result->type = resolved_value->type;
-      result->value = resolved_value->value;
-
-      // Calls coming from tco will use a scratch environment as environment.
-      // We cannot just return the values, we need to copy them
-      if (tco) {
-        tryWithMeta(result_void_position_t,
-                    valueCopy(resolved_value, result, result_arena),
-                    result->position);
-      }
-
-      return ok(result_void_position_t);
+      value_t *copy;
+      try(result_value_ref_t, valueDeepCopy(value), copy);
+      copy->position = position;
+      return ok(result_value_ref_t, copy);
     }
+
     case NODE_TYPE_LIST: {
-      const auto list = node->value.list;
+      const node_list_t list = node->value.list;
 
       if (list.count == 0) {
-        tryWithMeta(result_void_position_t,
-                    valueInitList(result, result_arena, 0U), node->position);
-        return ok(result_void_position_t);
+        value_array_t *array = nullptr;
+        tryWithMeta(result_value_ref_t, valueArrayCreate(0), position, array);
+        return valueCreate(VALUE_TYPE_LIST, (value_as_t){.list = array},
+                           position);
       }
 
       node_t first_node = listGet(node_t, &list, 0);
-      value_t first_value;
-      try(result_void_position_t,
-          evaluate(&first_value, scratch_arena, scratch_arena, &first_node,
-                   environment));
+      value_t *scratch = nullptr;
+      try(result_value_ref_t, evaluate(&first_node, environment), scratch);
 
-      value_t scratch_result = {
-          .position.column = node->position.column,
-          .position.line = node->position.line,
-      };
+      switch (scratch->type) {
+      case VALUE_TYPE_BUILTIN: {
+        builtin_t builtin = scratch->as.builtin;
+        value_array_t *values;
+        tryCatchWithMeta(result_value_ref_t, valueArrayCreate(list.count - 1),
+                         valueDestroy(&scratch), first_node.position, values);
 
-      switch (first_value.type) {
+        for (size_t i = 1; i < list.count; i++) {
+          value_t *item = nullptr;
+          tryCatch(
+              result_value_ref_t, evaluate(&list.data[i], environment),
+              {
+                valueArrayDestroy(&values);
+                valueDestroy(&scratch);
+              },
+              item);
+          values->data[i - 1] = *item;
+          deallocSafe(&item);
+        }
+
+        value_t *value = nullptr;
+        tryFinally(
+            result_value_ref_t, builtin(values, position),
+            {
+              valueDestroy(&scratch);
+              valueArrayDestroy(&values);
+            },
+            value);
+
+        return ok(result_value_ref_t, value);
+      }
       case VALUE_TYPE_SPECIAL: {
-        special_form_t special = first_value.value.special;
-        trampoline_t trampoline;
-        try(result_void_position_t,
-            special(&scratch_result, &list, scratch_arena, environment,
-                    &trampoline));
-        if (trampoline.more) {
+        special_form_t special = scratch->as.special;
+        node_array_t nodes = {.data = list.data, .count = list.count};
+
+        value_t *value = nullptr;
+        tryFinally(result_value_ref_t,
+                   special(&nodes, environment, &trampoline),
+                   valueDestroy(&scratch), value);
+
+        if (trampoline.should_continue) {
           environment = trampoline.environment;
           node = trampoline.node;
-          tco = true;
+          valueDestroy(&value);
           continue;
         }
-        tryWithMeta(result_void_position_t,
-                    valueCopy(&scratch_result, result, result_arena),
-                    node->position);
 
-        return ok(result_void_position_t);
-      }
-      case VALUE_TYPE_BUILTIN: {
-        // Start from 1 to drop builtin node
-        value_list_t *arguments = nullptr;
-        try(result_void_position_t,
-            evaluateNodeList(&arguments, 1, &node->value.list, scratch_arena,
-                             environment, node->position));
-
-        builtin_t builtin = first_value.value.builtin;
-        try(result_void_position_t,
-            builtin(&scratch_result, arguments, scratch_arena));
-        tryWithMeta(result_void_position_t,
-                    valueCopy(&scratch_result, result, result_arena),
-                    node->position);
-        return ok(result_void_position_t);
+        return ok(result_value_ref_t, value);
       }
       case VALUE_TYPE_CLOSURE: {
-        // Start from 1 to drop closure node
-        value_list_t *arguments = nullptr;
-        try(result_void_position_t,
-            evaluateNodeList(&arguments, 1, &node->value.list, scratch_arena,
-                             environment, node->position));
+        size_t arguments_count = list.count - 1;
 
-        closure_t closure = first_value.value.closure;
-        trampoline_t trampoline;
-        try(result_void_position_t,
-            invokeClosure(&scratch_result, closure, arguments, scratch_arena,
-                          &trampoline));
+        value_array_t *arguments;
+        tryWithMeta(result_value_ref_t, valueArrayCreate(arguments_count),
+                    first_node.position, arguments);
 
-        assert(trampoline.more);
-        environment = trampoline.environment;
-        node = trampoline.node;
-        tco = true;
-        continue;
-      }
-      case VALUE_TYPE_NUMBER:
-      case VALUE_TYPE_LIST:
-      case VALUE_TYPE_NIL:
-      case VALUE_TYPE_STRING:
-      case VALUE_TYPE_BOOLEAN:
-      default: {
-        value_list_t *list_values = nullptr;
-        try(result_void_position_t,
-            evaluateNodeList(&list_values, 0, &node->value.list, scratch_arena,
-                             environment, node->position));
-
-        tryWithMeta(result_void_position_t,
-                    valueInit(result, result_arena, list_values->count),
-                    node->position);
-
-        for (size_t i = 0; i < list_values->count; i++) {
-          value_t value = listGet(value_t, list_values, i);
-          value_t duplicated;
-          tryWithMeta(result_void_position_t,
-                      valueCopy(&value, &duplicated, result_arena),
-                      value.position);
-          tryWithMeta(result_void_position_t,
-                      listAppend(value_t, result->value.list, &duplicated),
-                      value.position);
+        // skip the closure symbol
+        for (size_t i = 1; i < list.count; i++) {
+          value_t *item = nullptr;
+          try(result_value_ref_t, evaluate(&list.data[i], environment), item);
+          arguments->data[i - 1] = *item;
+          deallocSafe(&item);
         }
-        return ok(result_void_position_t);
+
+        result_value_ref_t result = invokeClosure(scratch, arguments);
+
+        valueArrayDestroy(&arguments);
+        valueDestroy(&scratch);
+        return result;
       }
+      case VALUE_TYPE_BOOLEAN:
+      case VALUE_TYPE_NIL:
+      case VALUE_TYPE_LIST:
+      case VALUE_TYPE_STRING:
+      case VALUE_TYPE_NUMBER: {
+        value_array_t *array;
+        tryWithMeta(result_value_ref_t, valueArrayCreate(list.count),
+                    first_node.position, array);
+
+        array->data[0] = *scratch;
+        deallocSafe(&scratch);
+
+        for (size_t i = 1; i < list.count; i++) {
+          value_t *item = nullptr;
+          try(result_value_ref_t, evaluate(&list.data[i], environment), item);
+          array->data[i] = *item;
+          deallocSafe(&item);
+        }
+
+        return valueCreate(VALUE_TYPE_LIST, (value_as_t){.list = array},
+                           position);
+      }
+      default:
+        unreachable();
       }
     }
     default:
       unreachable();
     }
   }
-}
+};

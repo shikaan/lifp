@@ -84,7 +84,7 @@ static inline value_t pInt(int number) {
   return (value_t){.type = VALUE_TYPE_NUMBER,
                    .position.column = 1,
                    .position.line = 1,
-                   .value.number = number};
+                   .as.number = number};
 }
 
 static inline node_t nInt(int number) {
@@ -138,8 +138,3 @@ static inline node_t nStr(arena_t *arena, const char *string) {
       .value.list.capacity = (Count),                                          \
       .value.list.data = (Data),                                               \
   }
-
-static vm_options_t VM_TEST_OPTIONS = {
-    .environment_size = (size_t)(64 * 1024),
-    .vm_size = (size_t)(128 * 1024),
-};

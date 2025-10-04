@@ -77,16 +77,14 @@
       board)))
 
 (def! game-loop
-  ; Runs one round of the game
-  (fn (previous-board)
+  (fn (board)
     (let ((a (io:clear!))
-          (b (print-board previous-board))
+          (b (print-board board))
           (c (io:readline! "Press [ENTER] to continue")))
-      (process-board previous-board))))
+      (game-loop (process-board board)))))
 
 ; Main
-(def! board (init-board))
-(def! rounds (list:times (fn (i) i) 10))
-(list:reduce game-loop board rounds)
+(def! main-board (init-board))
+(game-loop main-board)
 
 ; vim:ft=lisp

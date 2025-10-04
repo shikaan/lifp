@@ -14,6 +14,7 @@
 #include "../evaluate.h"
 #include "../fmt.h"
 #include "../value.h"
+#include <stddef.h>
 
 /**
  * Counts the number of elements in a list.
@@ -24,25 +25,22 @@
  *   (list:count (1 2 3)) ; returns 3
  */
 const char *LIST_COUNT = "list:count";
-result_void_position_t listCount(value_t *result, const value_list_t *arguments,
-                                 arena_t *arena) {
-  (void)arena;
+result_value_ref_t listCount(const value_array_t *arguments, position_t pos) {
   if (arguments->count < 1) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
           "%s requires 1 argument. Got %zu", LIST_COUNT, arguments->count);
   }
 
   value_t list_value = listGet(value_t, arguments, 0);
   if (list_value.type != VALUE_TYPE_LIST) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           list_value.position, "%s requires a list. Got %s.", LIST_COUNT,
           formatValueType(list_value.type));
   }
 
-  result->type = VALUE_TYPE_NUMBER;
-  result->value.number = (number_t)list_value.value.list->count;
-
-  return ok(result_void_position_t);
+  return valueCreate(
+      VALUE_TYPE_NUMBER,
+      (value_as_t){.number = (number_t)list_value.as.list->count}, pos);
 }
 
 /**
@@ -54,32 +52,26 @@ result_void_position_t listCount(value_t *result, const value_list_t *arguments,
  *   (list:from 1 2 3) ; returns (1 2 3)
  */
 const char *LIST_FROM = "list:from";
-result_void_position_t listFrom(value_t *result, const value_list_t *arguments,
-                                arena_t *arena) {
-  result->type = VALUE_TYPE_LIST;
-
-  value_list_t *new_list = nullptr;
-  tryWithMeta(result_void_position_t,
-              listCreate(value_t, arena, arguments->count), result->position,
-              new_list);
-  result->value.list = new_list;
-
-  if (arguments->count > 0) {
-    // Copy all arguments to the new list
-    for (size_t i = 0; i < arguments->count; i++) {
-      value_t source = listGet(value_t, arguments, i);
-      value_t duplicated;
-      tryWithMeta(result_void_position_t,
-                  valueCopy(&source, &duplicated, arena), result->position);
-      tryWithMeta(result_void_position_t,
-                  listAppend(value_t, result->value.list, &duplicated),
-                  source.position);
-    }
-  } else {
-    new_list->data = nullptr;
+result_value_ref_t listFrom(const value_array_t *arguments, position_t pos) {
+  if (arguments->count < 1) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
+          "%s requires at least 1 argument. Got %zu", LIST_FROM,
+          arguments->count);
   }
 
-  return ok(result_void_position_t);
+  value_array_t *value_list = nullptr;
+  tryWithMeta(result_value_ref_t, valueArrayCreate(arguments->count), pos,
+              value_list);
+
+  for (size_t i = 0; i < arguments->count; i++) {
+    value_t source = listGet(value_t, arguments, i);
+    value_t *duplicated;
+    tryWithMeta(result_value_ref_t, valueDeepCopy(&source), pos, duplicated);
+    value_list->data[i] = *duplicated;
+    deallocSafe(&duplicated);
+  }
+
+  return valueCreate(VALUE_TYPE_LIST, (value_as_t){.list = value_list}, pos);
 }
 
 /**
@@ -92,12 +84,10 @@ result_void_position_t listFrom(value_t *result, const value_list_t *arguments,
  *   (list:nth 1 (10 20 30)) ; returns 20
  */
 const char *LIST_NTH = "list:nth";
-result_void_position_t listNth(value_t *result, const value_list_t *arguments,
-                               arena_t *arena) {
-  (void)arena;
+result_value_ref_t listNth(const value_array_t *arguments, position_t pos) {
 
-  if (arguments->count < 2) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
+  if (arguments->count != 2) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
           "%s requires 2 arguments. Got %zu", LIST_NTH, arguments->count);
   }
 
@@ -105,30 +95,28 @@ result_void_position_t listNth(value_t *result, const value_list_t *arguments,
   value_t list_value = listGet(value_t, arguments, 1);
 
   if (index_value.type != VALUE_TYPE_NUMBER) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           index_value.position,
           "%s requires a number as first argument. Got %s.", LIST_NTH,
           formatValueType(index_value.type));
   }
 
   if (list_value.type != VALUE_TYPE_LIST) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           list_value.position, "%s requires a list as second argument. Got %s.",
           LIST_NTH, formatValueType(list_value.type));
   }
 
-  number_t index = index_value.value.number;
-  value_list_t *list = list_value.value.list;
+  number_t index = index_value.as.number;
+  value_array_t *list = list_value.as.list;
 
   if (index < 0 || (size_t)index >= list->count ||
       index != (number_t)(size_t)index) {
-    result->type = VALUE_TYPE_NIL;
-    result->value.nil = nullptr;
-  } else {
-    *result = listGet(value_t, list, (size_t)index);
+    return valueCreate(VALUE_TYPE_NIL, (value_as_t){}, pos);
   }
 
-  return ok(result_void_position_t);
+  value_t value = listGet(value_t, list, (size_t)index);
+  return valueDeepCopy(&value);
 }
 
 /**
@@ -142,10 +130,9 @@ result_void_position_t listNth(value_t *result, const value_list_t *arguments,
  *   (list:map (fn (x i) (* x 2)) (1 2 3)) ; returns (2 4 6)
  */
 const char *LIST_MAP = "list:map";
-result_void_position_t listMap(value_t *result, const value_list_t *arguments,
-                               arena_t *arena) {
-  if (arguments->count < 2) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
+result_value_ref_t listMap(const value_array_t *arguments, position_t pos) {
+  if (arguments->count != 2) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
           "%s requires 2 arguments. Got %zu", LIST_MAP, arguments->count);
   }
 
@@ -153,54 +140,47 @@ result_void_position_t listMap(value_t *result, const value_list_t *arguments,
   value_t list_value = listGet(value_t, arguments, 1);
 
   if (closure_value.type != VALUE_TYPE_CLOSURE) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           closure_value.position,
           "%s requires a function as first argument. Got %s.", LIST_MAP,
           formatValueType(closure_value.type));
   }
 
   if (list_value.type != VALUE_TYPE_LIST) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           list_value.position, "%s requires a list as second argument. Got %s.",
           LIST_MAP, formatValueType(list_value.type));
   }
 
-  value_list_t *input_list = list_value.value.list;
-  closure_t closure = closure_value.value.closure;
+  value_array_t *input_list = list_value.as.list;
 
-  value_list_t *mapped_list = nullptr;
-  tryWithMeta(result_void_position_t,
-              listCreate(value_t, arena, input_list->count), result->position,
+  value_array_t *mapped_list = nullptr;
+  tryWithMeta(result_value_ref_t, valueArrayCreate(input_list->count), pos,
               mapped_list);
+
+  value_array_t *closure_args = nullptr;
+  tryWithMeta(result_value_ref_t, valueArrayCreate(2), pos, closure_args);
 
   for (size_t i = 0; i < input_list->count; i++) {
     value_t input = listGet(value_t, input_list, i);
+    value_t index = {
+        .type = VALUE_TYPE_NUMBER,
+        .as.number = (number_t)i,
+        .position = input.position,
+    };
 
-    value_list_t *closure_args = nullptr;
-    tryWithMeta(result_void_position_t, listCreate(value_t, arena, 2),
-                result->position, closure_args);
+    closure_args->data[0] = input;
+    closure_args->data[1] = index;
 
-    tryWithMeta(result_void_position_t,
-                listAppend(value_t, closure_args, &input), result->position);
-
-    value_t index;
-    tryWithMeta(result_void_position_t, valueInit(&index, arena, (number_t)i),
-                result->position);
-    tryWithMeta(result_void_position_t,
-                listAppend(value_t, closure_args, &index), result->position);
-
-    value_t mapped;
-    try(result_void_position_t,
-        invokeClosure(&mapped, closure, closure_args, arena, nullptr));
-
-    tryWithMeta(result_void_position_t,
-                listAppend(value_t, mapped_list, &mapped), result->position);
+    value_t *mapped;
+    try(result_value_ref_t, invokeClosure(&closure_value, closure_args),
+        mapped);
+    mapped_list->data[i] = *mapped;
+    deallocSafe(&mapped);
   }
 
-  result->type = VALUE_TYPE_LIST;
-  result->value.list = mapped_list;
-
-  return ok(result_void_position_t);
+  valueArrayDestroy(&closure_args);
+  return valueCreate(VALUE_TYPE_LIST, (value_as_t){.list = mapped_list}, pos);
 }
 
 /**
@@ -214,10 +194,9 @@ result_void_position_t listMap(value_t *result, const value_list_t *arguments,
  *   (list:each (fn (x i) (print x)) (1 2 3))
  */
 const char *LIST_EACH = "list:each";
-result_void_position_t listEach(value_t *result, const value_list_t *arguments,
-                                arena_t *arena) {
-  if (arguments->count < 2) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
+result_value_ref_t listEach(const value_array_t *arguments, position_t pos) {
+  if (arguments->count != 2) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
           "%s requires 2 arguments. Got %zu", LIST_EACH, arguments->count);
   }
 
@@ -225,46 +204,42 @@ result_void_position_t listEach(value_t *result, const value_list_t *arguments,
   value_t list_value = listGet(value_t, arguments, 1);
 
   if (closure_value.type != VALUE_TYPE_CLOSURE) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           closure_value.position,
           "%s requires a function as first argument. Got %s.", LIST_EACH,
           formatValueType(closure_value.type));
   }
 
   if (list_value.type != VALUE_TYPE_LIST) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           list_value.position, "%s requires a list as second argument. Got %s.",
           LIST_EACH, formatValueType(list_value.type));
   }
 
-  value_list_t *input_list = list_value.value.list;
-  closure_t closure = closure_value.value.closure;
+  value_array_t *input_list = list_value.as.list;
+
+  value_array_t *closure_args = nullptr;
+  tryWithMeta(result_value_ref_t, valueArrayCreate(2), pos, closure_args);
 
   for (size_t i = 0; i < input_list->count; i++) {
     value_t input = listGet(value_t, input_list, i);
+    value_t index = {
+        .type = VALUE_TYPE_NUMBER,
+        .as.number = (number_t)i,
+        .position = input.position,
+    };
 
-    value_list_t *closure_args = nullptr;
-    tryWithMeta(result_void_position_t, listCreate(value_t, arena, 2),
-                result->position, closure_args);
+    closure_args->data[0] = input;
+    closure_args->data[1] = index;
 
-    tryWithMeta(result_void_position_t,
-                listAppend(value_t, closure_args, &input), result->position);
-
-    value_t index;
-    tryWithMeta(result_void_position_t, valueInit(&index, arena, (number_t)i),
-                result->position);
-    tryWithMeta(result_void_position_t,
-                listAppend(value_t, closure_args, &index), result->position);
-
-    value_t mapped;
-    try(result_void_position_t,
-        invokeClosure(&mapped, closure, closure_args, arena, nullptr));
+    value_t *ignored;
+    try(result_value_ref_t, invokeClosure(&closure_value, closure_args),
+        ignored);
+    valueDestroy(&ignored);
   }
 
-  result->type = VALUE_TYPE_NIL;
-  result->value.nil = nullptr;
-
-  return ok(result_void_position_t);
+  valueArrayDestroy(&closure_args);
+  return valueCreate(VALUE_TYPE_NIL, (value_as_t){}, pos);
 }
 
 /**
@@ -280,10 +255,9 @@ result_void_position_t listEach(value_t *result, const value_list_t *arguments,
  *   (list:filter (fn (x i) (> x 1)) (1 2 3)) ; returns (2 3)
  */
 const char *LIST_FILTER = "list:filter";
-result_void_position_t
-listFilter(value_t *result, const value_list_t *arguments, arena_t *arena) {
-  if (arguments->count < 2) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
+result_value_ref_t listFilter(const value_array_t *arguments, position_t pos) {
+  if (arguments->count != 2) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
           "%s requires 2 arguments. Got %zu", LIST_FILTER, arguments->count);
   }
 
@@ -291,64 +265,65 @@ listFilter(value_t *result, const value_list_t *arguments, arena_t *arena) {
   value_t list_value = listGet(value_t, arguments, 1);
 
   if (closure_value.type != VALUE_TYPE_CLOSURE) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           closure_value.position,
-          "%s requires a function as first argument. Got %s.", LIST_FILTER,
+          "%s requires a function as first argument. Got %s", LIST_FILTER,
           formatValueType(closure_value.type));
   }
 
   if (list_value.type != VALUE_TYPE_LIST) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
-          list_value.position, "%s requires a list as second argument. Got %s.",
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+          list_value.position, "%s requires a list as second argument. Got %s",
           LIST_FILTER, formatValueType(list_value.type));
   }
 
-  value_list_t *input_list = list_value.value.list;
-  closure_t closure = closure_value.value.closure;
+  value_array_t *input_list = list_value.as.list;
 
-  value_list_t *filtered_list = nullptr;
-  tryWithMeta(result_void_position_t,
-              listCreate(value_t, arena, input_list->count), result->position,
+  value_array_t *filtered_list = nullptr;
+  tryWithMeta(result_value_ref_t, valueArrayCreate(input_list->count), pos,
               filtered_list);
 
+  value_array_t *closure_args = nullptr;
+  tryWithMeta(result_value_ref_t, valueArrayCreate(2), pos, closure_args);
+
+  size_t filtered_count = 0;
   for (size_t i = 0; i < input_list->count; i++) {
     value_t input = listGet(value_t, input_list, i);
+    value_t index = {
+        .type = VALUE_TYPE_NUMBER,
+        .as.number = (number_t)i,
+        .position = input.position,
+    };
 
-    value_list_t *closure_args = nullptr;
-    tryWithMeta(result_void_position_t, listCreate(value_t, arena, 2),
-                result->position, closure_args);
+    closure_args->data[0] = input;
+    closure_args->data[1] = index;
 
-    tryWithMeta(result_void_position_t,
-                listAppend(value_t, closure_args, &input), result->position);
+    value_t *predicate_result;
+    try(result_value_ref_t, invokeClosure(&closure_value, closure_args),
+        predicate_result);
 
-    value_t index;
-    tryWithMeta(result_void_position_t, valueInit(&index, arena, (number_t)i),
-                result->position);
-    tryWithMeta(result_void_position_t,
-                listAppend(value_t, closure_args, &index), result->position);
-
-    value_t filtered;
-    try(result_void_position_t,
-        invokeClosure(&filtered, closure, closure_args, arena, nullptr));
-
-    if (filtered.type != VALUE_TYPE_BOOLEAN) {
-      throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    if (predicate_result->type != VALUE_TYPE_BOOLEAN) {
+      valueDestroy(&predicate_result);
+      throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
             list_value.position,
             "%s requires a function returning a boolean as first argument. Got "
             "return type %s.",
-            LIST_FILTER, formatValueType(filtered.type));
+            LIST_FILTER, formatValueType(predicate_result->type));
     }
 
-    if (filtered.value.boolean) {
-      tryWithMeta(result_void_position_t,
-                  listAppend(value_t, filtered_list, &input), result->position);
+    if (predicate_result->as.boolean) {
+      value_t *duplicate;
+      tryWithMeta(result_value_ref_t, valueDeepCopy(&input), pos, duplicate);
+      filtered_list->data[filtered_count++] = *duplicate;
+      deallocSafe(&duplicate);
     }
+
+    valueDestroy(&predicate_result);
   }
 
-  result->type = VALUE_TYPE_LIST;
-  result->value.list = filtered_list;
-
-  return ok(result_void_position_t);
+  filtered_list->count = filtered_count;
+  valueArrayDestroy(&closure_args);
+  return valueCreate(VALUE_TYPE_LIST, (value_as_t){.list = filtered_list}, pos);
 }
 
 /**
@@ -362,10 +337,9 @@ listFilter(value_t *result, const value_list_t *arguments, arena_t *arena) {
  *   (list:times (fn (i) (* i 2)) 3) ; returns (0 2 4)
  */
 const char *LIST_TIMES = "list:times";
-result_void_position_t listTimes(value_t *result, const value_list_t *arguments,
-                                 arena_t *arena) {
-  if (arguments->count < 2) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
+result_value_ref_t listTimes(const value_array_t *arguments, position_t pos) {
+  if (arguments->count != 2) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
           "%s requires 2 arguments. Got %zu", LIST_TIMES, arguments->count);
   }
 
@@ -373,49 +347,45 @@ result_void_position_t listTimes(value_t *result, const value_list_t *arguments,
   value_t repeats_value = listGet(value_t, arguments, 1);
 
   if (closure_value.type != VALUE_TYPE_CLOSURE) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           closure_value.position,
           "%s requires a function as first argument. Got %s.", LIST_TIMES,
           formatValueType(closure_value.type));
   }
 
   if (repeats_value.type != VALUE_TYPE_NUMBER) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           repeats_value.position,
           "%s requires a number as second argument. Got %s.", LIST_TIMES,
           formatValueType(repeats_value.type));
   }
 
-  size_t repeats = (size_t)repeats_value.value.number;
-  closure_t closure = closure_value.value.closure;
+  size_t repeats = (size_t)repeats_value.as.number;
 
-  value_list_t *repeated_list = nullptr;
-  tryWithMeta(result_void_position_t, listCreate(value_t, arena, repeats),
-              result->position, repeated_list);
+  value_array_t *repeated_list = nullptr;
+  tryWithMeta(result_value_ref_t, valueArrayCreate(repeats), pos,
+              repeated_list);
+
+  value_array_t *closure_args = nullptr;
+  tryWithMeta(result_value_ref_t, valueArrayCreate(1), pos, closure_args);
 
   for (size_t i = 0; i < repeats; i++) {
-    value_list_t *closure_args = nullptr;
-    tryWithMeta(result_void_position_t, listCreate(value_t, arena, 1),
-                result->position, closure_args);
+    value_t index = {
+        .type = VALUE_TYPE_NUMBER,
+        .as.number = (number_t)i,
+        .position = pos,
+    };
+    closure_args->data[0] = index;
 
-    value_t index;
-    tryWithMeta(result_void_position_t, valueInit(&index, arena, (number_t)i),
-                result->position);
-    tryWithMeta(result_void_position_t,
-                listAppend(value_t, closure_args, &index), result->position);
-
-    value_t mapped;
-    try(result_void_position_t,
-        invokeClosure(&mapped, closure, closure_args, arena, nullptr));
-
-    tryWithMeta(result_void_position_t,
-                listAppend(value_t, repeated_list, &mapped), result->position);
+    value_t *mapped;
+    try(result_value_ref_t, invokeClosure(&closure_value, closure_args),
+        mapped);
+    repeated_list->data[i] = *mapped;
+    deallocSafe(&mapped);
   }
 
-  result->type = VALUE_TYPE_LIST;
-  result->value.list = repeated_list;
-
-  return ok(result_void_position_t);
+  valueArrayDestroy(&closure_args);
+  return valueCreate(VALUE_TYPE_LIST, (value_as_t){.list = repeated_list}, pos);
 }
 
 /**
@@ -431,10 +401,9 @@ result_void_position_t listTimes(value_t *result, const value_list_t *arguments,
  *   (list:reduce (fn (p c i) (+ p c)) 0 (1 2 3)) ; returns 6
  */
 const char *LIST_REDUCE = "list:reduce";
-result_void_position_t
-listReduce(value_t *result, const value_list_t *arguments, arena_t *arena) {
-  if (arguments->count < 3) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
+result_value_ref_t listReduce(const value_array_t *arguments, position_t pos) {
+  if (arguments->count != 3) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
           "%s requires 3 arguments. Got %zu", LIST_REDUCE, arguments->count);
   }
 
@@ -443,47 +412,45 @@ listReduce(value_t *result, const value_list_t *arguments, arena_t *arena) {
   value_t list_value = listGet(value_t, arguments, 2);
 
   if (closure_value.type != VALUE_TYPE_CLOSURE) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           closure_value.position,
           "%s requires a function as first argument. Got %s.", LIST_REDUCE,
           formatValueType(closure_value.type));
   }
 
   if (list_value.type != VALUE_TYPE_LIST) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
-          list_value.position, "%s requires a list as second argument. Got %s.",
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+          list_value.position, "%s requires a list as third argument. Got %s.",
           LIST_REDUCE, formatValueType(list_value.type));
   }
 
-  value_list_t *input_list = list_value.value.list;
-  closure_t closure = closure_value.value.closure;
-  value_t reduced = initial_value;
+  value_array_t *input_list = list_value.as.list;
+
+  value_t *accum = nullptr;
+  tryWithMeta(result_value_ref_t, valueDeepCopy(&initial_value), pos, accum);
+
+  value_array_t *closure_args = nullptr;
+  tryWithMeta(result_value_ref_t, valueArrayCreate(3), pos, closure_args);
 
   for (size_t i = 0; i < input_list->count; i++) {
     value_t current = listGet(value_t, input_list, i);
+    value_t index = {
+        .type = VALUE_TYPE_NUMBER,
+        .as.number = (number_t)i,
+        .position = current.position,
+    };
 
-    value_list_t *closure_args = nullptr;
-    tryWithMeta(result_void_position_t, listCreate(value_t, arena, 3),
-                result->position, closure_args);
+    closure_args->data[0] = *accum;
+    closure_args->data[1] = current;
+    closure_args->data[2] = index;
 
-    tryWithMeta(result_void_position_t,
-                listAppend(value_t, closure_args, &reduced), result->position);
-
-    tryWithMeta(result_void_position_t,
-                listAppend(value_t, closure_args, &current), result->position);
-
-    value_t index;
-    tryWithMeta(result_void_position_t, valueInit(&index, arena, (number_t)i),
-                result->position);
-    tryWithMeta(result_void_position_t,
-                listAppend(value_t, closure_args, &index), result->position);
-
-    try(result_void_position_t,
-        invokeClosure(&reduced, closure, closure_args, arena, nullptr));
+    value_t *result = nullptr;
+    try(result_value_ref_t, invokeClosure(&closure_value, closure_args),
+        result);
+    valueDestroy(&accum);
+    accum = result;
   }
 
-  result->type = reduced.type;
-  result->value = reduced.value;
-
-  return ok(result_void_position_t);
+  valueArrayDestroy(&closure_args);
+  return ok(result_value_ref_t, accum);
 }

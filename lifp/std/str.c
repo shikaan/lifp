@@ -19,12 +19,6 @@
 #include <stddef.h>
 #include <string.h>
 
-#define tryCreateBuffer(Buffer, Length)                                        \
-  tryWithMeta(result_void_position_t,                                          \
-              arenaAllocate(arena, (Length) * sizeof(char)), result->position, \
-              Buffer);                                                         \
-  memset(Buffer, 0, Length);
-
 /**
  * Returns the length of a string.
  * @name str:length
@@ -34,25 +28,20 @@
  *   (str:length "hello") ; returns 5
  */
 const char *STR_LENGTH = "str:length";
-result_void_position_t strLength(value_t *result, const value_list_t *values,
-                                 arena_t *arena) {
-  (void)arena;
-  if (values->count < 1) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires 1 argument. Got %zu", STR_LENGTH, values->count);
+result_value_ref_t strLength(const value_array_t *arguments, position_t pos) {
+  if (arguments->count != 1) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
+          "%s requires 1 argument. Got %zu", STR_LENGTH, arguments->count);
   }
-
-  value_t string_value = listGet(value_t, values, 0);
+  value_t string_value = listGet(value_t, arguments, 0);
   if (string_value.type != VALUE_TYPE_STRING) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           string_value.position, "%s requires a string. Got %s.", STR_LENGTH,
           formatValueType(string_value.type));
   }
-
-  result->type = VALUE_TYPE_NUMBER;
-  result->value.number = (double)strlen(string_value.value.string);
-
-  return ok(result_void_position_t);
+  return valueCreate(
+      VALUE_TYPE_NUMBER,
+      (value_as_t){.number = (number_t)strlen(string_value.as.string)}, pos);
 }
 
 /**
@@ -65,68 +54,53 @@ result_void_position_t strLength(value_t *result, const value_list_t *values,
  *   (str:join "," ("a" "b" "c")) ; returns "a,b,c"
  */
 const char *STR_JOIN = "str:join";
-result_void_position_t strJoin(value_t *result, const value_list_t *values,
-                               arena_t *arena) {
-  if (values->count < 2) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires 2 arguments. Got %zu", STR_JOIN, values->count);
+result_value_ref_t strJoin(const value_array_t *arguments, position_t pos) {
+  if (arguments->count != 2) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
+          "%s requires 2 arguments. Got %zu", STR_JOIN, arguments->count);
   }
-
-  value_t separator_value = listGet(value_t, values, 0);
+  value_t separator_value = listGet(value_t, arguments, 0);
   if (separator_value.type != VALUE_TYPE_STRING) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           separator_value.position,
           "%s requires a string as first argument. Got %s.", STR_JOIN,
           formatValueType(separator_value.type));
   }
-
-  value_t list_value = listGet(value_t, values, 1);
+  value_t list_value = listGet(value_t, arguments, 1);
   if (list_value.type != VALUE_TYPE_LIST) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           list_value.position,
           "%s requires a list of strings as second argument. Got %s.", STR_JOIN,
           formatValueType(list_value.type));
   }
-
-  if (list_value.value.list->count == 0) {
-    string_t buffer;
-    tryCreateBuffer(buffer, 1);
-    result->type = VALUE_TYPE_STRING;
-    result->value.string = buffer;
-    return ok(result_void_position_t);
+  value_array_t *input_list = list_value.as.list;
+  if (input_list->count == 0) {
+    return valueCreate(VALUE_TYPE_STRING, (value_as_t){.string = strdup("")},
+                       pos);
   }
-
-  size_t separator_length = strlen(separator_value.value.string);
-
+  size_t separator_length = strlen(separator_value.as.string);
   size_t total_length = 0;
-  for (size_t i = 0; i < list_value.value.list->count; i++) {
-    value_t current = listGet(value_t, list_value.value.list, i);
+  for (size_t i = 0; i < input_list->count; i++) {
+    value_t current = listGet(value_t, input_list, i);
     if (current.type != VALUE_TYPE_STRING) {
-      throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+      throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
             current.position, "%s requires a list of strings. Got %s.",
             STR_JOIN, formatValueType(current.type));
     }
-    total_length += strlen(current.value.string);
+    total_length += strlen(current.as.string);
   }
-  total_length += separator_length * (list_value.value.list->count - 1);
+  total_length += separator_length * (input_list->count - 1);
+  char *buffer = nullptr;
+  tryWithMeta(result_value_ref_t, allocSafe(total_length + 1), pos, buffer);
 
-  string_t buffer;
-  tryCreateBuffer(buffer, total_length + 1);
-
-  for (size_t i = 0; i < list_value.value.list->count - 1; i++) {
-    value_t current = listGet(value_t, list_value.value.list, i);
-    strcat(buffer, current.value.string);
-    strcat(buffer, separator_value.value.string);
+  for (size_t i = 0; i < input_list->count - 1; i++) {
+    value_t current = listGet(value_t, input_list, i);
+    strcat(buffer, current.as.string);
+    strcat(buffer, separator_value.as.string);
   }
-
-  value_t last =
-      listGet(value_t, list_value.value.list, list_value.value.list->count - 1);
-  strcat(buffer, last.value.string);
-
-  result->type = VALUE_TYPE_STRING;
-  result->value.string = buffer;
-
-  return ok(result_void_position_t);
+  value_t last = listGet(value_t, input_list, input_list->count - 1);
+  strcat(buffer, last.as.string);
+  return valueCreate(VALUE_TYPE_STRING, (value_as_t){.string = buffer}, pos);
 }
 
 /**
@@ -142,110 +116,94 @@ result_void_position_t strJoin(value_t *result, const value_list_t *values,
  *   (str:slice "abcdef" 2) ; returns "cdef"
  */
 const char *STR_SLICE = "str:slice";
-result_void_position_t strSlice(value_t *result, const value_list_t *values,
-                                arena_t *arena) {
-  if (values->count < 2 || values->count > 3) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires 2 or 3 arguments. Got %zu", STR_SLICE, values->count);
+result_value_ref_t strSlice(const value_array_t *arguments, position_t pos) {
+  if (arguments->count != 2 && arguments->count != 3) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
+          "%s requires 2 or 3 arguments. Got %zu", STR_SLICE, arguments->count);
   }
-
-  value_t string_value = listGet(value_t, values, 0);
+  value_t string_value = listGet(value_t, arguments, 0);
   if (string_value.type != VALUE_TYPE_STRING) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           string_value.position,
           "%s requires a string as first argument. Got %s.", STR_SLICE,
           formatValueType(string_value.type));
   }
-
-  value_t start_value = listGet(value_t, values, 1);
+  value_t start_value = listGet(value_t, arguments, 1);
   if (start_value.type != VALUE_TYPE_NUMBER) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           start_value.position,
           "%s requires a number as second argument. Got %s.", STR_SLICE,
           formatValueType(start_value.type));
   }
-
-  size_t str_len = strlen(string_value.value.string);
-  number_t start_num = start_value.value.number;
+  size_t str_len = strlen(string_value.as.string);
+  number_t start_num = start_value.as.number;
   size_t start = (start_num < 0) ? (size_t)((int)str_len + (int)start_num)
                                  : (size_t)start_num;
-  if (start > str_len)
+  if (start > str_len) {
     start = str_len;
+  }
 
   size_t end = str_len;
-  if (values->count == 3) {
-    value_t end_value = listGet(value_t, values, 2);
+  if (arguments->count == 3) {
+    value_t end_value = listGet(value_t, arguments, 2);
     if (end_value.type != VALUE_TYPE_NUMBER) {
-      throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+      throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
             end_value.position,
             "%s requires a number as third argument. Got %s.", STR_SLICE,
             formatValueType(end_value.type));
     }
-    number_t end_num = end_value.value.number;
+    number_t end_num = end_value.as.number;
     end =
         (end_num < 0) ? (size_t)((int)str_len + (int)end_num) : (size_t)end_num;
-    if (end > str_len)
+
+    if (end > str_len) {
       end = str_len;
+    }
   }
 
-  if (start > end)
+  if (start > end) {
     start = end;
-  size_t slice_len = (end > start) ? (end - start + 1) : 0;
-
-  string_t buffer;
-  tryCreateBuffer(buffer, slice_len);
-
-  if (slice_len > 0) {
-    stringCopy(buffer, string_value.value.string + start, slice_len);
   }
 
-  result->type = VALUE_TYPE_STRING;
-  result->value.string = buffer;
-  return ok(result_void_position_t);
+  size_t slice_len = (end > start) ? (end - start) : 0;
+  char *buffer = nullptr;
+  tryWithMeta(result_value_ref_t, allocSafe(slice_len + 1), pos, buffer);
+  stringCopy(buffer, string_value.as.string + start, slice_len + 1);
+
+  return valueCreate(VALUE_TYPE_STRING, (value_as_t){.string = buffer}, pos);
 }
 
 /**
  * Checks if a string contains a substring.
- * @name str:include
+ * @name str:include?
  * @param {string} str - The string to search in.
  * @param {string} search - The substring to search for.
  * @returns {boolean} True if the substring is found, false otherwise.
  * @example
- *   (str:include "hello world" "world") ; returns true
+ *   (str:include? "hello world" "world") ; returns true
  */
-const char *STR_INCLUDE = "str:include";
-result_void_position_t strInclude(value_t *result, const value_list_t *values,
-                                  arena_t *arena) {
-  (void)arena;
-
-  if (values->count < 2) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires 2 arguments. Got %zu", STR_INCLUDE, values->count);
+const char *STR_INCLUDE = "str:include?";
+result_value_ref_t strInclude(const value_array_t *arguments, position_t pos) {
+  if (arguments->count != 2) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
+          "%s requires 2 arguments. Got %zu", STR_INCLUDE, arguments->count);
   }
-
-  value_t string_value = listGet(value_t, values, 0);
+  value_t string_value = listGet(value_t, arguments, 0);
   if (string_value.type != VALUE_TYPE_STRING) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           string_value.position,
           "%s requires a string as first argument. Got %s.", STR_INCLUDE,
           formatValueType(string_value.type));
   }
-
-  value_t search_value = listGet(value_t, values, 1);
+  value_t search_value = listGet(value_t, arguments, 1);
   if (search_value.type != VALUE_TYPE_STRING) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           search_value.position,
           "%s requires a string as second argument. Got %s.", STR_INCLUDE,
           formatValueType(search_value.type));
   }
-
-  bool found =
-      strstr(string_value.value.string, search_value.value.string) != nullptr;
-
-  result->type = VALUE_TYPE_BOOLEAN;
-  result->value.boolean = found;
-
-  return ok(result_void_position_t);
+  bool found = strstr(string_value.as.string, search_value.as.string) != NULL;
+  return valueCreate(VALUE_TYPE_BOOLEAN, (value_as_t){.boolean = found}, pos);
 }
 
 /**
@@ -257,36 +215,26 @@ result_void_position_t strInclude(value_t *result, const value_list_t *values,
  *   (str:trimLeft "   foo") ; returns "foo"
  */
 const char *STR_TRIM_LEFT = "str:trimLeft";
-result_void_position_t strTrimLeft(value_t *result, const value_list_t *values,
-                                   arena_t *arena) {
-  (void)arena;
-
-  if (values->count < 1) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires 1 argument. Got %zu", STR_TRIM_LEFT, values->count);
+result_value_ref_t strTrimLeft(const value_array_t *arguments, position_t pos) {
+  if (arguments->count != 1) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
+          "%s requires 1 argument. Got %zu", STR_TRIM_LEFT, arguments->count);
   }
-
-  value_t string_value = listGet(value_t, values, 0);
+  value_t string_value = listGet(value_t, arguments, 0);
   if (string_value.type != VALUE_TYPE_STRING) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           string_value.position, "%s requires a string. Got %s.", STR_TRIM_LEFT,
           formatValueType(string_value.type));
   }
-
-  char *start = string_value.value.string;
+  char *start = string_value.as.string;
   while (isspace(*start)) {
     start++;
   }
-
   size_t len = strlen(start);
-  string_t buffer;
-  tryCreateBuffer(buffer, len + 1);
+  char *buffer = nullptr;
+  tryWithMeta(result_value_ref_t, allocSafe(len + 1), pos, buffer);
   stringCopy(buffer, start, len + 1);
-
-  result->type = VALUE_TYPE_STRING;
-  result->value.string = buffer;
-
-  return ok(result_void_position_t);
+  return valueCreate(VALUE_TYPE_STRING, (value_as_t){.string = buffer}, pos);
 }
 
 /**
@@ -298,37 +246,30 @@ result_void_position_t strTrimLeft(value_t *result, const value_list_t *values,
  *   (str:trimRight "foo   ") ; returns "foo"
  */
 const char *STR_TRIM_RIGHT = "str:trimRight";
-result_void_position_t strTrimRight(value_t *result, const value_list_t *values,
-                                    arena_t *arena) {
-  (void)arena;
-
-  if (values->count < 1) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR, result->position,
-          "%s requires 1 argument. Got %zu", STR_TRIM_RIGHT, values->count);
+result_value_ref_t strTrimRight(const value_array_t *arguments,
+                                position_t pos) {
+  if (arguments->count != 1) {
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR, pos,
+          "%s requires 1 argument. Got %zu", STR_TRIM_RIGHT, arguments->count);
   }
-
-  value_t string_value = listGet(value_t, values, 0);
+  value_t string_value = listGet(value_t, arguments, 0);
   if (string_value.type != VALUE_TYPE_STRING) {
-    throw(result_void_position_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
+    throw(result_value_ref_t, ERROR_CODE_RUNTIME_ERROR_UNEXPECTED_TYPE,
           string_value.position, "%s requires a string. Got %s.",
           STR_TRIM_RIGHT, formatValueType(string_value.type));
   }
-
-  size_t len = strlen(string_value.value.string);
-  char *end = string_value.value.string + len - 1;
-  while (isspace(*end)) {
+  size_t len = strlen(string_value.as.string);
+  if (len == 0) {
+    char *buffer = (char *)calloc(1, 1);
+    return valueCreate(VALUE_TYPE_STRING, (value_as_t){.string = buffer}, pos);
+  }
+  char *end = string_value.as.string + len - 1;
+  while (len > 0 && isspace(*end)) {
     len--;
     end--;
   }
-
-  string_t buffer;
-  tryCreateBuffer(buffer, len + 1);
-  stringCopy(buffer, string_value.value.string, len + 1);
-
-  result->type = VALUE_TYPE_STRING;
-  result->value.string = buffer;
-
-  return ok(result_void_position_t);
+  char *buffer = nullptr;
+  tryWithMeta(result_value_ref_t, allocSafe(len + 1), pos, buffer);
+  stringCopy(buffer, string_value.as.string, len + 1);
+  return valueCreate(VALUE_TYPE_STRING, (value_as_t){.string = buffer}, pos);
 }
-
-#undef tryCreateBuffer

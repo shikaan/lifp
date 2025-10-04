@@ -1,8 +1,9 @@
+#include "types.h"
 #define _POSIX_C_SOURCE 200809L
 
-#include "fmt.h"
 #include "../lib/alloc.h"
 #include "../lib/list.h"
+#include "fmt.h"
 #include "node.h"
 #include "position.h"
 #include "value.h"
@@ -105,7 +106,7 @@ void formatValue(const value_t *value, int size,
   switch (value->type) {
   case VALUE_TYPE_BOOLEAN: {
     append(size, output_buffer, offset, "%s",
-           value->value.boolean ? "true" : "false");
+           value->as.boolean ? "true" : "false");
     return;
   }
   case VALUE_TYPE_NIL: {
@@ -113,7 +114,7 @@ void formatValue(const value_t *value, int size,
     return;
   }
   case VALUE_TYPE_NUMBER: {
-    append(size, output_buffer, offset, "%g", value->value.number);
+    append(size, output_buffer, offset, "%g", value->as.number);
     return;
   }
   case VALUE_TYPE_BUILTIN: {
@@ -125,12 +126,12 @@ void formatValue(const value_t *value, int size,
     return;
   }
   case VALUE_TYPE_STRING: {
-    append(size, output_buffer, offset, "\"%s\"", value->value.string);
+    append(size, output_buffer, offset, "\"%s\"", value->as.string);
     return;
   }
   case VALUE_TYPE_LIST: {
     append(size, output_buffer, offset, "(");
-    value_list_t *list = value->value.list;
+    value_array_t *list = value->as.list;
 
     if (list->count > 0) {
       for (size_t i = 0; i < list->count - 1; i++) {
@@ -147,21 +148,20 @@ void formatValue(const value_t *value, int size,
   }
   case VALUE_TYPE_CLOSURE:
     append(size, output_buffer, offset, "(fn (");
-    node_list_t *arguments = value->value.closure.arguments;
+    arguments_t *arguments = value->as.closure.arguments;
 
     if (arguments->count > 0) {
       for (size_t i = 0; i < arguments->count - 1; i++) {
-        node_t sub_node = listGet(node_t, arguments, i);
-        formatNode(&sub_node, size, output_buffer, offset);
-        append(size, output_buffer, offset, " ");
+        string_t sub_node = arguments->data[i];
+        append(size, output_buffer, offset, "%s ", sub_node);
       }
 
-      node_t sub_node = listGet(node_t, arguments, arguments->count - 1);
-      formatNode(&sub_node, size, output_buffer, offset);
+      string_t sub_node = arguments->data[arguments->count - 1];
+      append(size, output_buffer, offset, "%s", sub_node);
     }
     append(size, output_buffer, offset, ") ");
 
-    formatNode(value->value.closure.form, size, output_buffer, offset);
+    formatNode(value->as.closure.form, size, output_buffer, offset);
     append(size, output_buffer, offset, ")");
   default:
   }

@@ -29,8 +29,8 @@ For example,
 ```c
 #include "lib/profile.h"
 
-void myFunction() {
-    profileSafeAlloc();  // Enable safeAlloc profiling for this function
+void myFunction(arena_t* arena) {
+    profileArena(arena);  // Enable safeAlloc profiling for this function
 
     // ...rest of the code
 }
@@ -40,7 +40,6 @@ void myFunction() {
 
 Available profilers in this project are:
 
-* `safeAlloc`: track usage of the `safeAlloc` function to detect leaks;
 * `arena`: track arena allocation and report stats on arena usage;
 
 You can read more about them in [`profile.h`](../lib/profile.h).

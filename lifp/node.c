@@ -1,5 +1,6 @@
 #include "node.h"
-#include "../lib/string.h"
+#include "position.h"
+#include <stddef.h>
 #include <string.h>
 
 static constexpr size_t INITIAL_SIZE = 8;
@@ -20,45 +21,85 @@ result_void_t nodeInit(node_t *self, arena_t *arena) {
   return ok(result_void_t);
 }
 
-result_void_t nodeCopy(const node_t *self, node_t *destination,
-                       arena_t *destination_arena) {
+result_ref_t nodeCopy(const node_t *self) {
+  node_t *destination;
+  try(result_ref_t, allocSafe(sizeof(node_t)), destination);
+
   destination->type = self->type;
   destination->position.column = self->position.column;
   destination->position.line = self->position.line;
 
-  if (self->type == NODE_TYPE_LIST) {
+  switch (self->type) {
+  case NODE_TYPE_LIST: {
+    destination->value.list.arena = nullptr;
+    destination->value.list.capacity = self->value.list.count;
+    destination->value.list.count = self->value.list.count;
+    destination->value.list.item_size = sizeof(node_t);
+
+    try(result_ref_t, allocSafe(sizeof(node_t) * self->value.list.count),
+        destination->value.list.data);
+
     for (size_t i = 0; i < self->value.list.count; i++) {
-      node_t value = self->value.list.data[i];
-      node_t *dupe;
-      try(result_void_t, nodeCreate(destination_arena, value.type), dupe);
-      try(result_void_t, nodeInit(dupe, destination_arena));
-      try(result_void_t, nodeCopy(&value, dupe, destination_arena));
-      try(result_void_t, listAppend(node_t, &destination->value.list, dupe));
+      node_t *copy = nullptr;
+      try(result_ref_t, nodeCopy(&self->value.list.data[i]), copy);
+      destination->value.list.data[i] = *copy;
+      deallocSafe(&copy);
     }
-  } else if (self->type == NODE_TYPE_SYMBOL || self->type == NODE_TYPE_STRING) {
-    const string_t src_str = (self->type == NODE_TYPE_SYMBOL)
-                                 ? self->value.symbol
-                                 : self->value.string;
-    size_t len = strlen(src_str) + 1;
-    string_t dest_str;
-    try(result_void_t, arenaAllocate(destination_arena, len), dest_str);
-    stringCopy(dest_str, src_str, len);
-    if (self->type == NODE_TYPE_SYMBOL) {
-      destination->value.symbol = dest_str;
-    } else {
-      destination->value.string = dest_str;
-    }
-  } else {
+    break;
+  }
+  case NODE_TYPE_SYMBOL: {
+    string_t dest_str = strdup(self->value.symbol);
+    destination->value.symbol = dest_str;
+    break;
+  }
+  case NODE_TYPE_STRING: {
+    string_t dest_str = strdup(self->value.string);
+    destination->value.string = dest_str;
+    break;
+  }
+  case NODE_TYPE_NUMBER:
+  case NODE_TYPE_BOOLEAN:
+  case NODE_TYPE_NIL:
+  default:
     destination->value = self->value;
+    break;
   }
 
-  return ok(result_void_t);
+  return ok(result_ref_t, destination);
 }
 
-result_ref_t nodeClone(arena_t *arena, const node_t *source) {
-  node_t *destination = nullptr;
-  try(result_ref_t, nodeCreate(arena, source->type), destination);
-  try(result_ref_t, nodeInit(destination, arena));
-  try(result_ref_t, nodeCopy(source, destination, arena));
-  return ok(result_ref_t, destination);
+static void nodeDestroyInner(node_t *self) {
+  if (!self)
+    return;
+
+  switch (self->type) {
+  case NODE_TYPE_LIST: {
+    for (size_t i = 0; i < self->value.list.count; i++) {
+      node_t node = listGet(node_t, &self->value.list, i);
+      nodeDestroyInner(&node);
+    }
+    deallocSafe(&self->value.list.data);
+    break;
+  }
+  case NODE_TYPE_SYMBOL:
+    deallocSafe(&self->value.symbol);
+    break;
+  case NODE_TYPE_STRING:
+    deallocSafe(&self->value.string);
+    break;
+  case NODE_TYPE_NUMBER:
+  case NODE_TYPE_BOOLEAN:
+  case NODE_TYPE_NIL:
+  default:
+    break;
+  }
+}
+
+void nodeDestroy(node_t **self) {
+  if (!self || !(*self))
+    return;
+
+  node_t *node = *self;
+  nodeDestroyInner(node);
+  deallocSafe(self);
 }

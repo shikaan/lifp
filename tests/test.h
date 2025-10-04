@@ -178,4 +178,13 @@ int report(void) {
   }
 #endif
 
+#ifndef FAILED_ONLY
+#define xsuite(name)                                                           \
+  {                                                                            \
+    printf("\n> [skipped] %s\n", #name);                                       \
+  }
+#else
+#define xsuite(name)
+#endif
+
 #endif // TEST_H

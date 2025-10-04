@@ -129,7 +129,10 @@ if __name__ == "__main__":
   doc_file = "docs/index.md"
   man_file = "artifacts/lifp.1"
   repl_doc = "artifacts/docs.h"
-  src_files = sorted(glob.glob('lifp/std/*.c'))
+
+  src_files = glob.glob('lifp/std/*.c')
+  src_files.append('lifp/specials.c')
+  src_files = sorted(src_files)
 
   if len(sys.argv) < 2:
     print("Usage: docs.py [web|man|repl]")

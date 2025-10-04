@@ -9,6 +9,7 @@ compile_commands.json
 *.plist
 .cache
 artifacts/*
+llvm.sh
 
 # binaries
 tests/*.test

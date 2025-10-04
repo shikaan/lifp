@@ -40,8 +40,6 @@ void formatRunUsage(size_t size, char buffer[static size]) {
            "Flags:\n"
            "  -f, --file-size         int    max size of source file (in KB)\n"
            "  -a, --ast-memory        int    max parsing memory size (in KB)\n"
-           "  -t, --temp-memory       int    max scratch memory size (in KB)\n"
-           "  -e, --environment-size  int    max environment size (in KB)\n"
            "  -h, --help                     print this help and exit\n"
            "  -v, --version                  print version and exit\n"
            "\n"
@@ -57,8 +55,6 @@ void formatReplUsage(size_t size, char buffer[static size]) {
            "Flags:\n"
            "  -o, --output-size       int    max length of the output buffer\n"
            "  -a, --ast-memory        int    max parsing memory size (in KB)\n"
-           "  -t, --temp-memory       int    max scratch memory size (in KB)\n"
-           "  -e, --environment-size  int    max environment size (in KB)\n"
            "  -h, --help                     print this help and exit\n"
            "  -v, --version                  print version and exit\n"
            "\n"
@@ -75,11 +71,8 @@ int runCallback(char *name, ArgParser *parser) {
 
   run_opts_t opts;
   opts.ast_memory = (size_t)ap_get_int_value(parser, "ast-memory") * KILOBYTE;
-  opts.temp_memory = (size_t)ap_get_int_value(parser, "temp-memory") * KILOBYTE;
   opts.file_size = (size_t)ap_get_int_value(parser, "file-size") * KILOBYTE;
   opts.filename = ap_get_arg_at_index(parser, 0);
-  opts.environment_size =
-      (size_t)ap_get_int_value(parser, "environment-size") * KILOBYTE;
 
   return run(opts);
 }
@@ -88,10 +81,7 @@ int replCallback(char *name, ArgParser *parser) {
   (void)name;
   repl_opts_t opts;
   opts.ast_memory = (size_t)ap_get_int_value(parser, "ast-memory") * KILOBYTE;
-  opts.temp_memory = (size_t)ap_get_int_value(parser, "temp-memory") * KILOBYTE;
   opts.output_size = (size_t)ap_get_int_value(parser, "output-size");
-  opts.environment_size =
-      (size_t)ap_get_int_value(parser, "environment-size") * KILOBYTE;
 
   return repl(opts);
 }
@@ -130,8 +120,6 @@ int main(int argc, char **argv) {
   ap_set_version(run_parser, version);
   ap_add_int_opt(run_parser, "file-size f", 1024);
   ap_add_int_opt(run_parser, "ast-memory a", 128);
-  ap_add_int_opt(run_parser, "temp-memory t", 256);
-  ap_add_int_opt(run_parser, "environment-size e", 64);
 
   ap_set_cmd_callback(run_parser, runCallback);
 
@@ -146,8 +134,6 @@ int main(int argc, char **argv) {
   ap_set_version(repl_parser, version);
   ap_add_int_opt(repl_parser, "output-size o", 4096);
   ap_add_int_opt(repl_parser, "ast-memory a", 128);
-  ap_add_int_opt(repl_parser, "temp-memory t", 256);
-  ap_add_int_opt(repl_parser, "environment-size e", 64);
 
   ap_set_cmd_callback(repl_parser, replCallback);
 
@@ -162,12 +148,13 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  ap_free(repl_parser);
+  ap_free(run_parser);
   return ap_get_cmd_exit_code(root_parser);
 
 error:
-  if (root_parser)
-    ap_free(root_parser);
-  if (run_parser)
-    ap_free(run_parser);
+  ap_free(repl_parser);
+  ap_free(run_parser);
+  ap_free(root_parser);
   return 1;
 }

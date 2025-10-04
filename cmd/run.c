@@ -19,9 +19,7 @@ const char RUN[] = "run";
 
 typedef struct {
   size_t ast_memory;
-  size_t temp_memory;
   size_t file_size;
-  size_t environment_size;
   const char *filename;
 } run_opts_t;
 
@@ -101,26 +99,12 @@ int run(const run_opts_t OPTIONS) {
   tryCLI(arenaCreate(OPTIONS.ast_memory), ast_arena,
          "unable to allocate interpreter memory");
 
-  arena_t *scratch_arena = nullptr;
-  tryCLI(arenaCreate(OPTIONS.temp_memory / 2), scratch_arena,
-         "unable to allocate transient memory");
-
-  arena_t *result_arena = nullptr;
-  tryCLI(arenaCreate(OPTIONS.temp_memory / 4), result_arena,
-         "unable to allocate transient memory");
-
-  vm_options_t vm_options = {
-      .environment_size = OPTIONS.environment_size,
-      .vm_size = OPTIONS.temp_memory / 4,
-  };
   vm_t *machine = nullptr;
-  tryCLI(vmCreate(vm_options), machine, "unable to initialize virtual machine");
+  tryCLI(vmCreate(), machine, "unable to initialize virtual machine");
 
   do {
     memset(statement_buffer, 0, (size_t)file_length);
     arenaReset(ast_arena);
-    arenaReset(scratch_arena);
-    arenaReset(result_arena);
     readStatement(file_length, statement_buffer, file_buffer, &file_offset);
 
     if (strlen(statement_buffer) == 0)
@@ -135,9 +119,9 @@ int run(const run_opts_t OPTIONS) {
     tryRun(parse(ast_arena, tokens, &line_offset, &depth), syntax_tree);
 
     if (syntax_tree) {
-      value_t reduced;
-      tryRun(evaluate(&reduced, result_arena, scratch_arena, syntax_tree,
-                      machine->global));
+      value_t *result;
+      tryRun(evaluate(syntax_tree, machine->global), result);
+      valueDestroy(&result);
     }
   } while (file_offset < file_length);
 
@@ -146,8 +130,7 @@ int run(const run_opts_t OPTIONS) {
   deallocSafe(&statement_buffer);
   deallocSafe(&file_buffer);
 
-  arenaDestroy(&result_arena);
-  arenaDestroy(&scratch_arena);
+  vmDestroy(&machine);
   arenaDestroy(&ast_arena);
   return 0;
 }

@@ -1,0 +1,3 @@
+leak:dyld4
+leak:snprintf
+leak:dyld3::MachOAnalyzer

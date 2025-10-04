@@ -1,5 +1,4 @@
 #include "../lifp/fmt.h"
-#include "../lib/list.h"
 #include "../lifp/node.h"
 #include "test.h"
 #include "utils.h"
@@ -9,30 +8,42 @@
 static arena_t *test_arena;
 
 void values() {
+  position_t pos = {1, 1};
   const int size = 128;
   char buffer[size];
   int offset = 0;
 
-  value_t number;
-  tryAssert(valueInit(&number, test_arena, 123.0));
+  value_t number = {
+      .type = VALUE_TYPE_NUMBER,
+      .as.number = 123.0,
+      .position = pos,
+  };
   formatValue(&number, size, buffer, &offset);
   expectEqlString(buffer, "123", 3, "formats numbers");
 
   offset = 0;
-  value_t nil;
-  tryAssert(valueInit(&nil, test_arena, nullptr));
+  value_t nil = {
+      .type = VALUE_TYPE_NIL,
+      .position = pos,
+  };
   formatValue(&nil, size, buffer, &offset);
   expectEqlString(buffer, "nil", 3, "formats nil");
 
   offset = 0;
-  value_t true_value;
-  tryAssert(valueInit(&true_value, test_arena, true));
+  value_t true_value = {
+      .type = VALUE_TYPE_BOOLEAN,
+      .as.boolean = true,
+      .position = pos,
+  };
   formatValue(&true_value, size, buffer, &offset);
   expectEqlString(buffer, "true", 4, "formats true");
 
   offset = 0;
-  value_t false_value;
-  tryAssert(valueInit(&false_value, test_arena, false));
+  value_t false_value = {
+      .type = VALUE_TYPE_BOOLEAN,
+      .as.boolean = false,
+      .position = pos,
+  };
   formatValue(&false_value, size, buffer, &offset);
   expectEqlString(buffer, "false", 5, "formats false");
 
@@ -47,35 +58,59 @@ void values() {
   expectEqlString(buffer, "#<special>", 11, "formats specials");
 
   offset = 0;
-  value_t string_value;
-  tryAssert(valueInit(&string_value, test_arena, "test"));
+  string_t string = strdup("test");
+  value_t string_value = {
+      .type = VALUE_TYPE_STRING,
+      .as.string = string,
+      .position = pos,
+  };
   formatValue(&string_value, size, buffer, &offset);
   expectEqlString(buffer, "\"test\"", 7, "formats strings");
+  deallocSafe(&string);
 
   offset = 0;
-  arenaReset(test_arena);
-  value_t list_value;
-  tryAssert(valueInit(&list_value, test_arena, (size_t)2));
-  tryAssert(listAppend(value_t, list_value.value.list, &number));
-  tryAssert(listAppend(value_t, list_value.value.list, &nil));
-
+  value_t list_value = {
+      .type = VALUE_TYPE_LIST,
+      .position = pos,
+  };
+  value_array_t arr = {
+      .count = 2,
+      .data = (value_t[]){number, nil},
+  };
+  list_value.as.list = &arr;
   formatValue(&list_value, size, buffer, &offset);
   expectEqlString(buffer, "(123 nil)", 10, "formats lists");
 
   offset = 0;
-  arenaReset(test_arena);
-  value_t closure_value;
-  tryAssert(
-      valueInit(&closure_value, test_arena, (node_type_t)(NODE_TYPE_LIST)));
-
-  node_t symbol = nSym(test_arena, "a");
-
-  tryAssert(listAppend(node_t, closure_value.value.closure.arguments, &symbol));
-  tryAssert(listAppend(node_t, &closure_value.value.closure.form->value.list,
-                       &symbol));
+  // Build a closure value inline: (fn (a) (a))
+  string_t arg_a = strdup("a");
+  arguments_t args = {
+      .count = 1,
+      .data = (string_t[]){arg_a},
+  };
+  node_t form_list_data[] = {nSym(test_arena, arg_a)};
+  node_t form = {
+      .type = NODE_TYPE_LIST,
+      .position = pos,
+      .value.list = {.item_size = sizeof(node_t),
+                     .count = 1,
+                     .capacity = 1,
+                     .data = form_list_data},
+  };
+  value_t closure_value = {
+      .type = VALUE_TYPE_CLOSURE,
+      .position = pos,
+      .as.closure =
+          {
+              .form = &form,
+              .arguments = &args,
+              .environment = nullptr,
+          },
+  };
 
   formatValue(&closure_value, size, buffer, &offset);
   expectEqlString(buffer, "(fn (a) (a))", 13, "formats lambdas");
+  deallocSafe(&arg_a);
 }
 
 void errors() {

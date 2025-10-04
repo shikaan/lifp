@@ -17,16 +17,14 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-extern Map(value_t) * builtins;
-extern Map(value_t) * specials;
+extern value_map_t *builtins;
+extern value_map_t *specials;
 
 const char REPL[] = "repl";
 
 typedef struct {
   size_t ast_memory;
-  size_t temp_memory;
   size_t output_size;
-  size_t environment_size;
 } repl_opts_t;
 
 static constexpr size_t MAX_COMPELTIONS = 64;
@@ -48,10 +46,10 @@ static void sort(size_t len, char array[static len][MAX_SYMBOL_LENGTH]) {
 
 static void fillCompletions(environment_t *env) {
   completions_count = 0;
-  for (size_t i = 0; i < env->values->capacity; i++) {
-    if (env->values->used[i]) {
+  for (size_t i = 0; i < env->values.capacity; i++) {
+    if (env->values.used[i]) {
       memset(completions[completions_count], 0, MAX_SYMBOL_LENGTH);
-      stringCopy(completions[completions_count], env->values->keys[i],
+      stringCopy(completions[completions_count], env->values.keys[i],
                  MAX_SYMBOL_LENGTH);
       completions_count++;
       if (completions_count == MAX_COMPELTIONS)
@@ -220,20 +218,8 @@ int repl(const repl_opts_t OPTIONS) {
   tryCLI(arenaCreate(OPTIONS.ast_memory), ast_arena,
          "unable to allocate interpreter memory");
 
-  arena_t *scratch_arena = nullptr;
-  tryCLI(arenaCreate(OPTIONS.temp_memory / 2), scratch_arena,
-         "unable to allocate transient memory");
-
-  arena_t *result_arena = nullptr;
-  tryCLI(arenaCreate(OPTIONS.temp_memory / 4), result_arena,
-         "unable to allocate transient memory");
-
-  vm_options_t vm_options = {
-      .environment_size = OPTIONS.environment_size,
-      .vm_size = OPTIONS.temp_memory / 4,
-  };
   vm_t *machine = nullptr;
-  tryCLI(vmCreate(vm_options), machine, "unable to initialize virtual machine");
+  tryCLI(vmCreate(), machine, "unable to initialize virtual machine");
 
   linenoiseSetMultiLine(1);
 
@@ -246,12 +232,12 @@ int repl(const repl_opts_t OPTIONS) {
 
   fillCompletions(machine->global);
 
+  value_t *result = nullptr;
   profileInit();
   while (true) {
-    profileReport();
+    allocResetMetrics();
+
     arenaReset(ast_arena);
-    arenaReset(scratch_arena);
-    arenaReset(result_arena);
     char *input = linenoise("> ");
 
     if (!input)
@@ -286,20 +272,23 @@ int repl(const repl_opts_t OPTIONS) {
     node_t *ast = nullptr;
     tryREPL(parse(ast_arena, tokens, &offset, &depth), ast);
 
-    value_t result;
-    tryREPL(
-        evaluate(&result, result_arena, scratch_arena, ast, machine->global));
+    tryREPL(evaluate(ast, machine->global), result);
 
     int buffer_offset = 0;
-    formatValue(&result, (int)OPTIONS.output_size, buffer, &buffer_offset);
+    formatValue(result, (int)OPTIONS.output_size, buffer, &buffer_offset);
     printf("~> %s\n", buffer);
 
     fillCompletions(machine->global);
+
+    valueDestroy(&result);
+    deallocSafe(&input);
     memset(buffer, 0, OPTIONS.output_size);
+    profileReport();
   }
+
   profileEnd();
-  arenaDestroy(&result_arena);
-  arenaDestroy(&scratch_arena);
+  valueDestroy(&result);
+  vmDestroy(&machine);
   arenaDestroy(&ast_arena);
   return 0;
 }

@@ -9,9 +9,6 @@
 #include <stdio.h>
 #include <string.h>
 
-span_t *CURRENT_SAFE_ALLOC_SPAN = nullptr;
-span_t *ROOT_SAFE_ALLOC_SPAN = nullptr;
-
 span_t *CURRENT_ARENA_SPAN = nullptr;
 span_t *ROOT_ARENA_SPAN = nullptr;
 
@@ -58,46 +55,10 @@ static void spanFree(span_t **span) {
 }
 
 void profileInit(void) {
-  CURRENT_SAFE_ALLOC_SPAN = spanCreate("root");
-  ROOT_SAFE_ALLOC_SPAN = CURRENT_SAFE_ALLOC_SPAN;
-
   CURRENT_ARENA_SPAN = spanCreate("root");
   ROOT_ARENA_SPAN = CURRENT_ARENA_SPAN;
 
-  ROOT_SAFE_ALLOC_SPAN->hits = 1; // prevent division by zero
-  ROOT_ARENA_SPAN->hits = 1;      // prevent division by zero
-}
-
-span_t *safeAllocSpanStart(const char *label) {
-  assert(CURRENT_SAFE_ALLOC_SPAN);
-  const unsigned long span_id = hash(label);
-
-  span_t *span = nullptr;
-  for (unsigned long i = 0; i < CURRENT_SAFE_ALLOC_SPAN->subspans_count; i++) {
-    span_t *subspan = CURRENT_SAFE_ALLOC_SPAN->subspans[i];
-    if (subspan->span_id == span_id && strcmp(label, subspan->label) == 0) {
-      span = subspan;
-    }
-  }
-
-  if (!span) {
-    span = spanCreate(label);
-    if (CURRENT_SAFE_ALLOC_SPAN->subspans_count < MAX_SUBSPAN) {
-      CURRENT_SAFE_ALLOC_SPAN
-          ->subspans[CURRENT_SAFE_ALLOC_SPAN->subspans_count] = span;
-      CURRENT_SAFE_ALLOC_SPAN->subspans_count++;
-    } else {
-      printf("Profiling error: Maximum subspans (%lu) reached for span '%s'\n",
-             MAX_SUBSPAN, CURRENT_SAFE_ALLOC_SPAN->label);
-      return nullptr;
-    }
-  }
-
-  span->hits++;
-  span->last = getAllocatedBytes();
-  span->parent = CURRENT_SAFE_ALLOC_SPAN;
-  CURRENT_SAFE_ALLOC_SPAN = span;
-  return span;
+  ROOT_ARENA_SPAN->hits = 1; // prevent division by zero
 }
 
 span_t *arenaSpanStart(arena_t *arena, const char *label) {
@@ -130,18 +91,6 @@ span_t *arenaSpanStart(arena_t *arena, const char *label) {
   span->payload = arena;
   CURRENT_ARENA_SPAN = span;
   return span;
-}
-
-void safeAllocSpanEnd(span_t **span_double_ref) {
-  span_t *span = *span_double_ref;
-  unsigned long delta = getAllocatedBytes() - span->last;
-  span->total += delta;
-
-  if (span->parent) {
-    span->parent->total += delta;
-  }
-
-  CURRENT_SAFE_ALLOC_SPAN = span->parent;
 }
 
 void arenaSpanEnd(span_t **span_double_ref) {
@@ -237,13 +186,6 @@ void printArenas(void) {
 }
 
 void profileReport(void) {
-  if (ROOT_SAFE_ALLOC_SPAN) {
-#if MEMORY_PROFILE_SAFE_ALLOC == 1
-    printf("\n === Memory Metrics: Leaked safeAlloc ===\n");
-    printSpan(ROOT_SAFE_ALLOC_SPAN, 0);
-#endif
-  }
-
   if (ROOT_ARENA_SPAN) {
 #if MEMORY_PROFILE_ARENA_ALLOCATIONS == 1
     printf("\n === Memory Metrics: Arena Allocations ===\n");
@@ -263,8 +205,6 @@ void profileReport(void) {
 }
 
 void profileEnd(void) {
-  spanFree(&ROOT_SAFE_ALLOC_SPAN);
-  CURRENT_SAFE_ALLOC_SPAN = nullptr;
   spanFree(&ROOT_ARENA_SPAN);
   CURRENT_ARENA_SPAN = nullptr;
 }
