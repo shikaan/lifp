@@ -123,9 +123,9 @@ void nestedLet() {
 }
 
 void letWithEscapedValue() {
-  value_t *result = execute("(+ 1 (let ((l 1)) l))");
+  value_t *result = execute("(str:length (let ((l \"asdf\")) l))");
   expectEqlUint(result->type, VALUE_TYPE_NUMBER, "returns correct type");
-  expectEqlDouble(result->as.number, 2, "returns correct value");
+  expectEqlDouble(result->as.number, 4, "returns correct value");
   valueDestroy(&result);
 }
 
