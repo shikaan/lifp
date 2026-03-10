@@ -17,13 +17,13 @@ A Lisp dialect and toolchain. All in one binary.
 
 _MacOS and Linux_
 ```sh
-sudo sh -c "curl -s https://shikaan.github.io/sup/install | REPO=shikaan/lifp sh -"
+curl -s https://shikaan.github.io/sup/install | REPO=shikaan/lifp sh -
 ```
 
 or
 
 ```sh
-sudo sh -c "wget -q https://shikaan.github.io/sup/install -O- | REPO=shikaan/lifp sh -"
+wget -q https://shikaan.github.io/sup/install -O- | REPO=shikaan/lifp sh -
 ```
 
 _Windows and manual instructions_
